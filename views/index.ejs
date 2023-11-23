@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="en">
+  
+  <head>
+    <meta charset="utf-8" lang="en">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Notes & Projects</title>
+    <link rel="shortcut icon" type="image/png" href="/img/fav_notes.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kalam&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+    <link href="/css/styles.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <div hidden id="user_timezone" style="height: 0;"><%=user_timezone_PH%></div>
+    <div hidden id="wtr_simple" style="height: 0;"><%=wtr_simple_PH%></div>
+    <div hidden id="celsius" style="height: 0;"><%=celsius_PH%></div>
+    <div hidden id="mili_diff" style="height: 0;"><%=mili_diff_PH%></div>
+
+
+    <div id="shine-div">      
+      <div class="container">
+
+        <div class="container" id="hero-greeting">
+          <div class="row">
+            <div class="col" id="title-box">
+              <h1>Good <span id="period_of_day">day</span>, <%=username_PH%></h1>
+              <div id="logout-box">&#8618;</div>
+              <form hidden action="/home" method="post" name="logout-form" id="logout-form">
+                <input hidden type="number" name="logout" id="logout" value=1>
+              </form>
+            </div>
+          </div>
+        </div>
+  
+        <div class="container main-container">
+          <div class="row text-center row-days dayA" id="day1">
+
+            <div class="col col-days daytime">
+              <h5><%=dayA_PH%></h5>
+              <h4 hidden class="hidden_date day1 daytime"><%=dayA_hidden_date_PH%></h4>
+              <div class="notes-box">
+                <%let notesDayA_PH = JSON.parse(notesDayA_PH_string);%>
+                <%for (i = 0; i < notesDayA_PH.length; i++){%>
+                  <header>
+                    <div class="wk stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                      <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                    </svg></div>
+                    <div class="mh stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                      <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                    </svg></div>
+                    <div class="header__bg"></div>
+                    <textarea class="expandable-textarea added_note day1 daytime" id="added_note_day1_daytime<%=i%>" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off"><%=notesDayA_PH[i][0]%></textarea>
+                  <div hidden class="note_timestamp"><%=notesDayA_PH[i][1]%></div>
+                </header>
+                <%}%>
+                <header>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea new_note" id="new_note_adder1" placeholder="new note" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off" maxlength="80"></textarea>
+                </header>
+              </div>
+              <form action="/home" method="post" class="form-day" id="form-day1" hidden>
+                <div class="expandable-textarea" role="textbox" id="new_note_dayA" data-text="new note" autocomplete="off"></div>
+              </form>
+            </div> <!-- class="col col-days daytime">-->
+
+            <div class="col col-days ngttime">
+              <h5><%=dayB_PH%></h5>
+              <h4 hidden class="hidden_date day1 ngttime"><%=dayB_hidden_date_PH%></h4>
+              <div class="notes-box">
+                <%let notesDayB_PH = JSON.parse(notesDayB_PH_string)%>
+                <%for (j = 0; j < notesDayB_PH.length; j++){%>
+                <header>
+                  <div class="wk stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  </svg></div>
+                  <div class="mh stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  </svg></div>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea added_note day1 ngttime" id="added_note_day1_ngttime<%=j%>" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off"><%=notesDayB_PH[j][0]%></textarea>
+                  <div hidden class="note_timestamp"><%=notesDayB_PH[j][1]%></div>
+                </header>
+                <%}%>
+                <header>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea new_note" id="new_note_adder1" placeholder="new note" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off" maxlength="80"></textarea>
+                </header>
+              </div>
+              <form action="/home" method="post" class="form-day" id="form-day2" hidden>
+                <div class="expandable-textarea" role="textbox" id="new_note_dayA" data-text="new note" autocomplete="off"></div>
+              </form>
+            </div> <!-- class="col col-days ngttime">-->
+
+            <div class="weather_day" id="weather_day1">
+              <%let current_hour, next_6h, next_day, day3_wtr;%>
+              <%if (current_hour_PH){ current_hour = parseInt(current_hour_PH) };%>
+              <%if (next_6h_PH){ next_6h = JSON.parse(next_6h_PH) };%>
+              <%if (next_day_PH){ next_day = JSON.parse(next_day_PH)};%>
+              <%if (day3_PH){ day3_wtr = JSON.parse(day3_PH)};%>
+              <p hidden style="height: 0;" id="current_hour_from_server"><%=current_hour%></p>
+              <%if (next_day_PH){%>
+              <%if(current_hour < 17 && current_hour > 3 && next_6h_PH){%>
+                <p id="next_6_hours" style="align-self: baseline; height: fit-content;">Next 6 hours:</p>
+                <%let hours = next_6h[0];%>
+                <%let codes = next_6h[1];%>
+                <%let temps = next_6h[2];%>
+                <div class="hourly_weather">
+                  <%for(let f = 0; f < 6; f++){%>                
+                    <div class="hour_weather">
+                      <p class="hour_hour_weather"><%=hours[f]%></p>
+                      <%let codes_f = codes[f];%>
+                      <%if (codes_f < 3){%>
+                        <%if (hours[f] > next_6h[3] && hours[f] < next_6h[4]){%>
+                          <%if (codes_f == 0 || codes_f == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                              <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                            </svg>
+                          <%} else if (codes_f == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sun-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M10.5 1.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm3.743 1.964a.5.5 0 1 0-.707-.707l-.708.707a.5.5 0 0 0 .708.708l.707-.708zm-7.779-.707a.5.5 0 0 0-.707.707l.707.708a.5.5 0 1 0 .708-.708l-.708-.707zm1.734 3.374a2 2 0 1 1 3.296 2.198c.199.281.372.582.516.898a3 3 0 1 0-4.84-3.225c.352.011.696.055 1.028.129zm4.484 4.074c.6.215 1.125.59 1.522 1.072a.5.5 0 0 0 .039-.742l-.707-.707a.5.5 0 0 0-.854.377zM14.5 6.5a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                          <%}%>
+                        <%} else{%>
+                          <%if (codes_f == 0){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                              <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                            </svg>
+                          <%} else if (codes_f == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                            </svg>                     
+                          <%} else if (codes_f == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-moon-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M11.286 1.778a.5.5 0 0 0-.565-.755 4.595 4.595 0 0 0-3.18 5.003 5.46 5.46 0 0 1 1.055.209A3.603 3.603 0 0 1 9.83 2.617a4.593 4.593 0 0 0 4.31 5.744 3.576 3.576 0 0 1-2.241.634c.162.317.295.652.394 1a4.59 4.59 0 0 0 3.624-2.04.5.5 0 0 0-.565-.755 3.593 3.593 0 0 1-4.065-5.422z"/>
+                            </svg>
+                          <%}%>
+                        <%}%>
+                      <%} else if (codes_f == 3){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clouds-fill" viewBox="0 0 16 16">
+                          <path d="M11.473 9a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 14h8.5a2.5 2.5 0 1 0-.027-5z"/>
+                          <path d="M14.544 9.772a3.506 3.506 0 0 0-2.225-1.676 5.502 5.502 0 0 0-6.337-4.002 4.002 4.002 0 0 1 7.392.91 2.5 2.5 0 0 1 1.17 4.769z"/>
+                        </svg>
+                      <%} else if (codes_f == 45){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-fog-fill" viewBox="0 0 16 16">
+                          <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm10.405-9.473a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 12H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 48){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-haze-fill" viewBox="0 0 16 16">
+                          <path d="M4 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm2 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM13.405 4.027a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 51 || codes_f == 53 || codes_f == 55){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-drizzle-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 56 || codes_f == 57 || codes_f == 66 || codes_f == 67){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sleet-fill" viewBox="0 0 16 16">
+                          <path d="M2.375 13.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zM6.375 13.5a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm2.151 2.447a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 1 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm1.181-7.026a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 61 || codes_f == 63 || codes_f == 80 || codes_f == 81){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 65 || codes_f == 82){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-heavy-fill" viewBox="0 0 16 16">
+                          <path d="M4.176 11.032a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm.229-7.005a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 71 || codes_f == 73 || codes_f == 75 || codes_f == 85 || codes_f == 86 || codes_f == 77){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-snow-fill" viewBox="0 0 16 16">
+                          <path d="M2.625 11.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm2.75 2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-2.75-2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-.22-7.223a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10.25H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (codes_f == 95 || codes_f == 96 || codes_f == 99){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-lightning-rain-fill" viewBox="0 0 16 16">
+                          <path d="M2.658 11.026a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.5 1.5a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.105-1.25A.5.5 0 0 1 7.5 11h1a.5.5 0 0 1 .474.658l-.28.842H9.5a.5.5 0 0 1 .39.812l-2 2.5a.5.5 0 0 1-.875-.433L7.36 14H6.5a.5.5 0 0 1-.447-.724l1-2zm6.352-7.249a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%}%>
+                      <p class="weather_temperature"><%=temps[f]%></p>
+                    </div>
+                  <%}%>
+                </div>
+
+              <%} else{%>
+                <%let hour = 6;%>
+                <%let next_day_2 = next_day[2];%>
+                <div class="day_weather">
+                  <div class="hourly_weather">
+                    <%for (let x = 0; x < next_day_2.length; x += 2){%>
+                    <div class="hour_weather">
+                      <%if(hour > 9){%>
+                        <p class="hour_hour_weather"><%=hour%></p>
+                      <%} else {%>
+                        <p class="hour_hour_weather">0<%=(hour.toString())%></p>
+                      <%}%>
+                      <%let code_day2_x = next_day_2[x];%>
+                      <%if (code_day2_x < 3){%>
+                        <%if (hour > next_day[3] && hour < next_day[4]){%>
+                          <%if (code_day2_x == 0 || code_day2_x == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                              <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sun-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M10.5 1.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm3.743 1.964a.5.5 0 1 0-.707-.707l-.708.707a.5.5 0 0 0 .708.708l.707-.708zm-7.779-.707a.5.5 0 0 0-.707.707l.707.708a.5.5 0 1 0 .708-.708l-.708-.707zm1.734 3.374a2 2 0 1 1 3.296 2.198c.199.281.372.582.516.898a3 3 0 1 0-4.84-3.225c.352.011.696.055 1.028.129zm4.484 4.074c.6.215 1.125.59 1.522 1.072a.5.5 0 0 0 .039-.742l-.707-.707a.5.5 0 0 0-.854.377zM14.5 6.5a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                          <%}%>
+                        <%} else{%>
+                          <%if (code_day2_x == 0){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                              <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-moon-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M11.286 1.778a.5.5 0 0 0-.565-.755 4.595 4.595 0 0 0-3.18 5.003 5.46 5.46 0 0 1 1.055.209A3.603 3.603 0 0 1 9.83 2.617a4.593 4.593 0 0 0 4.31 5.744 3.576 3.576 0 0 1-2.241.634c.162.317.295.652.394 1a4.59 4.59 0 0 0 3.624-2.04.5.5 0 0 0-.565-.755 3.593 3.593 0 0 1-4.065-5.422z"/>
+                            </svg>
+                          <%}%>
+                        <%}%>
+                      <%} else if (code_day2_x == 3){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clouds-fill" viewBox="0 0 16 16">
+                          <path d="M11.473 9a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 14h8.5a2.5 2.5 0 1 0-.027-5z"/>
+                          <path d="M14.544 9.772a3.506 3.506 0 0 0-2.225-1.676 5.502 5.502 0 0 0-6.337-4.002 4.002 4.002 0 0 1 7.392.91 2.5 2.5 0 0 1 1.17 4.769z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 45){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-fog-fill" viewBox="0 0 16 16">
+                          <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm10.405-9.473a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 12H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 48){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-haze-fill" viewBox="0 0 16 16">
+                          <path d="M4 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm2 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM13.405 4.027a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 51 || code_day2_x == 53 || code_day2_x == 55){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-drizzle-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 56 || code_day2_x == 57 || code_day2_x == 66 || code_day2_x == 67){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sleet-fill" viewBox="0 0 16 16">
+                          <path d="M2.375 13.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zM6.375 13.5a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm2.151 2.447a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 1 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm1.181-7.026a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 61 || code_day2_x == 63 || code_day2_x == 80 || code_day2_x == 81){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 65 || code_day2_x == 82){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-heavy-fill" viewBox="0 0 16 16">
+                          <path d="M4.176 11.032a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm.229-7.005a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 71 || code_day2_x == 73 || code_day2_x == 75 || code_day2_x == 85 || code_day2_x == 86 || code_day2_x == 77){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-snow-fill" viewBox="0 0 16 16">
+                          <path d="M2.625 11.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm2.75 2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-2.75-2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-.22-7.223a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10.25H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 95 || code_day2_x == 96 || code_day2_x == 99){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-lightning-rain-fill" viewBox="0 0 16 16">
+                          <path d="M2.658 11.026a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.5 1.5a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.105-1.25A.5.5 0 0 1 7.5 11h1a.5.5 0 0 1 .474.658l-.28.842H9.5a.5.5 0 0 1 .39.812l-2 2.5a.5.5 0 0 1-.875-.433L7.36 14H6.5a.5.5 0 0 1-.447-.724l1-2zm6.352-7.249a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%};%>
+                      <p class="weather_temperature"><%=next_day_2[x+1]%></p>
+                    </div>
+                    <%hour = hour+3}%>
+                  </div>
+                  <div class="max_min_temp">
+                    <div class="square_receiver receiver_left">
+                      <div class="transparent_square transparent_left"></div>
+                    </div>
+                    <div class="temp_box  temp_box_max">
+                      <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=next_day[0][0]%> at <%=next_day[0][1]%>h</p>
+                    </div>
+                    <div class="temp_box  temp_box_min">
+                      <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=next_day[1][0]%> at <%=next_day[1][1]%>h</p>
+                    </div>
+                    <div class="square_receiver">
+                      <div class="transparent_square"></div>
+                    </div>
+                  </div>
+                </div>
+              <%}%>
+            <%} else if (day3_PH){%>
+              <%let day3_2 = day3_wtr[2];%>
+              <%let hour = 6;%>
+              <div class="day_weather">
+                <div class="hourly_weather">
+                  <%for (let x = 0; x < day3_2.length; x += 2){%>
+                  <div class="hour_weather">
+                    <%if(hour > 9){%>
+                      <p class="hour_hour_weather"><%=hour%></p>
+                    <%} else {%>
+                      <p class="hour_hour_weather">0<%=(hour.toString())%></p>
+                    <%}%>
+                    <%let day3_2_x = day3_2[x];%>
+                    <%if (day3_2_x < 3){%>
+                      <%if (hour > day3_wtr[3] && hour < day3_wtr[4]){%>
+                        <%if (day3_2_x == 0 || day3_2_x == 1){%>
+                          <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                            <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                          </svg>
+                        <%} else if (day3_2_x == 2){%>
+                          <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sun-fill" viewBox="0 0 16 16">
+                            <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                            <path d="M10.5 1.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm3.743 1.964a.5.5 0 1 0-.707-.707l-.708.707a.5.5 0 0 0 .708.708l.707-.708zm-7.779-.707a.5.5 0 0 0-.707.707l.707.708a.5.5 0 1 0 .708-.708l-.708-.707zm1.734 3.374a2 2 0 1 1 3.296 2.198c.199.281.372.582.516.898a3 3 0 1 0-4.84-3.225c.352.011.696.055 1.028.129zm4.484 4.074c.6.215 1.125.59 1.522 1.072a.5.5 0 0 0 .039-.742l-.707-.707a.5.5 0 0 0-.854.377zM14.5 6.5a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                          </svg>
+                        <%}%>
+                      <%} else{%>
+                        <%if (day3_2_x == 0){%>
+                          <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                            <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                            <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                          </svg>
+                        <%} else if (day3_2_x == 1){%>
+                          <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                            <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                          </svg>                     
+                        <%} else if (day3_2_x == 2){%>
+                          <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-moon-fill" viewBox="0 0 16 16">
+                            <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                            <path d="M11.286 1.778a.5.5 0 0 0-.565-.755 4.595 4.595 0 0 0-3.18 5.003 5.46 5.46 0 0 1 1.055.209A3.603 3.603 0 0 1 9.83 2.617a4.593 4.593 0 0 0 4.31 5.744 3.576 3.576 0 0 1-2.241.634c.162.317.295.652.394 1a4.59 4.59 0 0 0 3.624-2.04.5.5 0 0 0-.565-.755 3.593 3.593 0 0 1-4.065-5.422z"/>
+                          </svg>
+                        <%}%>
+                      <%}%>
+                    <%} else if (day3_2_x == 3){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clouds-fill" viewBox="0 0 16 16">
+                        <path d="M11.473 9a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 14h8.5a2.5 2.5 0 1 0-.027-5z"/>
+                        <path d="M14.544 9.772a3.506 3.506 0 0 0-2.225-1.676 5.502 5.502 0 0 0-6.337-4.002 4.002 4.002 0 0 1 7.392.91 2.5 2.5 0 0 1 1.17 4.769z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 45){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-fog-fill" viewBox="0 0 16 16">
+                        <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm10.405-9.473a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 12H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 48){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-haze-fill" viewBox="0 0 16 16">
+                        <path d="M4 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm2 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM13.405 4.027a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 51 || day3_2_x == 53 || day3_2_x == 55){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-drizzle-fill" viewBox="0 0 16 16">
+                        <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 56 || day3_2_x == 57 || day3_2_x == 66 || day3_2_x == 67){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sleet-fill" viewBox="0 0 16 16">
+                        <path d="M2.375 13.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zM6.375 13.5a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm2.151 2.447a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 1 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm1.181-7.026a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 61 || day3_2_x == 63 || day3_2_x == 80 || day3_2_x == 81){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-fill" viewBox="0 0 16 16">
+                        <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 65 || day3_2_x == 82){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-heavy-fill" viewBox="0 0 16 16">
+                        <path d="M4.176 11.032a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm.229-7.005a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 71 || day3_2_x == 73 || day3_2_x == 75 || day3_2_x == 85 || day3_2_x == 86 || day3_2_x == 77){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-snow-fill" viewBox="0 0 16 16">
+                        <path d="M2.625 11.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm2.75 2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-2.75-2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-.22-7.223a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10.25H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%} else if (day3_2_x == 95 || day3_2_x == 96 || day3_2_x == 99){%>
+                      <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-lightning-rain-fill" viewBox="0 0 16 16">
+                        <path d="M2.658 11.026a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.5 1.5a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.105-1.25A.5.5 0 0 1 7.5 11h1a.5.5 0 0 1 .474.658l-.28.842H9.5a.5.5 0 0 1 .39.812l-2 2.5a.5.5 0 0 1-.875-.433L7.36 14H6.5a.5.5 0 0 1-.447-.724l1-2zm6.352-7.249a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                      </svg>
+                    <%};%>
+                    <p class="weather_temperature"><%=day3_2[x+1]%></p>
+                  </div>
+                  <%hour = hour+3}%>
+                </div>
+                <div class="max_min_temp">
+                  <div class="square_receiver receiver_left">
+                    <div class="transparent_square transparent_left"></div>
+                  </div>
+                  <div class="temp_box  temp_box_max">
+                    <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=day3_wtr[0][0]%> at <%=day3_wtr[0][1]%>h</p>
+                  </div>
+                  <div class="temp_box  temp_box_min">
+                    <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=day3_wtr[1][0]%> at <%=day3_wtr[1][1]%>h</p>
+                  </div>
+                  <div class="square_receiver">
+                    <div class="transparent_square"></div>
+                  </div>
+                </div>
+              </div>
+
+            <%}%>
+
+            </div>
+
+          </div> <!-- class="row text-center row-days dayA" id="day1" -->
+
+          <div class="row text-center row-days dayB" id="day2">
+
+            <div id="day2_title_container" class="daytime ngttime">
+              <h5 class="daytime"><%=dayB_PH%></h5>
+              <h4 hidden class="hidden_date day2 daytime"><%=dayB_hidden_date_PH%></h4>
+              <h5 class="ngttime"><%=dayC_PH%></h5>
+              <h4 hidden class="hidden_date day2 ngttime"><%=dayC_hidden_date_PH%></h4>
+              <p id="right_arrow"><input type="text" readonly="readonly" id="datepicker" value="📅"></p>
+              <form hidden action="/home" method="get" id="form-new_date"></form>
+            </div>
+
+            <div class="col col-days daytime">
+              <div class="notes-box">
+                <%for (k = 0; k < notesDayB_PH.length; k++){%>
+                <header>
+                  <div class="wk stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  </svg></div>
+                  <div class="mh stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  </svg></div>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea added_note day2 daytime" id="added_note_day2_daytime<%=k%>" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off"><%=notesDayB_PH[k][0]%></textarea>
+                  <div hidden class="note_timestamp"><%=notesDayB_PH[k][1]%></div>
+                </header>
+                <%}%>
+                <header>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea new_note" id="new_note_adder2" placeholder="new note" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off" maxlength="80"></textarea>
+                </header>
+              </div>
+                <div class="expandable-textarea" role="textbox" id="new_note_dayB" data-text="new note" autocomplete="off" form="form-day2"></div>
+            </div> <!-- class="col col-days daytime">-->
+
+            <div class="col col-days ngttime">
+              <div class="notes-box">
+                <%let notesDayC_PH = JSON.parse(notesDayC_PH_string)%>
+                <%for (l = 0; l < notesDayC_PH.length; l++){%>
+                <header>
+                  <div class="wk stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  </svg></div>
+                  <div class="mh stamp" style="position: fixed"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
+                    <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
+                  </svg></div>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea added_note day2 ngttime" id="added_note_day2_ngttime<%=l%>" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off"><%=notesDayC_PH[l][0]%></textarea>
+                  <div hidden class="note_timestamp"><%=notesDayC_PH[l][1]%></div>
+                </header>
+                <%}%>
+                <header>
+                  <div class="header__bg"></div>
+                  <textarea class="expandable-textarea new_note" id="new_note_adder2" placeholder="new note" style="width:100%" oninput='this.style.height = "";this.style.height = this.scrollHeight + "px"' onblur='this.style.height = "";this.style.height = this.scrollHeight + "px"' onfocus='this.style.height = "";this.style.height = this.scrollHeight + "px"' autocomplete="off" maxlength="80"></textarea>
+                </header>
+              </div>
+              <form action="/home" method="post" class="form-day" id="form-projects_section" hidden>
+                <div class="expandable-textarea" role="textbox" id="new_note_dayB" data-text="new note" autocomplete="off"></div>
+              </form>
+            </div> <!-- class="col col-days ngttime">-->
+
+            <div class="weather_day" id="weather_day2">
+              <%if (next_day_PH){%>
+              <%if(current_hour < 17 && current_hour > 3 && next_6h_PH){%>
+                <%let next_day_2 = next_day[2];%>
+                <%let hour = 6;%>
+                <div class="day_weather">
+                  <div class="hourly_weather">
+                    <%for (let x = 0; x < next_day_2.length; x += 2){%>
+                    <div class="hour_weather">
+                      <%if(hour > 9){%>
+                        <p class="hour_hour_weather"><%=hour%></p>
+                      <%} else {%>
+                        <p class="hour_hour_weather">0<%=(hour.toString())%></p>
+                      <%}%>
+                      <%let code_day2_x = next_day_2[x];%>
+                      <%if (code_day2_x < 3){%>
+                        <%if (hour > next_day[3] && hour < next_day[4]){%>
+                          <%if (code_day2_x == 0 || code_day2_x == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                              <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sun-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M10.5 1.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm3.743 1.964a.5.5 0 1 0-.707-.707l-.708.707a.5.5 0 0 0 .708.708l.707-.708zm-7.779-.707a.5.5 0 0 0-.707.707l.707.708a.5.5 0 1 0 .708-.708l-.708-.707zm1.734 3.374a2 2 0 1 1 3.296 2.198c.199.281.372.582.516.898a3 3 0 1 0-4.84-3.225c.352.011.696.055 1.028.129zm4.484 4.074c.6.215 1.125.59 1.522 1.072a.5.5 0 0 0 .039-.742l-.707-.707a.5.5 0 0 0-.854.377zM14.5 6.5a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                          <%}%>
+                        <%} else{%>
+                          <%if (code_day2_x == 0){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                              <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                            </svg>                     
+                          <%} else if (code_day2_x == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-moon-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M11.286 1.778a.5.5 0 0 0-.565-.755 4.595 4.595 0 0 0-3.18 5.003 5.46 5.46 0 0 1 1.055.209A3.603 3.603 0 0 1 9.83 2.617a4.593 4.593 0 0 0 4.31 5.744 3.576 3.576 0 0 1-2.241.634c.162.317.295.652.394 1a4.59 4.59 0 0 0 3.624-2.04.5.5 0 0 0-.565-.755 3.593 3.593 0 0 1-4.065-5.422z"/>
+                            </svg>
+                          <%}%>
+                        <%}%>
+                      <%} else if (code_day2_x == 3){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clouds-fill" viewBox="0 0 16 16">
+                          <path d="M11.473 9a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 14h8.5a2.5 2.5 0 1 0-.027-5z"/>
+                          <path d="M14.544 9.772a3.506 3.506 0 0 0-2.225-1.676 5.502 5.502 0 0 0-6.337-4.002 4.002 4.002 0 0 1 7.392.91 2.5 2.5 0 0 1 1.17 4.769z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 45){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-fog-fill" viewBox="0 0 16 16">
+                          <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm10.405-9.473a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 12H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 48){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-haze-fill" viewBox="0 0 16 16">
+                          <path d="M4 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm2 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM13.405 4.027a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 51 || code_day2_x == 53 || code_day2_x == 55){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-drizzle-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 56 || code_day2_x == 57 || code_day2_x == 66 || code_day2_x == 67){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sleet-fill" viewBox="0 0 16 16">
+                          <path d="M2.375 13.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zM6.375 13.5a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm2.151 2.447a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 1 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm1.181-7.026a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 61 || code_day2_x == 63 || code_day2_x == 80 || code_day2_x == 81){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 65 || code_day2_x == 82){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-heavy-fill" viewBox="0 0 16 16">
+                          <path d="M4.176 11.032a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm.229-7.005a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 71 || code_day2_x == 73 || code_day2_x == 75 || code_day2_x == 85 || code_day2_x == 86 || code_day2_x == 77){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-snow-fill" viewBox="0 0 16 16">
+                          <path d="M2.625 11.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm2.75 2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-2.75-2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-.22-7.223a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10.25H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (code_day2_x == 95 || code_day2_x == 96 || code_day2_x == 99){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-lightning-rain-fill" viewBox="0 0 16 16">
+                          <path d="M2.658 11.026a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.5 1.5a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.105-1.25A.5.5 0 0 1 7.5 11h1a.5.5 0 0 1 .474.658l-.28.842H9.5a.5.5 0 0 1 .39.812l-2 2.5a.5.5 0 0 1-.875-.433L7.36 14H6.5a.5.5 0 0 1-.447-.724l1-2zm6.352-7.249a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%};%>
+                      <p class="weather_temperature"><%=next_day_2[x+1]%></p>
+                    </div>
+                    <%hour = hour+3}%>
+                  </div>
+                  <div class="max_min_temp">
+                    <div class="square_receiver receiver_left">
+                      <div class="transparent_square transparent_left"></div>
+                    </div>
+                    <div class="temp_box  temp_box_max">
+                      <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=next_day[0][0]%> at <%=next_day[0][1]%>h</p>
+                    </div>
+                    <div class="temp_box  temp_box_min">
+                      <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=next_day[1][0]%> at <%=next_day[1][1]%>h</p>
+                    </div>
+                    <div class="square_receiver">
+                      <div class="transparent_square"></div>
+                    </div>
+                  </div>
+                </div>
+              <%} else if (day3_PH){%>
+                <%let day3_2 = day3_wtr[2];%>
+                <%let hour = 6;%>
+                <div class="day_weather">
+                  <div class="hourly_weather">
+                    <%for (let x = 0; x < day3_2.length; x += 2){%>
+                    <div class="hour_weather">
+                      <%if(hour > 9){%>
+                        <p class="hour_hour_weather"><%=hour%></p>
+                      <%} else {%>
+                        <p class="hour_hour_weather">0<%=(hour.toString())%></p>
+                      <%}%>
+                      <%let day3_2_x = day3_2[x];%>
+                      <%if (day3_2_x < 3){%>
+                        <%if (hour > day3_wtr[3] && hour < day3_wtr[4]){%>
+                          <%if (day3_2_x == 0 || day3_2_x == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                              <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                            </svg>
+                          <%} else if (day3_2_x == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sun-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M10.5 1.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm3.743 1.964a.5.5 0 1 0-.707-.707l-.708.707a.5.5 0 0 0 .708.708l.707-.708zm-7.779-.707a.5.5 0 0 0-.707.707l.707.708a.5.5 0 1 0 .708-.708l-.708-.707zm1.734 3.374a2 2 0 1 1 3.296 2.198c.199.281.372.582.516.898a3 3 0 1 0-4.84-3.225c.352.011.696.055 1.028.129zm4.484 4.074c.6.215 1.125.59 1.522 1.072a.5.5 0 0 0 .039-.742l-.707-.707a.5.5 0 0 0-.854.377zM14.5 6.5a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                            </svg>
+                          <%}%>
+                        <%} else{%>
+                          <%if (day3_2_x == 0){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                              <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                            </svg>
+                          <%} else if (day3_2_x == 1){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                              <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                            </svg>                     
+                          <%} else if (day3_2_x == 2){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-moon-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                              <path d="M11.286 1.778a.5.5 0 0 0-.565-.755 4.595 4.595 0 0 0-3.18 5.003 5.46 5.46 0 0 1 1.055.209A3.603 3.603 0 0 1 9.83 2.617a4.593 4.593 0 0 0 4.31 5.744 3.576 3.576 0 0 1-2.241.634c.162.317.295.652.394 1a4.59 4.59 0 0 0 3.624-2.04.5.5 0 0 0-.565-.755 3.593 3.593 0 0 1-4.065-5.422z"/>
+                            </svg>
+                          <%}%>
+                        <%}%>
+                      <%} else if (day3_2_x == 3){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clouds-fill" viewBox="0 0 16 16">
+                          <path d="M11.473 9a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 14h8.5a2.5 2.5 0 1 0-.027-5z"/>
+                          <path d="M14.544 9.772a3.506 3.506 0 0 0-2.225-1.676 5.502 5.502 0 0 0-6.337-4.002 4.002 4.002 0 0 1 7.392.91 2.5 2.5 0 0 1 1.17 4.769z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 45){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-fog-fill" viewBox="0 0 16 16">
+                          <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm10.405-9.473a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 12H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 48){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-haze-fill" viewBox="0 0 16 16">
+                          <path d="M4 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm2 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM13.405 4.027a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 51 || day3_2_x == 53 || day3_2_x == 55){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-drizzle-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 56 || day3_2_x == 57 || day3_2_x == 66 || day3_2_x == 67){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sleet-fill" viewBox="0 0 16 16">
+                          <path d="M2.375 13.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zM6.375 13.5a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm2.151 2.447a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 1 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm1.181-7.026a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 61 || day3_2_x == 63 || day3_2_x == 80 || day3_2_x == 81){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-fill" viewBox="0 0 16 16">
+                          <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 65 || day3_2_x == 82){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-heavy-fill" viewBox="0 0 16 16">
+                          <path d="M4.176 11.032a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm.229-7.005a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 71 || day3_2_x == 73 || day3_2_x == 75 || day3_2_x == 85 || day3_2_x == 86 || day3_2_x == 77){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-snow-fill" viewBox="0 0 16 16">
+                          <path d="M2.625 11.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm2.75 2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-2.75-2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-.22-7.223a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10.25H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%} else if (day3_2_x == 95 || day3_2_x == 96 || day3_2_x == 99){%>
+                        <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-lightning-rain-fill" viewBox="0 0 16 16">
+                          <path d="M2.658 11.026a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.5 1.5a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.105-1.25A.5.5 0 0 1 7.5 11h1a.5.5 0 0 1 .474.658l-.28.842H9.5a.5.5 0 0 1 .39.812l-2 2.5a.5.5 0 0 1-.875-.433L7.36 14H6.5a.5.5 0 0 1-.447-.724l1-2zm6.352-7.249a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                        </svg>
+                      <%};%>
+                      <p class="weather_temperature"><%=day3_2[x+1]%></p>
+                    </div>
+                    <%hour = hour+3}%>
+                  </div>
+                  <div class="max_min_temp">
+                    <div class="square_receiver receiver_left">
+                      <div class="transparent_square transparent_left"></div>
+                    </div>
+                    <div class="temp_box  temp_box_max">
+                      <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=day3_wtr[0][0]%> at <%=day3_wtr[0][1]%>h</p>
+                    </div>
+                    <div class="temp_box  temp_box_min">
+                      <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=day3_wtr[1][0]%> at <%=day3_wtr[1][1]%>h</p>
+                    </div>
+                    <div class="square_receiver">
+                      <div class="transparent_square"></div>
+                    </div>
+                  </div>
+                </div>
+
+              <%}%>
+              <%}%>
+              <form action="/home" method="post" hidden id="weather-form"></form>
+            </div>
+            
+          </div> <!-- class="row text-center row-days dayB" id="day2" -->
+
+          <div class="row row-days" id="next_events">
+            <%let days_7 = JSON.parse(days_7_PH);%>
+            <%let days_31 = JSON.parse(days_31_PH);%>
+            <div class="col col-days" id="next_7_days">
+              <div class="specific_next_event" id="next_events_title">
+                <h5>+7 days:</h5>
+              </div>              
+                <%for (let d = 0; d < days_7.length; d++){%>
+                  <%let buf_day = days_7[d];%>
+                  <div class="specific_next_event">
+                    <p class="next_event_event"><%=buf_day[0]%></p>
+                    <div class="next_event_date-box">
+                      <%for (let i = 0; i < buf_day[1].length; i++){%>
+                      <p class="next_event_date"><%=buf_day[1][i]%></p>
+                      <%}%>
+                    </div>
+                  </div>
+                <%}%>
+            </div>
+            <div class="col col-days" id="next_30_days">
+              <div class="specific_next_event" id="next_events_title">
+                <h5>+31 days:</h5>
+              </div>
+              <%for (let e = 0; e < days_31.length; e++){%>
+                <%let buf_day = days_31[e];%>
+                <div class="specific_next_event">
+                  <p class="next_event_event"><%=buf_day[0]%></p>
+                  <div class="next_event_date-box">
+                    <%for (let i = 0; i < buf_day[1].length; i++){%>
+                    <p class="next_event_date"><%=buf_day[1][i]%></p>
+                    <%}%>
+                  </div>
+                </div>
+              <%}%>
+            </div>
+          </div>          
+          
+          <div class="row text-center row-days dayC" id="projects_section">
+            <div id="projects-container">
+              <%let projects_PH = JSON.parse(projects_PH_string)%>
+              <%if (projects_PH.length < 1){%>
+                <div id="empty_projects-box">
+                  <p>PROJECTS AREA</p>
+                </div>
+                <%} else{%>
+                  <div class="projects-box">
+                    <%for (m = 0; m < projects_PH.length; m++){%>
+                      
+                      <div class="project" id="project<%=m%>">
+                        <p class="project_title"> <%=projects_PH[m].title%> </p>
+                        <div class="tasks">
+                          <%if (projects_PH[m]["tasks_done"].length > 0){%>
+                          <%let buffer_proj_m = projects_PH[m]["tasks_done"];%>                            
+                          <%for (o = 0; o < buffer_proj_m.length; o++){%>
+                          <div class="task_with_lines">
+                            <hr class="done_line line">
+                            <div class="specific_task done">
+                              <div class="obs-box">
+                                <div class="obs-header">
+                                  <h4 class="obs-title">Observations</h4>
+                                  <button class="obs-save-button">SAVE</button>
+                                </div>
+                                <textarea name="obs_done<%=o%>" class="obs" id="obs_done<%=o%>" cols="30" rows="10"><%=buffer_proj_m[o]["obs"]%></textarea>
+                              </div>
+                              <div class="gray_rectangle"></div>
+                              <p class="task-text"><%=buffer_proj_m[o]["task"]%></p>
+                              <%if (buffer_proj_m[o]["deadline"]){%>
+                              <p class="task-deadline"><%=new Date(buffer_proj_m[o]["deadline"]+user_timezone_PH).toString().slice(4,15)%></p>
+                              <p hidden class="task-deadline-YYYY-MM-DD"><%=buffer_proj_m[o]["deadline"]%></p>
+                              <%}%>
+                            </div>
+                            <hr class="done_line line">
+                          </div>
+                          <%}%>                              
+                          <%}%>
+                              
+                          <%if (projects_PH[m]["tasks_todo"].length > 0){%>
+                            <%let buffer_proj_mm = projects_PH[m]["tasks_todo"];%>                              
+                          <%for (n = 0; n < buffer_proj_mm.length; n++){%>
+                          <div class="task_with_lines">
+                            <hr class="todo_line line">
+                            <div class="specific_task todo">
+                              <div class="obs-box">
+                                <div class="obs-header">
+                                  <h4 class="obs-title">Observations</h4>
+                                  <button class="obs-save-button">SAVE</button>
+                                </div>
+                                <textarea name="obs_todo<%=n%>" class="obs" id="obs_todo<%=n%>" cols="30" rows="10"><%=buffer_proj_mm[n]["obs"]%></textarea>
+                              </div>
+                              <div class="gray_rectangle"></div>
+                              <p class="task-text"><%=buffer_proj_mm[n]["task"]%></p>
+                              <%if (buffer_proj_mm[n]["deadline"]){%>
+                              <p class="task-deadline"><%=new Date(buffer_proj_mm[n]["deadline"]+user_timezone_PH).toString().slice(4,15)%></p>
+                              <p hidden class="task-deadline-YYYY-MM-DD"><%=buffer_proj_mm[n]["deadline"]%></p>
+                              <%}%>
+                            </div>
+                            <hr class="todo_line line">
+                          </div>
+                          <%}%>  
+                          <%}%>
+                        </div>
+                        <%if (projects_PH[m]["final_deadline"]){%>
+                          <%let buffer_ddl = new Date(projects_PH[m]["final_deadline"]+user_timezone_PH).toString();%>
+                        <div class="final_deadline-box"><%=(buffer_ddl.slice(3,10)+', '+buffer_ddl.slice(10,16))%></div>
+                        <%}%>
+                      </div>
+                      <%}%>                  
+                  </div>
+                  <%}%>
+                  <button type="button" id="add_new_project">Add new project</button>
+            </div>
+                        
+          </div> <!-- class="row text-center row-days projects_section" id="projects_section" -->
+          
+          <div class="shade_project_box">
+            <div id="new_project_box">
+              
+              <div class="center-container">
+                <h5>New Project</h5>
+              </div>
+              <div class="project_header">
+                <input type="text" name="new_project_title" id="new_project_title" placeholder="Project's title" form="form-new_project" autocomplete="off" maxlength="25" required>
+                <input placeholder="DEADLINE" class="new_project_deadline" name="new_project_deadline" type="text" id="new_project_deadline" form="form-new_project" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <div class="filler1"></div>
+              </div>  
+              <div class="another_task" id="another_task0">
+                <input type="text" class="new_project_task" name="new_project_task0" id="new_project_task0" form="form-new_project" placeholder="task to do"  maxlength="40" required>
+                <input class="new_project_deadline" name="new_task_deadline0" id="new_task_deadline0" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">+1</button>
+              </div>
+              <div class="another_task" id="another_task1">                    
+                <input type="text" class="new_project_task" name="new_project_task1" id="new_project_task1" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline1" id="new_task_deadline1" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>
+              </div>
+              <div class="another_task" id="another_task2">                      
+                <input type="text" class="new_project_task" name="new_project_task2" id="new_project_task2" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline2" id="new_task_deadline2" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>
+              </div>
+              <div class="another_task" id="another_task3">                      
+                <input type="text" class="new_project_task" name="new_project_task3" id="new_project_task3" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline3" id="new_task_deadline3" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>
+              </div>
+              <div class="another_task" id="another_task4">                      
+                <input type="text" class="new_project_task" name="new_project_task4" id="new_project_task4" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline4" id="new_task_deadline4" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>
+              </div>
+              <div class="another_task" id="another_task5">                      
+                <input type="text" class="new_project_task" name="new_project_task5" id="new_project_task5" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline5" id="new_task_deadline5" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>
+              </div>
+              <div class="another_task" id="another_task6">                      
+                <input type="text" class="new_project_task" name="new_project_task6" id="new_project_task6" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline6" id="new_task_deadline6" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>
+              </div>
+              <div class="another_task" id="another_task7">                      
+                <input type="text" class="new_project_task" name="new_project_task7" id="new_project_task7" form="form-new_project" placeholder="task to do"  maxlength="40">
+                <input class="new_project_deadline" name="new_task_deadline7" id="new_task_deadline7" form="form-new_project" placeholder="DEADLINE" type="text" onfocusin="(this.type='date')" onfocusout="(this.type='text')">  
+                <button type="button" class="add_another_task">remove</button>           
+              </div>
+              <div id="deadlines_span">
+                <span>deadlines are optional <span class="spacer">&nbsp;&nbsp;|&nbsp;&nbsp; </span> <span id="more_tasks_can_be_added_later"> more tasks can be added later</span> </span>
+              </div>
+              <div class="center-container">
+                <button type="submit" class="project_buttons" form="form-new_project" id="submit_new_project"> Create </button>
+                <button type="button" class="project_buttons" id="cancel_new_project"> Cancel </button>
+                <form action="/home" method="post" name="form-new_project" id="form-new_project" hidden></form>
+              </div>
+              
+            </div>
+          </div>
+
+          <div class="shade_project_box">
+            <div id="confirm_project_deletion">              
+              <div class="center-container" id="delete_warning"> This will delete the whole project </div>
+              <div class="center-container">
+                <button type="button" class="project_buttons" id="confirm_deletion_button"> Yes, delete </button>
+                <button type="button" class="project_buttons" id="cancel_deletion_button"> Cancel </button>
+              </div>              
+            </div>
+          </div>
+          
+        </div> <!-- class="container main-container" -->
+        
+      </div> <!-- class="container" -->
+      
+    </div> <!-- id="shine-div" -->
+    <div class="context_menu wrapper" id="context_note">
+      <div class="context_menu">
+        <ul>
+          <li id="weekly_button" class="context_menu_li"><span class="context_menu_icon" id="weekly_icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar3-week" viewBox="0 0 16 16">
+                <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857V3.857z"/>
+                <path d="M12 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-5 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm2-3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-5 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+              </svg></span>set as weekly
+          </li>
+          <li id="unweekly_button" class="context_menu_li"><span class="context_menu_icon" id="unweekly_icon">🛑</span>unset as weekly</li>
+          <li id="monthly_button" class="context_menu_li"><span class="context_menu_icon" id="monthly_icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar3" viewBox="0 0 16 16">
+              <path d="M14 0H2a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2zM1 3.857C1 3.384 1.448 3 2 3h12c.552 0 1 .384 1 .857v10.286c0 .473-.448.857-1 .857H2c-.552 0-1-.384-1-.857V3.857z"/>
+              <path d="M6.5 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm-9 3a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2zm3 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2z"/>
+            </svg></span>set as monthly
+          </li>          
+          <li id="unmonthly_button" class="context_menu_li"><span class="context_menu_icon" id="unmonthly_icon">🛑</span>unset as monthly</li>
+          <li id="highlight_button" class="context_menu_li"><span class="context_menu_icon" id="highlight_icon">🌟</span>highlight</li>
+          <li id="unhighlight_button" class="context_menu_li"><span class="context_menu_icon" id="unhighlight_icon">⭐</span>un-highlight</li>          
+          <li id="remove_button" class="context_menu_li"><span class="context_menu_icon" id="remove_icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+            <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+          </svg></span>remove</li>
+        </ul>
+        <form hidden action="/home" method="post" id="form-routine"></form>
+      </div>
+      <div hidden id="routines_raw"><%=routines_raw_PH_string%></div>
+    </div>
+    
+    <div class="context_menu wrapper" id="context_task">
+      <div class="context_menu">
+        <ul>
+          <li id="change_task_button" class="context_menu_li"> <span class="context_menu_icon" id="change_task_icon">✍️</span> edit task </li>
+          <li id="add_task_before" class="context_menu_li"> <span class="context_menu_icon" id="add_task_before_icon" style="font-weight: bolder;">&#x2946; </span> add task before </li>
+          <li id="add_task_after" class="context_menu_li"> <span class="context_menu_icon" id="add_task_after_icon" style="font-weight: bolder;">&#x2945; </span> add task after </li>
+          <li id="mark_done_button" class="context_menu_li"> <span class="context_menu_icon" id="mark_done_icon">&#9745; </span> set as done </li>
+          <li id="mark_todo_button" class="context_menu_li"> <span class="context_menu_icon" id="mark_todo_icon">&#9744; </span> set as to-do </li>
+          <li id="set_deadline_button" class="context_menu_li"> <span class="context_menu_icon" id="set_deadline_icon">⏲️</span> set deadline </li>
+          <li id="change_deadline_button" class="context_menu_li"> <span class="context_menu_icon" id="change_deadline_icon">⏲️</span> change deadline </li>
+          <li id="remove_task_button" class="context_menu_li"> <span class="context_menu_icon" id="remove_task_icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+            <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+          </svg></span> remove </li>
+        </ul>
+        <form hidden action="/home" method="post" id="form-project"></form>
+        <input type="text" name="edit_task_text" class="context_task_text" id="edit_task_text" form="form-project" maxlength="40" placeholder="edit task" >
+        <input type="text" name="new_task_before" class="context_task_text" id="new_task_before" form="form-project" maxlength="40" placeholder="add task before" >
+        <input type="text" name="new_task_after" class="context_task_text" id="new_task_after" form="form-project" maxlength="40" placeholder="add task after" >
+        <input type="date" name="new_task_deadline" class="context_task_text" id="new_task_deadline" form="form-project">
+        <button form="form-project" id="context_submit_task">OK</button>
+      </div>
+      
+    </div>
+
+    <div class="context_menu wrapper" id="context_project-title">
+      <div class="context_menu">
+        <ul>
+          <li id="set_project_deadline_button" class="context_menu_li"> <span class="context_menu_icon" id="set_project_deadline_icon">⏲️</span>set deadline</li>
+          <li id="change_project_deadline_button" class="context_menu_li"> <span class="context_menu_icon" id="change_project_deadline_icon">⏲️</span>change deadline</li>
+          <li id="change_project_title_button" class="context_menu_li"> <span class="context_menu_icon" id="change_project_title_icon">✍️</span>change title</li>
+          <li id="delete_project_button" class="context_menu_li"> <span class="context_menu_icon" id="delete_project_icon"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3-fill" viewBox="0 0 16 16">
+            <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5Zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5ZM4.5 5.029l.5 8.5a.5.5 0 1 0 .998-.06l-.5-8.5a.5.5 0 1 0-.998.06Zm6.53-.528a.5.5 0 0 0-.528.47l-.5 8.5a.5.5 0 0 0 .998.058l.5-8.5a.5.5 0 0 0-.47-.528ZM8 4.5a.5.5 0 0 0-.5.5v8.5a.5.5 0 0 0 1 0V5a.5.5 0 0 0-.5-.5Z"/>
+          </svg></span>delete project</li>
+        </ul>
+        <input type="date" name="context_project_deadline" class="context_task_text" id="context_project_deadline" form="form-project">
+        <input type="text" name="context_project_title" class="context_task_text" id="context_project_title" form="form-project" maxlength="25" placeholder="new title" >
+        <button form="form-project" id="context_submit_project">OK</button>
+      </div>
+    </div>
+
+    <div class="context_menu wrapper" id="context_weather">
+      <div class="context_menu">
+        <ul>
+          <li id="show_f" class="context_menu_li">show in ºF</li>
+          <li id="show_c" class="context_menu_li">show in ºC</li>
+          <li id="show_simpl" class="context_menu_li">show simplified</li>
+          <li id="show_compl" class="context_menu_li">show complete</li>
+        </ul>
+        <form action="/home" method="post" id="form-weather" name="form-weather" hidden></form>
+      </div>
+    </div>
+
+    <div class="auxiliar_note" id="max_char_task">
+      <p>Tasks are limited to 40 characters, but you can add observations to them after the project is created</p>
+    </div>
+
+    <div class="auxiliar_note" id="max_char_title">
+      <p>Title is limited to 25 characters</p>
+    </div>
+
+    <div class="auxiliar_note" id="logout_note" style="min-width: 70px; width: 70px; text-align: center;">
+      <p>Log out</p>
+    </div>
+
+    
+
+    <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+    <script src="/js/scripts.js"></script>
+
+  </body>
+  
+</html>

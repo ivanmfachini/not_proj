@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+
+<head>
+  <meta charset="utf-8" lang="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Notes & Projects</title>
+  <link rel="shortcut icon" type="image/png" href="/img/fav_notes.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kalam&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="shine-div">
+
+      <div class="whole-screen">
+
+        <div id="login-box">
+          <div id="box-1">
+            <h5>Notes & Projects</h5>
+            <form action="/login" method="post" name="login-form" class="login-form" id="login-form">
+              <input type="text" name="username" id="username" placeholder="username" autocomplete="off" required>
+              <input type="text" name="realname" id="realname" placeholder="your name (to exhibit on screen)" autocomplete="off">
+              <input type="password" name="password" id="password" placeholder="password" required> <br>
+              <input type="password" name="password-confirm" id="password-confirm" placeholder="confirm password" autocomplete="off">
+              <div class="row-buttons">
+                <button type="button" name="login" id="login">Login</button>
+                <button type="button" form="register-form" name="register" id="register">Register</button>
+              </div>
+              <div class="row-buttons">
+                <button type="submit" name="change_pw" id="change_pw" form="change_pw-form">Change Password</button>
+                <button type="button" class="btn-hover color-3" id="demo" form="demo-form">Demonstration</button>
+              </div>
+            </form>
+            <form action="/login" method="post" name="change_pw-form" id="change_pw-form" hidden></form>
+            <form action="/register" method="post" name="register-form" id="register-form" hidden></form>
+            <form action="/login" method="post" name="demo-form" id="demo-form" hidden></form>
+            <input type="number" name="guest" id="guest" value=1 form="demo-form" hidden>
+            <input type="number" name="change_pw" id="change_pw_val" value=1 form="change_pw-form" hidden>
+          </div>
+
+          <div class="login-box-2" id="why_location">
+            <p><svg style="margin-bottom: 5px; font-size: 2em;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-geo-alt-fill" viewBox="0 0 16 16">
+              <path d="M8 16s6-5.686 6-10A6 6 0 0 0 2 6c0 4.314 6 10 6 10zm0-7a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/>
+            </svg>&nbsp;&nbsp;Why is it asking for my location?</p>
+          </div>
+
+          <div class="login-box-2"><p>by Ivan M Fachini <br> as <a href="https://cs50.harvard.edu/">Harvard's CS50</a> 2023 Final Project</p></div>
+
+        </div>
+
+
+      </div>
+
+  </div> <!-- id="shine-div" -->
+
+  <div class="auxiliar_note" id="username_required">
+    <p>Please enter your username</p>
+  </div>
+  <div class="auxiliar_note" id="rn_required">
+    <p>Please enter a real name</p>
+  </div>
+  <div class="auxiliar_note" id="pw_required">
+    <p>Please enter a password</p>
+  </div>
+  <div class="auxiliar_note" id="username_forbidden">
+    <p>Username must have at least 3 characters and cannot contain special characters except underline</p>
+  </div>
+  <div class="auxiliar_note" id="username_forbidden">
+    <p>For the real name please use letters, space, numbers and underline only</p>
+  </div>
+  <div class="auxiliar_note" id="pw_small">
+    <p>Passwords must have at least 5 characters and cannot contain parenthesis, brackets, slashes or quotation marks</p>
+  </div>
+  <div class="auxiliar_note" id="pw_not_match">
+    <p>Passwords do not match</p>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.7.0.js" integrity="sha256-JlqSTELeR4TLqP0OG9dxM7yDPqX1ox/HfgiSLBj8+kM=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.js"></script>
+  <script src="/js/scripts_login.js"></script>
+
+</body>
+
+</html>
