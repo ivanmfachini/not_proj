@@ -184,11 +184,11 @@
             const new_date = new Date();
             $("#register-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
                 JSON.stringify({
-                'local_hour': new_date.getHours(),
-                'timestamp': new_date.getTime(),
-                'lat':lat,
-                'lon':lon,
-                'tmz_iana': tmz_iana
+                    'local_hour': new_date.getHours(),
+                    'timestamp': new_date.getTime(),
+                    'lat':lat,
+                    'lon':lon,
+                    'tmz_iana': tmz_iana
                 })
             ) + "'/>");
             $("#register-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
