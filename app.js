@@ -34,8 +34,7 @@ const db = new pg.Client({
 db.connect();
 
 const dayModule = require(__dirname + "/dayModule.js");
-const weatherModule = require(__dirname + "/weatherModule.js")
-
+const weatherModule = require(__dirname + "/weatherModule.js");
 
 async function queryAccId(in_id){
     const result_obj = await db.query( "SELECT * FROM account WHERE id = ($1)", [in_id]);
@@ -122,20 +121,39 @@ app.get('/login', (req, res) => {
     res.render('login', {})
 });
 
-app.post('/login', (req, res) => {
+app.post('/login', async function (req, res) {
     let cred_arr = JSON.parse(req.body.cred_arr_str);
     let time_lace_obj = JSON.parse(req.body.time_place_obj_str);
-    bcrypt.hash( ( (cred_arr[1])+(process.env.PEP) ), saltRounds, async function(err, hash) {
-        await registerUser( cred_arr[0], hash, first_name, time_lace_obj )
-    });
+    const result = await db.query('SELECT * FROM credential WHERE username = ($1)',[cred_arr[0]]);
+    if(result.rows.length){
+        const match = await bcrypt.compare( ((cred_arr[1])+(process.env.PEP)) , result.rows[0]['password'] );
+        if(match) {
+            console.log('CORRECT')
+        } else{
+            console.log('WRONG PASSWORD')
+        }
+    } else{
+        console.log('no such user')
+    }
 });
 
 app.post('/register', async (req, res) => {
     let cred_arr = JSON.parse(req.body.cred_arr_str);
     let time_lace_obj = JSON.parse(req.body.time_place_obj_str);
-    let first_name = req.body.first_name
+    let first_name = req.body.first_name;
     bcrypt.hash( ( (cred_arr[1])+(process.env.PEP) ), saltRounds, async function(err, hash) {
-        await registerUser( cred_arr[0], hash, first_name, time_lace_obj )
+        if(err){
+            console.log('ERROR in bcrypt.hash in /register:', err.message);
+            res.redirect('/login')
+        } else{
+            try{
+                await registerUser( cred_arr[0], hash, first_name, time_lace_obj );
+                res.redirect('registration_complete')
+            } catch (err){
+                console.log('ERROR in registerUser() in /register:', err.message);
+                res.redirect('/login')
+            }
+        }
     });
 });
 
