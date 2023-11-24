@@ -1,80 +1,16 @@
-;$(function(){      // document ready, https://stackoverflow.com/a/4584475/21113444
+;$(function(){
 
     $('.auxiliar_note').hide();
-    const TIMEZONESYMBOL = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    console.log('TIMEZONESYMBOL:', TIMEZONESYMBOL);
-    let current_hour = new Date().getHours();
-    let buf_str_TIMEZONE, buf_GMT;
-    const TIMEZONES_NAMES = {   "+8" : "America/Anchorage", "+7" : "America/Los_Angeles",   "+6" : "America/Denver",
-                                "+5" : "America/Chicago",   "+4" : "America/New_York",      "+3" : "America/Sao_Paulo",
-                                "-1" : "Europe/London",     "-2" : "Europe/Berlin",         "-3" : "Europe/Moscow",
-                                "-7" : "Asia/Bangkok",      "-8" : "Asia/Singapore",        "-9" : "Asia/Tokyo",
-                                "-11": "Australia/Sydney",  "-13": "Pacific/Auckland",      "0"  : "GMT+0",
-                                "-0" : "GMT+0",             "-0" : "GMT+0"
-                            };
+    $("#realname").hide();
+    $("#password-confirm").hide();
 
-    for (let i = 2; i < TIMEZONESYMBOL.length; i++){
-        if (TIMEZONESYMBOL[i] == "+"){
-            if (TIMEZONESYMBOL[i+2]){
-                let buf_nr1 = TIMEZONESYMBOL[i+1].toString();
-                let buf_nr2 = TIMEZONESYMBOL[i+2].toString();
-                buf_GMT = "+"+buf_nr1+buf_nr2;
-                buf_str_TIMEZONE = "T00:00:00.000-" + buf_nr1 + buf_nr2 + ":00";
-                console.log('buf_str_TIMEZONE:', buf_str_TIMEZONE);
-                break
-            } else{
-                let buf_nr1 = TIMEZONESYMBOL[i+1].toString();
-                buf_GMT = "+"+buf_nr1;
-                buf_str_TIMEZONE = "T00:00:00.000-0" + buf_nr1 + ":00";
-                console.log('buf_str_TIMEZONE:', buf_str_TIMEZONE);
-                break
-            }
-        } else if (TIMEZONESYMBOL[i] == "-"){
-            if (TIMEZONESYMBOL[i+2]){
-                let buf_nr1 = TIMEZONESYMBOL[i+1].toString();
-                let buf_nr2 = TIMEZONESYMBOL[i+2].toString();
-                buf_GMT = "-"+buf_nr1+buf_nr2;
-                buf_str_TIMEZONE = "T00:00:00.000+" + buf_nr1 + buf_nr2 + ":00";
-                console.log('buf_str_TIMEZONE:', buf_str_TIMEZONE);
-                break
-            } else{
-                let buf_nr1 = TIMEZONESYMBOL[i+1].toString();
-                buf_GMT = "-"+buf_nr1;
-                buf_str_TIMEZONE = "T00:00:00.000+0" + buf_nr1 + ":00";
-                console.log('buf_str_TIMEZONE:', buf_str_TIMEZONE);
-                break
-            }
-        }
-    };
-
-    const TIMEZONE = buf_str_TIMEZONE;          console.log('TIMEZONE:', TIMEZONE);
-    let GMT = buf_GMT;                          console.log('GMT (1):', GMT);
-    const GMT_NAME = TIMEZONES_NAMES[GMT];      console.log('GMT_NAME:', GMT_NAME);
-    GMT = parseInt((-1*GMT));                   console.log('GMT (2):', GMT);
-    let user_lat, user_lon;
-    const options_location = {
-        enableHighAccuracy: false,
-        timeout: 3500,
-        maximumAge: 604800000
-    };
-    function success(pos) {
-        const crd  = pos.coords;
-        user_lat = (crd.latitude).toFixed(2);
-        user_lon = (crd.longitude).toFixed(2);
-        console.log('user_lat:', user_lat);
-        console.log('user_lon:', user_lon);
-    };
-    function error(err) {
-        console.log(`ERROR(${err.code}): ${err.message}`);
-        user_lat = -27.6;
-        user_lon = -48.5
-    };
-    //navigator.geolocation.register_getCurrentPosition(success, error, options_location);
-
+    const tmz_iana = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    let lat = -27.6;
+    let lon = -48.5;
     navigator.geolocation.getCurrentPosition(position => {
-        const { latitude, longitude } = position.coords;
-        console.log(position.coords)
-      });
+        lat = parseFloat((position.coords.latitude).toFixed(2));
+        lon = parseFloat((position.coords.longitude).toFixed(2));
+    });
 
     function usernameChecker(in_str){
         if (in_str.length > 2 && in_str.length < 40){
@@ -88,7 +24,7 @@
         }
         return false
     };
-
+    
     function realnameChecker(in_str){
         if (in_str.length > 1 && in_str.length < 40){
             for (let i = 0; i < in_str.length; i++) {
@@ -115,22 +51,26 @@
         return false
     };
 
-    $("#realname").hide();
-    $("#password-confirm").hide();
 
     function login(in_obj = false){
         $(in_obj).css('background-color', 'rgb(5,10,40)');
 
         if ( usernameChecker($("#username").val()) ){
             if ( inputChecker($("#password").val()) ){
-                let string_to_submit;
-                if (!user_lat){
-                    string_to_submit = JSON.stringify([$("#username").val(), $("#password").val(), TIMEZONE, GMT_NAME, current_hour, -27.6, -48.5, Date.now(), GMT]);
-                } else{
-                    string_to_submit = JSON.stringify([$("#username").val(), $("#password").val(), TIMEZONE, GMT_NAME, current_hour, user_lat, user_lon, Date.now(), GMT]);
-                }
-                $("#login-form").append("<input hidden type='text' name='login_array' value='" + string_to_submit + "'/>");
-                string_to_submit = "";
+                const new_date = new Date();
+                const cred_arr_str = 
+                $("#login-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
+                    JSON.stringify({
+                    'local_hour': new_date.getHours(),
+                    'timestamp': new_date.getTime(),
+                    'lat':lat,
+                    'lon':lon,
+                    'tmz_iana': tmz_iana
+                    })
+                ) + "'/>");
+                $("#login-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
+                    JSON.stringify([ $("#username").val(), $("#password").val() ])
+                ) + "'/>");
                 document.getElementById("login-form").submit();
             } else{
                 alert('Password not submitted')
@@ -142,6 +82,7 @@
     $("#login").on('mousedown', function(){
         login(this)
     });
+
     window.addEventListener("keydown", (event) => {
         if (event.defaultPrevented) {
             return // Do nothing if the event was already processed
@@ -152,6 +93,7 @@
         }
         event.preventDefault();
     });
+
     $("#register").on('mousedown', function(){
         $(this).css('background-color', 'rgb(22,5,30)');
     });
@@ -239,18 +181,23 @@
             return
         };
         if (checker == 4){
-            let string_to_submit = JSON.stringify([$("#username").val(), $("#password").val(), $("#realname").val()]);
-            $("#register-form").append("<input hidden type='text' name='register_array' value='" + string_to_submit + "'/>");
-            let string_to_submit2;
-            if (!user_lat){
-                string_to_submit2 = JSON.stringify([$("#username").val(), $("#password").val(), TIMEZONE, GMT_NAME, current_hour, -27.6, -48.5, Date.now(), GMT]);
-            } else{
-                string_to_submit2 = JSON.stringify([$("#username").val(), $("#password").val(), TIMEZONE, GMT_NAME, current_hour, user_lat, user_lon, Date.now(), GMT]);
-            }
-            $("#register-form").append("<input hidden type='text' name='login_array' value='" + string_to_submit2 + "'/>");
-            string_to_submit = string_to_submit2 = "";
+            const new_date = new Date();
+            $("#register-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
+                JSON.stringify({
+                'local_hour': new_date.getHours(),
+                'timestamp': new_date.getTime(),
+                'lat':lat,
+                'lon':lon,
+                'tmz_iana': tmz_iana
+                })
+            ) + "'/>");
+            $("#register-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
+                JSON.stringify([ $("#username").val(), $("#password").val() ])
+            ) + "'/>");
+            $("#register-form").append("<input hidden type='text' name='first_name' value='" + $("#realname").val() + "'/>");
             document.getElementById("register-form").submit();
-        } else{ return }
+        } else{ return
+        }
     });
 
     $("#pw_change").on('click',function(){
@@ -321,13 +268,15 @@
         $(this).css('-webkit-transition','all .3s ease-in-out');
         $(this).css('transition','all .3s ease-in-out');
 
-        let string_to_submit;
-        if (!user_lat){
-            string_to_submit = JSON.stringify([$("#username").val(), $("#password").val(), TIMEZONE, GMT_NAME, current_hour, -27.6, -48.5, Date.now(), GMT]);
-        } else{
-            string_to_submit = JSON.stringify([$("#username").val(), $("#password").val(), TIMEZONE, GMT_NAME, current_hour, user_lat, user_lon, Date.now(), GMT]);
-        }
-        $("#demo-form").append("<input hidden type='text' name='login_array' value='" + string_to_submit + "'/>");
+        const new_date = new Date();
+        const time_place_obj_str = JSON.stringify({
+            'local_hour': new_date.getHours(),
+            'timestamp': new_date.getTime(),
+            'lat':lat,
+            'lon':lon,
+            'tmz_iana': tmz_iana
+        });
+        $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
         string_to_submit = "";
         document.getElementById("demo-form").submit();
 
