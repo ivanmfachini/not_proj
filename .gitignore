@@ -3,3 +3,4 @@ node_modules/
 public/img/
 package-lock.json
 TABLES_SCHEMA
+test_hash.js
