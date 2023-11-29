@@ -1060,55 +1060,49 @@
         $("#context_weather").css('top', `${pos_y}px`);
         $("#context_weather").css('visibility', 'visible');
 
-        let string_to_submit =  [user_lat, user_lon, GMT_NAME, local_hour];
-
         $('#show_f').on('click', function(){
-            string_to_submit.push(0);
-            string_to_submit = JSON.stringify(string_to_submit);
-            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
-            $("#form-weather").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
+            string_to_submit = JSON.stringify([local_hour, 0]);
+            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
+            $("#form-weather").append(param);
             let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
         $('#show_c').on('click', function(){
-            string_to_submit.push(1);
-            string_to_submit = JSON.stringify(string_to_submit);
-            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
-            $("#form-weather").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
+            string_to_submit = JSON.stringify([local_hour, 1]);
+            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
+            $("#form-weather").append(param);
             let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
         $('#show_simpl').on('click', function(){
-            string_to_submit.push('s');
-            string_to_submit = JSON.stringify(string_to_submit);
-            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
-            $("#form-weather").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
+            string_to_submit = JSON.stringify([local_hour, 's']);
+            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
+            $("#form-weather").append(param);
             let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
         $('#show_compl').on('click', function(){
-            string_to_submit.push('o');
-            string_to_submit = JSON.stringify(string_to_submit);
-            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
-            $("#form-weather").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
+            string_to_submit = JSON.stringify([local_hour, 'o']);
+            let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
+            $("#form-weather").append(param);
             let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
