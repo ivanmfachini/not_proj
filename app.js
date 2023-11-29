@@ -367,7 +367,12 @@ app.post('/home', async function (req,res){
                     return res.redirect(`/home/${username}`)
                 }
             )    
-        }
+        };
+
+        if(req.body.logout){                                    // logout from home page
+            req.session.destroy();
+            return res.redirect('/login')
+        };
 
     }, 50)
 })
