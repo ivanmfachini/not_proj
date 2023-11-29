@@ -307,6 +307,12 @@ app.get('/home/:username', async (req, res) => {
 });
 
 app.post('/home', async function (req,res){
+
+    if(req.body.logout){                                    // logout from home page
+        req.session.destroy();
+        return res.redirect('/login')
+    };
+
     const username = req.user.username;
     console.log('>>> POST /home', username);
     console.log(req.body); console.log(req.session); console.log(req.sessionID); //console.log(req.user); 
@@ -328,7 +334,7 @@ app.post('/home', async function (req,res){
             (user_hour != old_data_db['last_local_hour'])){
             let buf_new_db = await updateWorkDataFromHome(old_data_db, user_hour, UTC_hour, user_timestamp)
             if (buf_new_db){ user_data_db = buf_new_db }
-        }        
+        } else{ user_data_db = false }
     };
     
     setTimeout(async () => {
@@ -364,15 +370,55 @@ app.post('/home', async function (req,res){
             await db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
                 [(JSON.stringify(notes)), username], (err, result)=>{
                     if (err){ console.log('ERROR in db.query in <if(req.body.new_note_array){> in POST /home', username,':',err.message) }
-                    return res.redirect(`/home/${username}`)
+                    if (user_data_db != undefined) { return res.redirect(`/home/${username}`) };
+                    let wait_cycles = 0;
+                    setInterval(() => {
+                        if (user_data_db != undefined || wait_cycles > 16) { return res.redirect(`/home/${username}`) }
+                        wait_cycles += 1
+                    }, 200)
                 }
-            )    
+            )
         };
 
-        if(req.body.logout){                                    // logout from home page
-            req.session.destroy();
-            return res.redirect('/login')
-        };
+        if(req.body.remove_note_array){
+            const remove_note_array_str = req.body.remove_note_array;
+            if (remove_note_array_str[0].length > 1){
+                console.log('WARNING! THERE WERE ' + remove_note_array_str.length + ' OBJECTS IN remove_note_array_str!');
+                console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
+                remove_note_array_str = remove_note_array_str[remove_note_array_str.length-1]
+            };
+            const remove_note_array = JSON.parse(remove_note_array_str);
+            const new_key = remove_note_array[0];
+            const del_timestamp = remove_note_array[1];
+            let user_data;
+            if(user_data_db){ user_data = user_data_db }
+            else{ console.log('user_data_db is (yet?):', user_data_db); user_data = old_data_db };
+            let notes = JSON.parse(user_data['notes']);
+            let notes_key = notes[new_key]['notes'];
+            console.log('################ notes_key:');
+            console.log(notes_key);
+            for (let i = 0; i < notes_key.length; i++){
+                if(notes_key[i][1] == del_timestamp){
+                    notes_key.splice(i,1);
+                    break 
+                }
+            };
+            if (notes_key.length){ notes[new_key]['notes'] = notes_key }
+            else{ delete notes.new_key };
+            await db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
+                [(JSON.stringify(notes)), username], (err, result)=>{
+                    if (err){ console.log('ERROR in db.query in <if(req.body.new_note_array){> in POST /home', username,':',err.message) }
+                    if (user_data_db != undefined) { return res.redirect(`/home/${username}`) };
+                    let wait_cycles = 0;
+                    setInterval(() => {
+                        if (user_data_db != undefined || wait_cycles > 16) { return res.redirect(`/home/${username}`) }
+                        wait_cycles += 1
+                    }, 200)
+                }
+            )
+        }
+
+
 
     }, 50)
 })
