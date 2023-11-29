@@ -24,9 +24,9 @@ module.exports = {
         for (let a = 5; a < date_str.length; a++){
             if (date_str[a] != "/"){
                 if(slashes){
-                    if(slashes == 1){ month += date_str[a] }
+                    if(slashes == 1){ day += date_str[a] }
                     else{ year += date_str[a] }
-                } else{ day += date_str[a] }
+                } else{ month += date_str[a] }
             } else{ slashes += 1 }
         };
         if (month.length == 1){ month = "0" + month };
@@ -52,9 +52,9 @@ module.exports = {
             try{
                 if (typeof(parseInt(date_str[a])) == 'number'){
                     if(slashes){
-                        if(slashes == 1){ month += date_str[a] }
+                        if(slashes == 1){ day += date_str[a] }
                         else{ year += date_str[a] }
-                    } else{ day += date_str[a] }
+                    } else{ month += date_str[a] }
                 } else{ slashes += 1 }
             } catch{}
         };
@@ -81,9 +81,9 @@ module.exports = {
             try{
                 if (typeof(parseInt(date_str[a])) == 'number'){
                     if(slashes){
-                        if(slashes == 1){ month += date_str[a] }
+                        if(slashes == 1){ day += date_str[a] }
                         else{ year += date_str[a] }
-                    } else{ day += date_str[a] }
+                    } else{ month += date_str[a] }
                 } else{ slashes += 1 }
             } catch{}
         };

@@ -15,8 +15,8 @@ if (hour_offset > -1){
 }; console.log(tmz_suffix);
 
 const tmz_iana = Intl.DateTimeFormat().resolvedOptions().timeZone; console.log(tmz_iana);
-let lat = -27.6;
-let lon = -48.5;
+let lat = -27.59;
+let lon = -48.45;
 navigator.geolocation.getCurrentPosition(position => {
     lat = parseFloat((position.coords.latitude).toFixed(2));
     lon = parseFloat((position.coords.longitude).toFixed(2)); console.log(lat, lon);

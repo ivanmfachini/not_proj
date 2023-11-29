@@ -9,7 +9,7 @@ module.exports = async function (in_lat, in_lon, in_tmz_iana, in_hour, in_cel = 
         }                                                                       // To return the temperatures in ºF, the API requires a modifier, which is given if in_cel == 0.
         let string_to_axios = `https://api.open-meteo.com/v1/forecast?latitude=${in_lat}&longitude=${in_lon}&hourly=temperature_2m,weathercode&${in_cel}daily=sunrise,sunset&timezone=${in_tmz_iana}&forecast_days=3`
         try{
-            let axios_response = await axios.get(string_to_axios, {timeout : 2200})
+            let axios_response = await axios.get(string_to_axios, {timeout : 3000})
             let tmp_arr = axios_response.data.hourly.temperature_2m;            // temperatures array is stored
             let cod_arr = axios_response.data.hourly.weathercode;               // weather codes array is stored
             let next_6h_hrs = [];                                               // array to store data for the next 6h is declared
@@ -79,7 +79,7 @@ module.exports = async function (in_lat, in_lon, in_tmz_iana, in_hour, in_cel = 
 
             return(string_weather)
 
-        }catch (err){ console.log('Error while axios.get(string_to_axios, {timeout : 2000}):', err.message);
+        }catch (err){ console.log('ERROR while axios.get():', err.message);
             return false
         }
     }
