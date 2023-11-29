@@ -100,7 +100,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-day" + day_number).append(param_hour);
             document.getElementById("form-day" + day_number).submit();                
@@ -121,7 +121,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-day" + day_number).append(param_hour);
             document.getElementById("form-day" + day_number).submit();                
@@ -139,7 +139,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
@@ -158,7 +158,7 @@
         new_date = new Date();
         local_hour = new_date.getHours();
         UTC_hour = new_date.getUTCHours();
-        let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+        let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
         let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
         $("#form-day" + day_number).append(param_hour);
         document.getElementById("form-day" + day_number).submit();
@@ -574,7 +574,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
@@ -588,7 +588,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
@@ -602,7 +602,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
@@ -616,7 +616,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
@@ -630,7 +630,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();
@@ -644,7 +644,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
@@ -852,7 +852,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-project").append(param_hour);
             document.getElementById("form-project").submit();                
@@ -866,7 +866,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-project").append(param_hour);
             document.getElementById("form-project").submit();                
@@ -879,7 +879,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-project").append(param_hour);
             document.getElementById("form-project").submit();                
@@ -895,7 +895,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);;
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);;
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-project").append(param_hour);
             document.getElementById("form-project").submit();                
@@ -989,7 +989,7 @@
                 new_date = new Date();
                 local_hour = new_date.getHours();
                 UTC_hour = new_date.getUTCHours();
-                let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+                let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
                 let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
                 $("#form-project").append(param_hour);
                 document.getElementById("form-project").submit();                
@@ -1002,7 +1002,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-project").append(param_hour);
             document.getElementById("form-project").submit();                
@@ -1070,7 +1070,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
@@ -1083,7 +1083,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
@@ -1096,7 +1096,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
@@ -1109,7 +1109,7 @@
             new_date = new Date();
             local_hour = new_date.getHours();
             UTC_hour = new_date.getUTCHours();
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
@@ -1139,7 +1139,7 @@
                 new_date = new Date();
                 local_hour = new_date.getHours();
                 UTC_hour = new_date.getUTCHours();
-                let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime()]);
+                let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
                 let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
                 $("form-new_date").append(param_hour);
                 document.getElementById("form-new_date").submit();

@@ -136,10 +136,16 @@ async function updateWorkDataFromHome(in_data_db, in_local_hour, in_UTC_hour, in
         await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE username = ($5)",
         [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_username],
         (err, result) =>{
-            if (err){ console.log('ERROR in db.query in updateWorkDataFromHome:', err.message) }
-            else{ console.log('Successfully updated work_data of', in_data_db['username']) }
+            if (err){
+                console.log('ERROR in db.query in updateWorkDataFromHome:', err.message);
+                return false
+            }
+            else{
+                console.log('Successfully updated work_data of', in_data_db['username']);
+                return(result.rows[0])
+            }
         });
-    }
+    } else{ return false }
 }
 
 async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
@@ -301,11 +307,12 @@ app.get('/home/:username', async (req, res) => {
 });
 
 app.post('/home', async function (req,res){
-    console.log(req.user); console.log(req.body); console.log(req.session); console.log(req.sessionID);
     const username = req.user.username;
     console.log('>>> POST /home', username);
-    const user_data_db = await queryWorkDataUsername(username); console.log(user_data_db);
-
+    console.log(req.user); console.log(req.body); console.log(req.session); console.log(req.sessionID);
+    const old_data_db = await queryWorkDataUsername(username); console.log(old_data_db);
+    let user_data_db, user_hour_timestamp;
+    
     if (req.body.user_hour_timestamp){
         const user_hour_timestamp_str = req.body.user_hour_timestamp;
         if (user_hour_timestamp_str[0].length > 1){
@@ -313,20 +320,52 @@ app.post('/home', async function (req,res){
             console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
             user_hour_timestamp_str = user_hour_timestamp_str[user_hour_timestamp_str.length-1]
         };
-        const user_hour_timestamp = JSON.parse(user_hour_timestamp_str);
+        user_hour_timestamp = JSON.parse(user_hour_timestamp_str);
         const user_hour = user_hour_timestamp[0];
         const UTC_hour = user_hour_timestamp[1];
         const user_timestamp = user_hour_timestamp[2];
-        if ((user_timestamp > (user_data_db['last_timestamp']+3600000)) ||
-            (user_hour != user_data_db['last_local_hour'])){
-            await updateWorkDataFromHome(user_data_db, user_hour, UTC_hour, user_timestamp)
-        }
+        if ((user_timestamp > (old_data_db['last_timestamp']+3600000)) ||
+            (user_hour != old_data_db['last_local_hour'])){
+            let buf_new_db = await updateWorkDataFromHome(user_data_db, user_hour, UTC_hour, user_timestamp)
+            if (buf_new_db){ user_data_db = buf_new_db }
+        }        
     };
+    
+    setTimeout(() => {
 
+        if(req.body.new_note_array){
+            const new_note_array_str = req.body.new_note_array;
+            if (new_note_array_str[0].length > 1){
+                console.log('WARNING! THERE WERE ' + new_note_array_str.length + ' OBJECTS IN new_note_array_str!');
+                console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
+                new_note_array_str = new_note_array_str[new_note_array_str.length-1]
+            };
+            const new_note_array = JSON.parse(new_note_array_str);
+            const new_key = new_note_array[0];
+            const new_text = new_note_array[1];
+            let user_data;
+            if(user_data_db){ user_data = user_data_db }
+            else{ console.log('user_data_db is (yet?):', user_data_db); user_data_db = old_data_db };
+            const loc_data = (JSON.parse(user_data['loc_data']))['last'];
+            const new_day_obj = new Date(new_key+loc_data['tmz_suffix']);
+            let buf_day_str = new_day_obj.toString();
+            let day_str;
+            if (buf_day_str[9] == " "){
+                buf_day_str = buf_day_str.slice(0,14);
+                day_str = buf_day_str.substring(0,8) + "0" + buf_day_str.substring(8)
+            } else{ day_str = buf_day_str.slice(0,15) }
+            let notes = user_data['notes'];
+            if(notes[new_key]){ notes[new_key]['notes'].append([new_text, Date.now(), day_str]) }
+            else{ notes[new_key] = {
+                "weekday": new_day_obj.getDay(),
+                "day": new_day_obj.getDate(),
+                "notes": [[new_text, Date.now(), day_str]]
+            } }
+    
+    
+        }
 
-
-
-
+    }, 50)
 })
 
 app.post('/login',
