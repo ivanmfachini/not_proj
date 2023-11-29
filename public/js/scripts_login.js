@@ -5,6 +5,15 @@ $("#realname").hide();
 $("#password-confirm").hide();
 
 const hour_offset = parseInt(((new Date()).getTimezoneOffset())/60); console.log(hour_offset);
+let tmz_suffix = "T00:00:00.000";
+if (hour_offset > -1){
+    if (hour_offset > 9){   tmz_suffix += "-" + hour_offset.toString() + ":00" }
+    else{                   tmz_suffix += "-0" +hour_offset.toString() + ":00" }
+} else{
+    if (hour_offset < -9){  tmz_suffix += "+" + hour_offset.toString() + ":00" }
+    else{                   tmz_suffix += "+0" +hour_offset.toString() + ":00" }
+}; console.log(tmz_suffix);
+
 const tmz_iana = Intl.DateTimeFormat().resolvedOptions().timeZone; console.log(tmz_iana);
 let lat = -27.6;
 let lon = -48.5;
@@ -14,7 +23,9 @@ navigator.geolocation.getCurrentPosition(position => {
 });
 
 function usernameChecker(in_str){
-    if (in_str.length > 2 && in_str.length < 40){
+    if (typeof(in_str) != "string" || in_str == "undefined" || in_str == "NaN" ||
+        in_str == "null" || in_str == "false" || in_str == "true" ){ return false };
+    if (in_str.length > 3 && in_str.length < 40){
         for (let i = 0; i < in_str.length; i++) {
             let code = in_str.charCodeAt(i);
             if ((code < 48 || (code > 57 && code < 65) || (code > 90 && code < 95) || code == 96 || code > 122)) {
@@ -61,13 +72,15 @@ function login(in_obj = false){
             const new_date = new Date();
             $("#login-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
                 JSON.stringify({
+                    'local_DateString' : new_date.toDateString(),
                     'local_hour': new_date.getHours(),
                     'UTC_hour': new_date.getUTCHours(),
                     'timestamp': new_date.getTime(),
                     'lat':lat,
                     'lon':lon,
                     'tmz_iana': tmz_iana,
-                    'hour_offset': hour_offset
+                    'hour_offset': hour_offset,
+                    'tmz_suffix': tmz_suffix
                 })
             ) + "'/>");
             $("#login-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
@@ -186,13 +199,15 @@ $("#register").on('click', function(){
         const new_date = new Date();
         $("#register-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
             JSON.stringify({
+                'local_DateString' : new_date.toDateString(),
                 'local_hour': new_date.getHours(),
                 'UTC_hour': new_date.getUTCHours(),
                 'timestamp': new_date.getTime(),
                 'lat':lat,
                 'lon':lon,
                 'tmz_iana': tmz_iana,
-                'hour_offset': hour_offset
+                'hour_offset': hour_offset,
+                'tmz_suffix': tmz_suffix
             })
         ) + "'/>");
         $("#register-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
@@ -274,13 +289,15 @@ $("#demo").on('mousedown', () =>{
 
     const new_date = new Date();
     const time_place_obj_str = JSON.stringify({
+        'local_DateString' : new_date.toDateString(),
         'local_hour': new_date.getHours(),
         'UTC_hour': new_date.getUTCHours(),
         'timestamp': new_date.getTime(),
         'lat':lat,
         'lon':lon,
         'tmz_iana': tmz_iana,
-        'hour_offset': hour_offset
+        'hour_offset': hour_offset,
+        'tmz_suffix': tmz_suffix
     });
     $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
     string_to_submit = "";

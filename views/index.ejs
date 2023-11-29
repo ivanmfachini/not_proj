@@ -15,7 +15,6 @@
   </head>
 
   <body>
-    <div hidden id="user_timezone" style="height: 0;"><%=user_timezone_PH%></div>
     <div hidden id="wtr_simple" style="height: 0;"><%=wtr_simple_PH%></div>
     <div hidden id="celsius" style="height: 0;"><%=celsius_PH%></div>
     <div hidden id="mili_diff" style="height: 0;"><%=mili_diff_PH%></div>
@@ -271,7 +270,7 @@
                   </div>
                   <div class="max_min_temp">
                     <div class="square_receiver receiver_left">
-                      <div class="transparent_square transparent_left"></div>
+                      <div class="transparent_squareA transparent_left"></div>
                     </div>
                     <div class="temp_box  temp_box_max">
                       <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=next_day[0][0]%> at <%=next_day[0][1]%>h</p>
@@ -280,7 +279,7 @@
                       <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=next_day[1][0]%> at <%=next_day[1][1]%>h</p>
                     </div>
                     <div class="square_receiver">
-                      <div class="transparent_square"></div>
+                      <div class="transparent_squareA"></div>
                     </div>
                   </div>
                 </div>
@@ -371,7 +370,7 @@
                 </div>
                 <div class="max_min_temp">
                   <div class="square_receiver receiver_left">
-                    <div class="transparent_square transparent_left"></div>
+                    <div class="transparent_squareA transparent_left"></div>
                   </div>
                   <div class="temp_box  temp_box_max">
                     <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=day3_wtr[0][0]%> at <%=day3_wtr[0][1]%>h</p>
@@ -380,7 +379,7 @@
                     <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=day3_wtr[1][0]%> at <%=day3_wtr[1][1]%>h</p>
                   </div>
                   <div class="square_receiver">
-                    <div class="transparent_square"></div>
+                    <div class="transparent_squareA"></div>
                   </div>
                 </div>
               </div>
@@ -398,7 +397,7 @@
               <h4 hidden class="hidden_date day2 daytime"><%=dayB_hidden_date_PH%></h4>
               <h5 class="ngttime"><%=dayC_PH%></h5>
               <h4 hidden class="hidden_date day2 ngttime"><%=dayC_hidden_date_PH%></h4>
-              <p id="right_arrow"><input type="text" readonly="readonly" id="datepicker" value="📅"></p>
+              <p id="right_arrow"><input type="text" readonly="readonly" id="datepicker"></p>
               <form hidden action="/home" method="get" id="form-new_date"></form>
             </div>
 
@@ -539,7 +538,7 @@
                   </div>
                   <div class="max_min_temp">
                     <div class="square_receiver receiver_left">
-                      <div class="transparent_square transparent_left"></div>
+                      <div class="transparent_squareA transparent_left"></div>
                     </div>
                     <div class="temp_box  temp_box_max">
                       <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=next_day[0][0]%> at <%=next_day[0][1]%>h</p>
@@ -548,7 +547,7 @@
                       <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=next_day[1][0]%> at <%=next_day[1][1]%>h</p>
                     </div>
                     <div class="square_receiver">
-                      <div class="transparent_square"></div>
+                      <div class="transparent_squareA"></div>
                     </div>
                   </div>
                 </div>
@@ -638,7 +637,7 @@
                   </div>
                   <div class="max_min_temp">
                     <div class="square_receiver receiver_left">
-                      <div class="transparent_square transparent_left"></div>
+                      <div class="transparent_squareA transparent_left"></div>
                     </div>
                     <div class="temp_box  temp_box_max">
                       <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=day3_wtr[0][0]%> at <%=day3_wtr[0][1]%>h</p>
@@ -647,7 +646,7 @@
                       <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=day3_wtr[1][0]%> at <%=day3_wtr[1][1]%>h</p>
                     </div>
                     <div class="square_receiver">
-                      <div class="transparent_square"></div>
+                      <div class="transparent_squareA"></div>
                     </div>
                   </div>
                 </div>
@@ -698,7 +697,7 @@
           
           <div class="row text-center row-days dayC" id="projects_section">
             <div id="projects-container">
-              <%let projects_PH = JSON.parse(projects_PH_string)%>
+              <%let projects_PH = JSON.parse(projects_PH_str)%>
               <%if (projects_PH.length < 1){%>
                 <div id="empty_projects-box">
                   <p>PROJECTS AREA</p>

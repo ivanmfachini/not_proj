@@ -25,7 +25,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         //secure: true,             <-- activate when deploying
-        maxAge: 180000 }
+        maxAge: 3000000 }            // 50min
 }));
 
 app.use(passport.initialize());
@@ -57,7 +57,6 @@ async function verifyPassword(in_password, in_hash){
 passport.use(new LocalStrategy(
     async function(username, password, done) {
         //User.findOne({ username: username }, function (err, user) {
-        console.log('LocalStrategy, username is:', username, ' | password is:', password);
         await db.query('SELECT * FROM credential WHERE username = ($1)', [username], async function (err,user){
             if (err) { console.log('ERROR in db.query in LocalStrategy:', err.message);
                 return done(err)
@@ -71,7 +70,6 @@ passport.use(new LocalStrategy(
                 };
                 let result = await verifyPassword( (password + (process.env.PEP)), user['password'] );
                 if (result) {
-                    console.log('LocalStrategy --> verifyPassword returned true, returning user');
                     return done(null, user)
                 } else{
                     console.log('LocalStrategy --> verifyPassword returned false, returning false');
@@ -83,13 +81,10 @@ passport.use(new LocalStrategy(
 ));
 
 passport.serializeUser(function(user, done) {
-    console.log('serializeUser:', user);
     done(null, user.id);
 });
   
 passport.deserializeUser(async function(id, done) {
-    console.log('deserializeUser with id:', id);
-    //User.findById(id, function (err, user) {
     await db.query('SELECT * FROM credential WHERE id = ($1)', [id], function (err,user){
         if (err){ console.log('ERROR in db.query in deserializeUser:', err.message) }
         done(err, (user.rows[0]));
@@ -125,14 +120,29 @@ async function queryCredential(in_username, in_password){
     return (result_obj.rows)[0]
 };
 
-async function updateWorkData(in_user_data, in_time_place_obj){
+async function updateWorkDataFromHome(in_hour, in_loc_data, in_data_db){    
+    try{
+        const weather_str = await weatherModule(in_loc_data['lat'], in_loc_data['lon'], in_loc_data['tmz_iana'], in_hour, in_data_db['temp_celsius']);
+        if(weather_str){
+            await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE username = ($6)",
+            [
+                in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str, JSON.stringify(loc_data),
+                in_user_data['username']
+            ]);
+        }
+    } catch(err){ console.log('ERROR catched in updateWorkDataFromLogin:', err.message) }
+}
+
+async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
     try{
         let loc_data = JSON.parse(in_user_data['loc_data']);
         loc_data['last']['lat'] = in_time_place_obj['lat'];
         loc_data['last']['lon'] = in_time_place_obj['lon'];
         loc_data['last']['tmz_iana'] = in_time_place_obj['tmz_iana'];
         loc_data['last']['hour_offset'] = in_time_place_obj['hour_offset'];
-        const weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour']);
+        loc_data['last']['tmz_suffix'] = in_time_place_obj['tmz_suffix'];
+        loc_data['last']['local_DateString'] = in_time_place_obj['local_DateString'];
+        const weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'], in_user_data['temp_celsius']);
         if(weather_str){
             await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather, loc_data) = ($1,$2,$3,$4,$5) WHERE username = ($6)",
             [
@@ -140,7 +150,7 @@ async function updateWorkData(in_user_data, in_time_place_obj){
                 in_user_data['username']
             ]);
         }
-    } catch(err){ console.log('ERROR catched in updateWorkData:', err.message) }
+    } catch(err){ console.log('ERROR catched in updateWorkDataFromLogin:', err.message) }
 }
 
 async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj){
@@ -173,20 +183,24 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
                 weather_str,                        // weather
                 JSON.stringify({                    // loc_data
                     'last':{
+                        'local_DateString': in_time_place_obj['local_DateString'],
                         'lat': in_time_place_obj['lat'],
                         'lon': in_time_place_obj['lon'],
                         'tmz_iana': in_time_place_obj['tmz_iana'],
-                        'hour_offset': in_time_place_obj['hour_offset']
+                        'hour_offset': in_time_place_obj['hour_offset'],
+                        'tmz_suffix': in_time_place_obj['tmz_suffix']
                     },
                     'original':{
+                        'local_DateString': in_time_place_obj['local_DateString'],
                         'lat': in_time_place_obj['lat'],
                         'lon': in_time_place_obj['lon'],
                         'tmz_iana': in_time_place_obj['tmz_iana'],
-                        'hour_offset': in_time_place_obj['hour_offset']
+                        'hour_offset': in_time_place_obj['hour_offset'],
+                        'tmz_suffix': in_time_place_obj['tmz_suffix']
                     }
                 }),
                 true,                               // temp_celsius
-                false,                              // wtr_simple
+                false                               // wtr_simple
             ]
         );
     }
@@ -194,6 +208,14 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
 
 app.get('/', (req, res) => {
     res.redirect('/login')
+});
+
+app.get('/home', (req, res) => {
+    if(req.session){
+        res.redirect(`/home/${req.body.username}`)
+    } else{
+        res.redirect('/login')
+    }
 });
 
 app.get('/login', (req, res) => {
@@ -205,54 +227,59 @@ app.get('/registration_successful', (req, res) => {
 });
 
 app.get('/home/:username', async (req, res) => {
-    if (req.session){
-        const username = req.user.username;
-        const user_data_db_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)", [username]);
+    if (!req.params.username || req.params.username == "undefined"){ return res.redirect('/login') }
+    await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
+    if (err){ console.log('ERROR in db.query in GET /home/:username:', err.message);
+        return res.redirect('/login')
+    } else if(result.rows.length){
+        if (  ((result.rows[0].expire).getTime()) < Date.now()  ){
+            console.log('FAIL to login: cookie with sid', result.rows[0].sid, 'is expired!');
+            return res.redirect('/login')
+        };
+        const user_id = result.rows[0].sess.passport.user;
+        const user_data_db_raw = await db.query("SELECT * FROM work_data WHERE user_id = ($1)", [user_id]);
         const user_data_db = user_data_db_raw.rows[0];
-        console.log(typeof(user_data_db));
-        console.log(user_data_db);
-        const loc_data = JSON.parse(user_data_db.loc_data);
-        const new_date = new Date();
-        res.render('index', {
-            user_timezone_PH : TIMEZONE, current_hour_PH : current_hour,
-            dayA_PH : dayModule.dayA_pretty(new_date_mili), notesDayA_PH_string : JSON.stringify(notes_parsed[dayA_key]['notes']), dayA_hidden_date_PH : dayA_key,       // "_PH" is for PlaceHolder
-            dayB_PH : dayModule.dayB_pretty(new_date_mili), notesDayB_PH_string : JSON.stringify(notes_parsed[dayB_key]['notes']), dayB_hidden_date_PH : dayB_key,
-            dayC_PH : dayModule.dayC_pretty(new_date_mili), notesDayC_PH_string: JSON.stringify(notes_parsed[dayC_key]['notes']), dayC_hidden_date_PH : dayC_key,
-            routines_raw_PH_string : JSON.stringify(routines_parsed), username_PH : realname, mili_diff_PH : mili_diff,
-            projects_PH_string : JSON.stringify(projects_parsed), notes_PH_string : JSON.stringify(notes_parsed),
-            days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31),
-            next_6h_PH : next_6h_string, next_day_PH : next_day_string, day3_PH : day3_string, wtr_simple_PH : wtr_simple, celsius_PH : celsius            
-        })
-    }else {
-        console.log('User', req.user.username, 'redirected to login because there was not req.session');
-        res.redirect('/login')
-    }    
-});
+        const username = user_data_db['username'];                  console.log('GET home/'+username)
+        if (req.params.username != username){ console.log('req.params.username is', req.params.username, 'but username from db is', username, '. At', Date.now(), 'Redirecting to /login');
+            return res.redirect('/login')
+        };                                                          console.log(user_data_db);
+        const notes = JSON.parse(user_data_db['notes']);
+        const routines = JSON.parse(user_data_db['high_wly_mly']);
+        const projects = JSON.parse(user_data_db['projects']);
+        const weather = JSON.parse(user_data_db['weather']);
+        const loc_data = (JSON.parse(user_data_db.loc_data))['last'];
 
-app.post('/login',
-    passport.authenticate('local', { failureRedirect: '/fail' }), async function(req, res) {
-        const user_data_page = req.body;
-        const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
-        const user_data_db_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
-        const user_data_db = user_data_db_raw.rows[0];
-        const loc_data_db = (JSON.parse(user_data_db['loc_data']))["last"];
-        if( time_place_obj['timestamp'] > (user_data_db['last_timestamp']+3600000) ||        // if 30min+ passed
-            time_place_obj['lat'] - loc_data_db['lat'] < 0.2 ||
-            loc_data_db['lat'] - time_place_obj['lat'] < 0.2 ||
-            time_place_obj['lon'] - loc_data_db['lon'] < 0.2 ||
-            loc_data_db['lon'] - time_place_obj['lon'] < 0.2 ||
-            time_place_obj['UTC_hour'] != user_data_db['last_UTC_hour'] ){
-            try{
-                await updateWorkData(user_data_db, time_place_obj);
-                res.redirect(`/home/${user_data_page.username}`)
-            } catch (err){ console.log('ERROR catched in await updateWorkData in POST/login:', err.message)
-                res.redirect('/login')
-            }
-        } else{
-            res.redirect(`/home/${user_data_page.username}`)
-        }        
+        let dayA_obj = dayModule.dayA(loc_data['tmz_iana']);
+        let dayB_obj = dayModule.dayB(loc_data['tmz_iana']);
+        let dayC_obj = dayModule.dayC(loc_data['tmz_iana']);
+        let dayA_key = dayA_obj['YYYY-MM-DD'];
+        let dayB_key = dayB_obj['YYYY-MM-DD'];
+        let dayC_key = dayC_obj['YYYY-MM-DD'];
+        let A_notes, B_notes, C_notes;
+
+        if(notes[dayA_key]){ A_notes = JSON.stringify(notes[dayA_key]) }
+        else{ A_notes = JSON.stringify([]) };
+        if(notes[dayB_key]){ B_notes = JSON.stringify(notes[dayB_key]) }
+        else{ B_notes = JSON.stringify([]) };
+        if(notes[dayC_key]){ C_notes = JSON.stringify(notes[dayC_key]) }
+        else{ C_notes = JSON.stringify([]) };
+
+        res.render('index', {
+            user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : user_data_db['last_local_hour'],
+            dayA_PH: dayModule.dayA_pretty(), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
+            dayB_PH: dayModule.dayB_pretty(), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
+            dayC_PH: dayModule.dayC_pretty(), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
+            routines_raw_PH_string: user_data_db['high_wly_mly'], username_PH: user_data_db['first_name'],
+            mili_diff_PH: 1, projects_PH_str: user_data_db['projects'],
+            days_7_PH : JSON.stringify([]) , days_31_PH : JSON.stringify([]),
+            next_6h_PH : weather[0], next_day_PH : weather[1], day3_PH : weather[2],
+            wtr_simple_PH : 0, celsius_PH : 1
+        })
+    } else{
+        console.log('NO COOKIE'); res.redirect('/login')
     }
-);
+    })
+});
 
 app.post('/register', (req, res) => {
     const cred_arr = JSON.parse(req.body.cred_arr_str);
@@ -273,6 +300,107 @@ app.post('/register', (req, res) => {
         }
     });
 });
+
+app.post('/login',
+    passport.authenticate('local', { failureRedirect: '/fail' }), async function(req, res) {
+        const user_data_page = req.body;
+        const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
+        const user_data_db_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
+        const user_data_db = user_data_db_raw.rows[0];
+        const loc_data_db = (JSON.parse(user_data_db['loc_data']))["last"];
+        if( time_place_obj['timestamp'] > (user_data_db['last_timestamp']+3600000) ||       // if 1h+ passed
+            time_place_obj['UTC_hour'] != user_data_db['last_UTC_hour'] ){                  // if it's not the same hour
+            console.log('fulfilled conditions to updateWorkDataFromLogin table');
+            try{
+                await updateWorkDataFromLogin(user_data_db, time_place_obj);
+                return res.redirect(`/home/${user_data_page.username}`)
+            } catch (err){ console.log('ERROR catched in await updateWorkDataFromLogin in POST/login:', err.message)
+                return res.redirect('/login')
+            }
+        } else{
+            console.log('DID NOT fulfilled conditions to updateWorkDataFromLogin table');
+            return res.redirect(`/home/${user_data_page.username}`)
+        }        
+    }
+);
+
+app.post('/home', async function (req,res){
+    console.log('>>> POST /home');
+    console.log(req.user); console.log(req.body); console.log(req.session); console.log(req.sessionID);
+    const username = req.user.username;
+
+    if (req.body.user_hour_timestamp){
+        let user_hour_timestamp_str = req.body.user_hour_timestamp;
+        if (user_hour_timestamp_str[0].length > 1){
+            console.log('WARNING! THERE WERE ' + user_hour_timestamp_str.length + ' OBJECTS IN user_hour_timestamp_str!');
+            console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
+            user_hour_timestamp_str = user_hour_timestamp_str[user_hour_timestamp_str.length-1]
+        };
+        let user_hour_timestamp = JSON.parse(user_hour_timestamp_str);
+        let user_hour = user_hour_timestamp[0];
+        let user_timestamp = user_hour_timestamp[2];
+        const user_data_db_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)", [username]);
+        const user_data_db = JSON.parse(user_data_db_raw);
+        let weather = JSON.parse(user_data_db['weather']);
+        let loc_data = (JSON.parse(user_data_db.loc_data))['last'];
+        if ((user_timestamp > (user_data_db['last_timestamp']+3600000)) ||
+            (user_hour != user_data_db['last_local_hour'])){
+                let local_hour = UTC_hour + loc_data['hour_offset'];
+                updateWorkDataFromHome(loc_data, user_data_db, local_hour, UTC_hour, )
+
+
+                if (hour_user.length == 1){
+                hour_user = "0"+hour_user
+            };
+            let user_lat = parseFloat(user_hour_timestamp[1]);
+            let user_lon = parseFloat(user_hour_timestamp[2]);
+            let user_tmz = user_hour_timestamp[3];
+            let user_gmt_name = user_hour_timestamp[4];
+            let db;
+            try{
+                db = await openDb('req.body.user_hour_timestamp');
+                if ( typeof(user_lat) == 'number' && user_lat != -27.6 && user_lon != -48.5){
+                    if (user_tmz && user_tmz.length == 19){
+                        db.run('UPDATE tasks SET (hour_str, timestamp, lat, lon, tmz, gmt_iana) = (?,?,?,?,?,?) WHERE user_id = ?',
+                        [hour_user, user_timestamp, user_lat, user_lon, user_tmz, user_gmt_name, session.userid], function(err) {
+                            if (err) { console.log('req.body.user_hour_timestamp', err.message); return([false,db])
+                            } else{ console.log(`Row(s) updated req.body.user_hour_timestamp: ${this.changes}`); return([200,db])
+                            }
+                        })
+                    } else{
+                        db.run('UPDATE tasks SET (hour_str, timestamp, lat, lon) = (?,?,?,?) WHERE user_id = ?',
+                        [hour_user, user_timestamp, user_lat, user_lon, session.userid], function(err) {
+                            if (err) { console.log('req.body.user_hour_timestamp', err.message); return([false,db])
+                            } else{ console.log(`Row(s) updated req.body.user_hour_timestamp: ${this.changes}`); return([200,db])
+                            }
+                        })
+                    }
+                } else{
+                    if (user_tmz && user_tmz.length == 19){
+                        db.run('UPDATE tasks SET (hour_str, timestamp, tmz, gmt_iana) = (?,?,?,?) WHERE user_id = ?',
+                        [hour_user, user_timestamp, user_tmz, user_gmt_name, session.userid], function(err) {
+                            if (err) { console.log('req.body.user_hour_timestamp', err.message); return([false,db])
+                            } else{ console.log(`Row(s) updated req.body.user_hour_timestamp: ${this.changes}`); return([200,db])
+                            }
+                        })
+                    } else{
+                        db.run('UPDATE tasks SET (hour_str, timestamp) = (?,?) WHERE user_id = ?',
+                        [hour_user, user_timestamp, session.userid], function(err) {
+                            if (err) { console.log('req.body.user_hour_timestamp', err.message); return([false,db])
+                            } else{ console.log(`Row(s) updated req.body.user_hour_timestamp: ${this.changes}`); return([200,db])
+                            }
+                        })
+                    }
+                }
+            } catch (err){ console.log('req.body.user_hour_timestamp', err.message);
+                if (db){ closeDb(db, 'req.body.user_hour_timestamp')
+                };
+                return [false,false]
+            }
+        }
+    };
+
+})
 
 app.listen(3000, function(){
     console.log("listening on port 3000");
