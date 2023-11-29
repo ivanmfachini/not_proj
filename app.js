@@ -134,7 +134,7 @@ async function updateWorkDataFromHome(in_data_db, in_local_hour, in_UTC_hour, in
     const weather_str = await weatherModule(loc_data['lat'], loc_data['lon'], loc_data['tmz_iana'], in_local_hour, in_data_db['temp_celsius']);
     if(weather_str){
         await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE username = ($5)",
-        [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_username],
+        [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_data_db['username']],
         (err, result) =>{
             if (err){
                 console.log('ERROR in db.query in updateWorkDataFromHome:', err.message);
@@ -284,11 +284,11 @@ app.get('/home/:username', async (req, res) => {
             let dayC_obj = dayModule.dayC(loc_data['tmz_iana']), dayC_key = dayC_obj['YYYY-MM-DD'];
             let A_notes, B_notes, C_notes;
 
-            if(notes[dayA_key]){ A_notes = JSON.stringify(notes[dayA_key]) }
+            if(notes[dayA_key]){ A_notes = JSON.stringify(notes[dayA_key]['notes']) }
             else{ A_notes = JSON.stringify([]) };
-            if(notes[dayB_key]){ B_notes = JSON.stringify(notes[dayB_key]) }
+            if(notes[dayB_key]){ B_notes = JSON.stringify(notes[dayB_key]['notes']) }
             else{ B_notes = JSON.stringify([]) };
-            if(notes[dayC_key]){ C_notes = JSON.stringify(notes[dayC_key]) }
+            if(notes[dayC_key]){ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
             else{ C_notes = JSON.stringify([]) };
 
             res.render('index', {
@@ -309,7 +309,7 @@ app.get('/home/:username', async (req, res) => {
 app.post('/home', async function (req,res){
     const username = req.user.username;
     console.log('>>> POST /home', username);
-    console.log(req.user); console.log(req.body); console.log(req.session); console.log(req.sessionID);
+    console.log(req.body); console.log(req.session); console.log(req.sessionID); //console.log(req.user); 
     const old_data_db = await queryWorkDataUsername(username); console.log(old_data_db);
     let user_data_db, user_hour_timestamp;
     
@@ -326,12 +326,12 @@ app.post('/home', async function (req,res){
         const user_timestamp = user_hour_timestamp[2];
         if ((user_timestamp > (old_data_db['last_timestamp']+3600000)) ||
             (user_hour != old_data_db['last_local_hour'])){
-            let buf_new_db = await updateWorkDataFromHome(user_data_db, user_hour, UTC_hour, user_timestamp)
+            let buf_new_db = await updateWorkDataFromHome(old_data_db, user_hour, UTC_hour, user_timestamp)
             if (buf_new_db){ user_data_db = buf_new_db }
         }        
     };
     
-    setTimeout(() => {
+    setTimeout(async () => {
 
         if(req.body.new_note_array){
             const new_note_array_str = req.body.new_note_array;
@@ -345,7 +345,7 @@ app.post('/home', async function (req,res){
             const new_text = new_note_array[1];
             let user_data;
             if(user_data_db){ user_data = user_data_db }
-            else{ console.log('user_data_db is (yet?):', user_data_db); user_data_db = old_data_db };
+            else{ console.log('user_data_db is (yet?):', user_data_db); user_data = old_data_db };
             const loc_data = (JSON.parse(user_data['loc_data']))['last'];
             const new_day_obj = new Date(new_key+loc_data['tmz_suffix']);
             let buf_day_str = new_day_obj.toString();
@@ -354,15 +354,19 @@ app.post('/home', async function (req,res){
                 buf_day_str = buf_day_str.slice(0,14);
                 day_str = buf_day_str.substring(0,8) + "0" + buf_day_str.substring(8)
             } else{ day_str = buf_day_str.slice(0,15) }
-            let notes = user_data['notes'];
-            if(notes[new_key]){ notes[new_key]['notes'].append([new_text, Date.now(), day_str]) }
+            let notes = JSON.parse(user_data['notes']);
+            if(notes[new_key]){ notes[new_key]['notes'].push([new_text, Date.now(), day_str]) }
             else{ notes[new_key] = {
                 "weekday": new_day_obj.getDay(),
                 "day": new_day_obj.getDate(),
                 "notes": [[new_text, Date.now(), day_str]]
-            } }
-    
-    
+            }};
+            await db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
+                [(JSON.stringify(notes)), username], (err, result)=>{
+                    if (err){ console.log('ERROR in db.query in <if(req.body.new_note_array){> in POST /home', username,':',err.message) }
+                    return res.redirect(`/home/${username}`)
+                }
+            )    
         }
 
     }, 50)
