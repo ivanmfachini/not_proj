@@ -60,7 +60,7 @@ passport.use(new LocalStrategy(
         await db.query('SELECT * FROM credential WHERE username = ($1)', [username], async function (err,user){
             if (err) { console.log('ERROR in db.query in LocalStrategy:', err.message);
                 return done(err)
-            } else{
+            } else {
                 try{ user = user.rows[0] }
                 catch (err){ console.log('ERROR catched in try{ user = user.rows[0]:', err.message);
                     return done(null,false)
@@ -145,7 +145,7 @@ async function updateWorkDataFromHome(in_data_db, in_local_hour, in_UTC_hour, in
                 return(result.rows[0])
             }
         });
-    } else{ return false }
+    } else { return false }
 }
 
 async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
@@ -170,7 +170,7 @@ async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
                 else{ console.log('Successfully (A) updated work_data of', in_user_data['username']) }
             });
         }
-    } else{
+    } else {
         const weather_str = await weatherModule(loc_data['original']['lat'], loc_data['original']['lon'], loc_data['original']['tmz_iana'], in_time_place_obj['local_hour'], in_user_data['temp_celsius']);
         if(weather_str){
             await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE username = ($5)",
@@ -253,13 +253,13 @@ async function updateNotes(notes_str, username){
             [notes_str, username], (err, result)=>{
                 if (err){ console.log('ERROR in updateNotes(notes,', username+'):',err.message);
                     resolve(err.message)
-                } else{ resolve(true) }
+                } else { resolve(true) }
             }
         )
     })
 }
 
-function newNotesStr(new_note_array, user_data){
+function newNotesStrNew(new_note_array, user_data){
     const new_key = new_note_array[0];
     const new_text = new_note_array[1];
     const loc_data = (JSON.parse(user_data['loc_data']))['last'];
@@ -269,7 +269,7 @@ function newNotesStr(new_note_array, user_data){
     if (buf_day_str[9] == " "){
         buf_day_str = buf_day_str.slice(0,14);
         day_str = buf_day_str.substring(0,8) + "0" + buf_day_str.substring(8)
-    } else{ day_str = buf_day_str.slice(0,15) }
+    } else { day_str = buf_day_str.slice(0,15) }
     let notes = JSON.parse(user_data['notes']);
     if(notes[new_key]){ notes[new_key]['notes'].push([new_text, Date.now(), day_str]) }
     else{ notes[new_key] = {
@@ -277,6 +277,22 @@ function newNotesStr(new_note_array, user_data){
         "day": new_day_obj.getDate(),
         "notes": [[new_text, Date.now(), day_str]]
     }};
+    return JSON.stringify(notes)
+};
+
+function newNotesStrEdit(edit_note_array, user_data){
+    const new_key = edit_note_array[0];
+    const new_text = edit_note_array[1];
+    const edit_timestamp = edit_note_array[2];
+    let notes = JSON.parse(user_data['notes']);
+    let notes_key = notes[new_key]['notes'];
+    for (let i = 0; i < notes_key.length; i++){
+        if(notes_key[i][1] == edit_timestamp){
+            notes_key[i][0] = new_text;
+            break
+        }
+    };
+    notes[new_key]['notes'] = notes_key;
     return JSON.stringify(notes)
 };
 
@@ -343,7 +359,7 @@ app.get('/home/:username', async (req, res) => {
                 next_6h_PH : weather[0], next_day_PH : weather[1], day3_PH : weather[2],
                 wtr_simple_PH : 0, celsius_PH : 1
             })
-        } else{ console.log('NO COOKIE'); return res.redirect('/login') }
+        } else { console.log('NO COOKIE'); return res.redirect('/login') }
     })
 });
 
@@ -370,77 +386,82 @@ app.post('/home', async function (req,res){
             (user_hour != old_user_data['last_local_hour'])){
             let buf_new_db = await updateWorkDataFromHome(old_user_data, user_hour, UTC_hour, user_timestamp)
             if (buf_new_db){ upd_user_data = buf_new_db }
-        } else{ upd_user_data = false }
-    };    
+        } else { upd_user_data = false }
+    };
+
+    async function checkPending(in_one_tenth_second, in_new_notes_str){
+        if(in_one_tenth_second < 29){
+            if(upd_user_data == undefined){
+                in_one_tenth_second+=1;
+                console.log('one_tenth_second:', in_one_tenth_second);
+                return checkPending(in_one_tenth_second, in_new_notes_str)
+            } else {
+                let result_a = await updateNotes(in_new_notes_str, username);
+                if (result_a != true){
+                    console.log('ERROR, did not update Notes Column:', result_a);
+                    return false
+                } else{ return true }
+            }
+        } else {
+            console.log('WARNING: variable upd_user_data pending for too long (3s). Check POST/home(req.body.new_note_array) and function updateWorkDataFromHome.');
+            let result_b = await updateNotes(in_new_notes_str, username);
+            if (result_b != true){ console.log('ERROR, did not update Notes Column:', result_b) }
+            return true
+        }
+    };
 
     if(req.body.new_note_array){
         const new_note_array = checkMultipleReq(req.body.new_note_array);
         let user_data;
         let pending_update = true;
-        if(upd_user_data){ user_data = upd_user_data; pending_update = false }
-        else if (upd_user_data == false){ user_data = old_user_data; pending_update = false }
-        else{ user_data = old_user_data };
-        const new_notes_str = newNotesStr(new_note_array, user_data);
+        if(upd_user_data){
+            user_data = upd_user_data;
+            pending_update = false
+        } else if (upd_user_data == false){
+            user_data = old_user_data;
+            pending_update = false
+        } else { user_data = old_user_data };
+        const new_notes_str = newNotesStrNew(new_note_array, user_data);
         let one_tenth_second = 0;
         if (pending_update){
             let intervalID = setInterval(async ()=>{
-                if(one_tenth_second < 29){
-                    if(upd_user_data == undefined){ one_tenth_second+=1 }
-                    else {
-                        clearInterval(intervalID);
-                        let result = await updateNotes(new_notes_str, username);
-                        if (result != true){ console.log('ERROR, did not update Notes Column:', result) }
-                        return res.redirect(`/home/${username}`)
-                    }
-                } else {
-                    console.log('WARNING: variable upd_user_data pending for too long (3s). Check POST/home(req.body.new_note_array) and function updateWorkDataFromHome.')
-                    clearInterval(intervalID);
-                    let result = await updateNotes(new_notes_str, username);
-                    if (result != true){ console.log('ERROR, did not update Notes Column:', result) }
-                    return res.redirect(`/home/${username}`)
-                }
+                let result = await checkPending(one_tenth_second, new_notes_str);
+                clearInterval(intervalID);
+                if (!result){ console.log('ERROR, did not update Notes Column:', result) };
+                return res.redirect(`/home/${username}`)
             }, 100)
-        } else{
+        } else {
             let result = await updateNotes(new_notes_str, username);
-            if (result != true){ console.log('ERROR, did not update Notes Column:', result) }
+            if (!result){ console.log('ERROR, did not update Notes Column:', result) }
             return res.redirect(`/home/${username}`)
         }
     };
 
     if(req.body.edit_note_array){
-        const edit_note_array_str = req.body.edit_note_array;
-        if (edit_note_array_str[0].length > 1){
-            console.log('WARNING! THERE WERE ' + edit_note_array_str.length + ' OBJECTS IN edit_note_array_str!');
-            console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
-            edit_note_array_str = edit_note_array_str[edit_note_array_str.length-1]
-        };
-        const edit_note_array = JSON.parse(edit_note_array_str);
-        const new_key = edit_note_array[0];
-        const new_text = edit_note_array[1];
-        const edit_timestamp = edit_note_array[2];
+        const edit_note_array = checkMultipleReq(req.body.edit_note_array);
         let user_data;
-        if(upd_user_data){ user_data = upd_user_data }
-        else{ console.log('upd_user_data is (yet?):', upd_user_data); user_data = old_user_data };
-        let notes = JSON.parse(user_data['notes']);
-        let notes_key = notes[new_key]['notes'];
-        for (let i = 0; i < notes_key.length; i++){
-            if(notes_key[i][1] == edit_timestamp){
-                notes_key[i][0] = new_text;
-                break
-            }
-        };
-        notes[new_key]['notes'] = notes_key;
-        await db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
-            [(JSON.stringify(notes)), username], (err, result)=>{
-                if (err){ console.log('ERROR in db.query in <if(req.body.edit_note_array){> in POST /home', username,':',err.message) }
-                if (upd_user_data != undefined) { return res.redirect(`/home/${username}`) };
-                let wait_cycles = 0;
-                setInterval(() => {
-                    if (upd_user_data != undefined || wait_cycles > 16) { return res.redirect(`/home/${username}`) }
-                    wait_cycles += 1
-                }, 200)
-            }
-        )
+        let pending_update = true;
+        if(upd_user_data){
+            user_data = upd_user_data;
+            pending_update = false
+        } else if (upd_user_data == false){
+            user_data = old_user_data;
+            pending_update = false
+        } else { user_data = old_user_data };
+        const new_notes_str = newNotesStrEdit(edit_note_array, user_data);
+        let one_tenth_second = 0;
+        if (pending_update){
+            let intervalID = setInterval(async ()=>{
+                let result = await checkPending(one_tenth_second, new_notes_str);
+                clearInterval(intervalID);
+                if (!result){ console.log('ERROR, did not update Notes Column:', result) };
+                return res.redirect(`/home/${username}`)
+            }, 100)
+        } else {
+            let result = await updateNotes(new_notes_str, username);
+            if (!result){ console.log('ERROR, did not update Notes Column:', result) }
+            return res.redirect(`/home/${username}`)
+        }
     };
 
     if(req.body.remove_note_array){
@@ -510,7 +531,7 @@ app.post('/login',
             console.log('fulfilled conditions to updateWorkDataFromLogin table');
             await updateWorkDataFromLogin(upd_user_data, time_place_obj);
             return res.redirect(`/home/${user_data_page.username}`)
-        } else{
+        } else {
             console.log('DID NOT fulfilled conditions to updateWorkDataFromLogin table');
             return res.redirect(`/home/${user_data_page.username}`)
         }        
@@ -525,7 +546,7 @@ app.post('/register', (req, res) => {
         if(err){
             console.log('ERROR in bcrypt.hash in POST/register:', err.message);
             res.redirect('/registration_failed_A')
-        } else{
+        } else {
             try{
                 await registerUser( cred_arr[0], hash, first_name, time_place_obj );
                 res.redirect('registration_complete')
