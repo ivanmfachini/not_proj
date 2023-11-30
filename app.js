@@ -248,7 +248,10 @@ function checkMultipleReq(in_obj){
 };
 
 async function updateNotes(notes_str, username){
-    return new Promise ((resolve, reject)=>{
+    if(!notes_str || !username){
+        console.log('ERROR: updateNotes requires two parameters (notes_str, username)');
+        return false
+    } else{ return new Promise ((resolve, reject)=>{
         db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
             [notes_str, username], (err, result)=>{
                 if (err){ console.log('ERROR in updateNotes(notes,', username+'):',err.message);
@@ -256,10 +259,11 @@ async function updateNotes(notes_str, username){
                 } else { resolve(true) }
             }
         )
-    })
+    })}
 };
 
 function newNotesStrNew(new_note_array, user_data){
+    console.log('FUNCTION newNotesStrNew(',new_note_array, user_data,')');
     const new_key = new_note_array[0];
     const new_text = new_note_array[1];
     const loc_data = (JSON.parse(user_data['loc_data']))['last'];
@@ -277,7 +281,9 @@ function newNotesStrNew(new_note_array, user_data){
         "day": new_day_obj.getDate(),
         "notes": [[new_text, Date.now(), day_str]]
     }};
-    return JSON.stringify(notes)
+    let return_str = JSON.stringify(notes);
+    console.log('FUNCTION newNotesStrNew will return:', return_str);
+    return return_str
 };
 
 function newNotesStrEdit(edit_note_array, user_data){
@@ -331,10 +337,10 @@ app.get('/home/:username', async (req, res) => {
                 return res.redirect('/login')
             };
             const notes = JSON.parse(upd_user_data['notes']);                console.log(notes);
-            const routines = JSON.parse(upd_user_data['high_wly_mly']);      console.log(routines);
-            const projects = JSON.parse(upd_user_data['projects']);          console.log(projects);
-            const weather = JSON.parse(upd_user_data['weather']);            console.log(weather);
-            const loc_data = (JSON.parse(upd_user_data.loc_data))['last'];   console.log(loc_data);
+            const routines = JSON.parse(upd_user_data['high_wly_mly']);      //console.log(routines);
+            const projects = JSON.parse(upd_user_data['projects']);          //console.log(projects);
+            const weather = JSON.parse(upd_user_data['weather']);            //console.log(weather);
+            const loc_data = (JSON.parse(upd_user_data.loc_data))['last'];   //console.log(loc_data);
 
             let dayA_obj = dayModule.dayA(loc_data['tmz_iana']), dayA_key = dayA_obj['YYYY-MM-DD'];
             let dayB_obj = dayModule.dayB(loc_data['tmz_iana']), dayB_key = dayB_obj['YYYY-MM-DD'];
@@ -372,8 +378,8 @@ app.post('/home', async function (req,res){
 
     const username = req.user.username;
     console.log('>>> POST /home', username);
-    console.log(req.body); console.log(req.session); console.log(req.sessionID); //console.log(req.user); 
-    const old_user_data = await queryWorkDataUsername(username); console.log(old_user_data);
+    console.log(req.body); //console.log(req.session); console.log(req.sessionID); console.log(req.user); 
+    const old_user_data = await queryWorkDataUsername(username); //console.log(old_user_data);
 
     let upd_user_data, user_hour_timestamp;
     
@@ -389,84 +395,60 @@ app.post('/home', async function (req,res){
         } else { upd_user_data = false }
     };
 
-    let intervalID_1;
-    async function checkPending(in_50_mili, in_new_notes_str){
-        if(in_50_mili < 39){
-            if(upd_user_data == undefined){
-                console.log('50 miliseconds passed:', in_50_mili);
-                intervalID_1 = setInterval(()=>{
-                    return checkPending(in_50_mili+1, in_new_notes_str)
-                },50)
+    const interval_ID_obj = { 'int_updateNotes' : undefined };
+    async function updateNotes(in_notes_arr, in_interval_A, in_task){
+        console.log('FUNCTION updateNotes(',in_notes_arr, in_interval_A, in_task,')');
+        if (upd_user_data == undefined){
+            if(in_interval_A > 100){
+                console.log('Something went wrong. Check function updateWorkDataFromHome. Aborting.');
+                clearInterval(interval_ID_obj['int_updateNotes']);
+                try{ delete (interval_ID_obj['int_updateNotes']) }
+                catch (err){ console.log('ERROR catched in try{ delete (interval_ID_obj["int_updateNotes"]) }:', err.message) }
+                finally{ return false }
             } else {
-                clearInterval(intervalID_1);
-                let result_a = await updateNotes(in_new_notes_str, username);
-                return result_a
+                interval_ID_obj['int_updateNotes'] = setInterval(()=>{
+                    return updateNotes(in_notes_arr,in_interval_A+1, in_task)
+                },50)
             }
+        } else if(upd_user_data){
+            if (in_interval_A) {
+                clearInterval(interval_ID_obj['int_updateNotes']);
+                try{ delete (interval_ID_obj['int_updateNotes']) }
+                catch (err){ console.log('ERROR catched in try{ delete (interval_ID_obj["int_updateNotes"]) }:', err.message) }
+            };
+            let result_c;
+            if (in_task == 'add'){ result_c = await updateNotes( (newNotesStrNew(in_notes_arr, upd_user_data)), username ) }
+            else if (in_task == 'edit'){ result_c = await updateNotes( newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
+            return result_c
         } else {
-            clearInterval(intervalID_1);
-            let result_b = await updateNotes(in_new_notes_str, username);
-            return result_b
+            if (in_interval_A) {
+                clearInterval(interval_ID_obj['int_updateNotes']);
+                try{ delete (interval_ID_obj['int_updateNotes']) }
+                catch (err){ console.log('ERROR catched in try{ delete (interval_ID_obj["int_updateNotes"]) }:', err.message) }
+            };
+            let result_c;
+            if (in_task == 'add'){ result_c = await updateNotes( (newNotesStrNew(in_notes_arr, old_user_data)), username ) }
+            else if (in_task == 'edit'){ result_c = await updateNotes( newNotesStrEdit(in_notes_arr, old_user_data), username ) }            
+            return result_c
         }
     };
 
     if(req.body.new_note_array){
         const new_note_array = checkMultipleReq(req.body.new_note_array);
-        let user_data;
-        let pending_update = true;
-        if(upd_user_data){
-            user_data = upd_user_data;
-            pending_update = false
-        } else if (upd_user_data == false){
-            user_data = old_user_data;
-            pending_update = false
-        } else { user_data = old_user_data };
-        const new_notes_str = newNotesStrNew(new_note_array, user_data);
-        if (pending_update){            
-            let result = await checkPending(0, new_notes_str);
-            console.log('The result of updating Notes Column is:', result) };
-            return res.redirect(`/home/${username}`)
-        } else {
-            let result = await updateNotes(new_notes_str, username);
-            if (!result){ console.log('ERROR, did not update Notes Column:', result) }
-            return res.redirect(`/home/${username}`)
-        }
+        let result = await updateNotes(new_note_array, 0, 'add');
+        console.log('Result from inserting a new note for', username, 'was:', result);
+        return res.redirect(`/home/${username}`)
     };
 
     if(req.body.edit_note_array){
         const edit_note_array = checkMultipleReq(req.body.edit_note_array);
-        let user_data;
-        let pending_update = true;
-        if(upd_user_data){
-            user_data = upd_user_data;
-            pending_update = false
-        } else if (upd_user_data == false){
-            user_data = old_user_data;
-            pending_update = false
-        } else { user_data = old_user_data };
-        const new_notes_str = newNotesStrEdit(edit_note_array, user_data);
-        let 50 miliseconds passed = 0;
-        if (pending_update){
-            let intervalID = setInterval(async ()=>{
-                let result = await checkPending(50 miliseconds passed, new_notes_str);
-                clearInterval(intervalID);
-                if (!result){ console.log('ERROR, did not update Notes Column:', result) };
-                return res.redirect(`/home/${username}`)
-            }, 100)
-        } else {
-            let result = await updateNotes(new_notes_str, username);
-            if (!result){ console.log('ERROR, did not update Notes Column:', result) }
-            return res.redirect(`/home/${username}`)
-        }
+        let result = await updateNotes(edit_note_array, 0, 'edit');
+        console.log('Result from editing a note for', username, 'was:', result);
+        return res.redirect(`/home/${username}`)
     };
 
     if(req.body.remove_note_array){
-        const remove_note_array_str = req.body.remove_note_array;
-        if (remove_note_array_str[0].length > 1){
-            console.log('WARNING! THERE WERE ' + remove_note_array_str.length + ' OBJECTS IN remove_note_array_str!');
-            console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
-            remove_note_array_str = remove_note_array_str[remove_note_array_str.length-1]
-        };
-        const remove_note_array = JSON.parse(remove_note_array_str);
+        const remove_note_array = checkMultipleReq(req.body.remove_note_array);
         const new_key = remove_note_array[0];
         const del_timestamp = remove_note_array[1];
         let user_data;
