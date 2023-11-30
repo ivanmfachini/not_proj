@@ -146,7 +146,7 @@ async function updateWorkDataFromHome(in_data_db, in_local_hour, in_UTC_hour, in
             }
         });
     } else { return false }
-}
+};
 
 async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
     let loc_data = JSON.parse(in_user_data['loc_data']);
@@ -257,7 +257,7 @@ async function updateNotes(notes_str, username){
             }
         )
     })
-}
+};
 
 function newNotesStrNew(new_note_array, user_data){
     const new_key = new_note_array[0];
@@ -389,24 +389,23 @@ app.post('/home', async function (req,res){
         } else { upd_user_data = false }
     };
 
-    async function checkPending(in_one_tenth_second, in_new_notes_str){
-        if(in_one_tenth_second < 29){
+    let intervalID_1;
+    async function checkPending(in_50_mili, in_new_notes_str){
+        if(in_50_mili < 39){
             if(upd_user_data == undefined){
-                in_one_tenth_second+=1;
-                console.log('one_tenth_second:', in_one_tenth_second);
-                return checkPending(in_one_tenth_second, in_new_notes_str)
+                console.log('50 miliseconds passed:', in_50_mili);
+                intervalID_1 = setInterval(()=>{
+                    return checkPending(in_50_mili+1, in_new_notes_str)
+                },50)
             } else {
+                clearInterval(intervalID_1);
                 let result_a = await updateNotes(in_new_notes_str, username);
-                if (result_a != true){
-                    console.log('ERROR, did not update Notes Column:', result_a);
-                    return false
-                } else{ return true }
+                return result_a
             }
         } else {
-            console.log('WARNING: variable upd_user_data pending for too long (3s). Check POST/home(req.body.new_note_array) and function updateWorkDataFromHome.');
+            clearInterval(intervalID_1);
             let result_b = await updateNotes(in_new_notes_str, username);
-            if (result_b != true){ console.log('ERROR, did not update Notes Column:', result_b) }
-            return true
+            return result_b
         }
     };
 
@@ -422,14 +421,10 @@ app.post('/home', async function (req,res){
             pending_update = false
         } else { user_data = old_user_data };
         const new_notes_str = newNotesStrNew(new_note_array, user_data);
-        let one_tenth_second = 0;
-        if (pending_update){
-            let intervalID = setInterval(async ()=>{
-                let result = await checkPending(one_tenth_second, new_notes_str);
-                clearInterval(intervalID);
-                if (!result){ console.log('ERROR, did not update Notes Column:', result) };
-                return res.redirect(`/home/${username}`)
-            }, 100)
+        if (pending_update){            
+            let result = await checkPending(0, new_notes_str);
+            console.log('The result of updating Notes Column is:', result) };
+            return res.redirect(`/home/${username}`)
         } else {
             let result = await updateNotes(new_notes_str, username);
             if (!result){ console.log('ERROR, did not update Notes Column:', result) }
@@ -449,10 +444,10 @@ app.post('/home', async function (req,res){
             pending_update = false
         } else { user_data = old_user_data };
         const new_notes_str = newNotesStrEdit(edit_note_array, user_data);
-        let one_tenth_second = 0;
+        let 50 miliseconds passed = 0;
         if (pending_update){
             let intervalID = setInterval(async ()=>{
-                let result = await checkPending(one_tenth_second, new_notes_str);
+                let result = await checkPending(50 miliseconds passed, new_notes_str);
                 clearInterval(intervalID);
                 if (!result){ console.log('ERROR, did not update Notes Column:', result) };
                 return res.redirect(`/home/${username}`)
