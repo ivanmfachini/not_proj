@@ -88,14 +88,14 @@
     };
 
     // Lyuben Todorov https://stackoverflow.com/a/15465612/21113444
-    function submitNewNote(day_number, in_text){
+    function submitNewNote(day_number, in_text, in_fut_date = false){
         let checker = sanitizeTextInput(in_text);
         if(checker){
             let key_to_add;
             if (day_number == 1){ key_to_add = $(".hidden_date"+period_of_day_class).html() }
             else                { key_to_add = $(".hidden_date"+period_of_day_class).last().html() }            
-            let string_to_submit = JSON.stringify([key_to_add, checker]);
-            let param = "<input hidden type='text' name='new_note_array' value='" + string_to_submit + "'/>";
+            let string_to_submit = JSON.stringify([key_to_add, checker, in_fut_date]);
+            let param = "<input hidden type='text' name='new_note_arr' value='" + string_to_submit + "'/>";
             $("#form-day" + day_number).append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -116,7 +116,7 @@
             if (day_number == 1){ key_to_edit = $(".hidden_date"+period_of_day_class).html() }
             else                { key_to_edit = $(".hidden_date"+period_of_day_class).last().html() };
             let string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp]);
-            let param = "<input hidden type='text' name='edit_note_array' value='" + string_to_submit + "'/>";
+            let param = "<input hidden type='text' name='edit_note_arr' value='" + string_to_submit + "'/>";
             $("#form-day" + day_number).append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -153,7 +153,7 @@
         if (day_number == 1){ key_to_remove_from = $(".hidden_date"+period_of_day_class).html() }
         else                { key_to_remove_from = $(".hidden_date"+period_of_day_class).last().html() };
         let string_to_submit = JSON.stringify([key_to_remove_from, in_timestamp]);
-        let param = "<input hidden type='text' name='remove_note_array' value='" + string_to_submit + "'/>";
+        let param = "<input hidden type='text' name='remove_note_arr' value='" + string_to_submit + "'/>";
         $("#form-day" + day_number).append(param);
         new_date = new Date();
         local_hour = new_date.getHours();
@@ -182,193 +182,51 @@
     };
     
     function applyRoutines(routines_raw){
-        try{
-            let routines_parsed = JSON.parse(routines_raw);     // <-- originally, it was JSON.parse(JSON.parse(routines_raw))
-            let dayA_key = $($(".hidden_date"+period_of_day_class)[0]).html();
-            let dayB_key = $($(".hidden_date"+period_of_day_class).last()).html();
-            
-            let dayA_high_array = routines_parsed['highlight'][dayA_key];
-            let dayB_high_array = routines_parsed['highlight'][dayB_key];
-            let added_note_array = $('.added_note'+period_of_day_class);
+        const routines_parsed = JSON.parse(routines_raw);     // <-- originally, it was JSON.parse(JSON.parse(routines_raw))
+        const dayA_key = $($(".hidden_date"+period_of_day_class)[0]).html();
+        const dayB_key = $($(".hidden_date"+period_of_day_class).last()).html();
+        const added_note_arr = $('.added_note'+period_of_day_class);
+        const dayobj_A = new Date(dayA_key);
+        const dayobj_B = new Date(dayB_key);
 
-            let dayA_day = dayA_key.slice(8,);
-            let dayB_day = dayB_key.slice(8,);
-            if (dayB_day == "01"){
-                if (routines_parsed['monthly']['31']){
-                    if (dayA_day != "31"){
-                        let found = false;
-                        let buf_text = "";
-                        for(let a = 0; a < routines_parsed['monthly']['31'].length; a++){
-                            buf_text = routines_parsed['monthly']['31'][a];
-                            for (let b = 0; b < added_note_array.length; b++){
-                                if ( $(added_note_array[b]).html() == buf_text ){
-                                    $($(added_note_array[b]).parent()).addClass('monthly');
-                                    $(added_note_array[b]).addClass('monthly');
-                                    found = true;
-                                    break
-                                }
-                            }
-                        }
-                        if (found == false && $("#mili_diff").html() > 0){
-                            submitNewNote(1,buf_text);
-                            return
-                        }
-                    }
-                } else if (routines_parsed['monthly']['30']){
-                    if (dayA_day != "30"){
-                        let found = false;
-                        let buf_text = "";
-                        for(let a = 0; a < routines_parsed['monthly']['30'].length; a++){
-                            buf_text = routines_parsed['monthly']['30'][a];
-                            for (let b = 0; b < added_note_array.length; b++){
-                                if ( $(added_note_array[b]).html() == buf_text ){
-                                    $($(added_note_array[b]).parent()).addClass('monthly');
-                                    $(added_note_array[b]).addClass('monthly');
-                                    found = true;
-                                    break
-                                }
-                            }
-                        }
-                        if (found == false && $("#mili_diff").html() > 0){
-                            submitNewNote(1,buf_text);
-                            return
-                        }
-                    }
-                } else if (routines_parsed['monthly']['29']){
-                    if (dayA_day != "29"){
-                        let found = false;
-                        let buf_text = "";
-                        for(let a = 0; a < routines_parsed['monthly']['29'].length; a++){
-                            buf_text = routines_parsed['monthly']['29'][a];
-                            for (let b = 0; b < added_note_array.length; b++){
-                                if ( $(added_note_array[b]).html() == buf_text ){
-                                    $($(added_note_array[b]).parent()).addClass('monthly');
-                                    $(added_note_array[b]).addClass('monthly');
-                                    found = true;
-                                    break
-                                }
-                            }
-                        }
-                        if (found == false && $("#mili_diff").html() > 0){
-                            submitNewNote(1,buf_text);
-                            return
-                        }
-                    }
-                }
-
-            } else if (dayB_day == "30" || dayB_day == "29" || dayB_day == "28"){
-
-                if (routines_parsed['monthly']['31']){
-                    let buf_date = false;
-                    try{
-                        buf_date = new Date( (dayB_key.slice(0,8)+"31") )
-                    } catch{ buf_date = false } finally{
-                        if (!buf_date){
-                            let found = false;
-                            let buf_text = "";
-                            for(let a = 0; a < routines_parsed['monthly']['31'].length; a++){
-                                buf_text = routines_parsed['monthly']['31'][a];
-                                for (let b = 0; b < added_note_array.length; b++){
-                                    if ( $(added_note_array[b]).html() == buf_text ){
-                                        $($(added_note_array[b]).parent()).addClass('monthly');
-                                        $(added_note_array[b]).addClass('monthly');
-                                        found = true;
-                                        break
-                                    }
-                                }
-                            }
-                            if (found == false && $("#mili_diff").html() > 0){
-                                submitNewNote(2,buf_text);
-                                return
-                            }
-                        }
-                    }
-                } else if (routines_parsed['monthly']['30'] && (dayB_day == "29" || dayB_day == "28") ){
-                    let buf_date = false;
-                    try{
-                        buf_date = new Date( (dayB_key.slice(0,8)+"30") )
-                    } catch{ buf_date = false } finally{
-                        if (!buf_date){
-                            let found = false;
-                            let buf_text = "";
-                            for(let a = 0; a < routines_parsed['monthly']['30'].length; a++){
-                                buf_text = routines_parsed['monthly']['30'][a];
-                                for (let b = 0; b < added_note_array.length; b++){
-                                    if ( $(added_note_array[b]).html() == buf_text ){
-                                        $($(added_note_array[b]).parent()).addClass('monthly');
-                                        $(added_note_array[b]).addClass('monthly');
-                                        found = true;
-                                        break
-                                    }
-                                }
-                            }
-                            if (found == false && $("#mili_diff").html() > 0){
-                                submitNewNote(2,buf_text);
-                                return
-                            }
-                        }
-                    }
-                } else if ( routines_parsed['monthly']['29'] && dayB_day == "28" ){
-                    let buf_date = false;
-                    try{
-                        buf_date = new Date( (dayB_key.slice(0,8)+"29") )
-                    } catch{ buf_date = false } finally{
-                        if (!buf_date){
-                            let found = false;
-                            let buf_text = "";
-                            for(let a = 0; a < routines_parsed['monthly']['29'].length; a++){
-                                buf_text = routines_parsed['monthly']['29'][a];
-                                for (let b = 0; b < added_note_array.length; b++){
-                                    if ( $(added_note_array[b]).html() == buf_text ){
-                                        $($(added_note_array[b]).parent()).addClass('monthly');
-                                        $(added_note_array[b]).addClass('monthly');
-                                        found = true;
-                                        break
-                                    }
-                                }
-                            }
-                            if (found == false && $("#mili_diff").html() > 0){
-                                submitNewNote(2,buf_text);
-                                return
-                            }
+        if (routines_parsed['highlight']){
+            let dayA_high_arr, dayB_high_arr;
+            if(routines_parsed['highlight'][dayA_key]){ dayA_high_arr = routines_parsed['highlight'][dayA_key] };
+            if(routines_parsed['highlight'][dayB_key]){ dayB_high_arr = routines_parsed['highlight'][dayB_key] };
+            if (dayA_high_arr){
+                for (let j = 0; j < dayA_high_arr.length; j++){
+                    for (let k = 0; k < added_note_arr.length; k++){
+                        if ( dayA_high_arr[j][1] == $($(added_note_arr)[k]).siblings('.note_timestamp').html() ){
+                            $($(added_note_arr)[k]).siblings('.header__bg').addClass('highlight');
                         }
                     }
                 }
             };
-            if (dayA_high_array){
-                for (let j = 0; j < dayA_high_array.length; j++){
-                    for (let k = 0; k < added_note_array.length; k++){
-                        if ( dayA_high_array[j][1] == $($(added_note_array)[k]).siblings('.note_timestamp').html() ){
-                            $($(added_note_array)[k]).siblings('.header__bg').addClass('highlight');
+            if (dayB_high_arr){
+                for (let j = 0; j < dayB_high_arr.length; j++){
+                    for (let k = 0; k < added_note_arr.length; k++){
+                        if ( dayB_high_arr[j][1] == $($(added_note_arr)[k]).siblings('.note_timestamp').html() ){
+                            $($(added_note_arr)[k]).siblings('.header__bg').addClass('highlight');
                         }                    
                     }
                 }
-            };
-            if (dayB_high_array){
-                for (let j = 0; j < dayB_high_array.length; j++){
-                    for (let k = 0; k < added_note_array.length; k++){
-                        if ( dayB_high_array[j][1] == $($(added_note_array)[k]).siblings('.note_timestamp').html() ){
-                            $($(added_note_array)[k]).siblings('.header__bg').addClass('highlight');
-                        }                    
-                    }
-                }
-            };
+            }
+        };
 
-            let dayobj_A = new Date(dayA_key + TIMEZONE);
-            let dayobj_B = new Date(dayB_key + TIMEZONE);
-            let weekday_A = dayobj_A.getDay();
-            let weekday_B = dayobj_B.getDay();
-            let weekly_array_A = routines_parsed['weekly'][weekday_A];
-            let weekly_array_B = routines_parsed['weekly'][weekday_B];
+        if(routines_parsed['weekly']){
+            const weekday_A = dayobj_A.getUTCDay();
+            const weekday_B = dayobj_B.getUTCDay();
+            let weekly_arr_A, weekly_arr_B;
+            if(routines_parsed['weekly'][weekday_A]){ weekly_arr_A = routines_parsed['weekly'][weekday_A] };
+            if(routines_parsed['weekly'][weekday_B]){ weekly_arr_B = routines_parsed['weekly'][weekday_B] };
             let create_new = true;
-            
-            if (weekly_array_A){
-                for (let j = 0; j < weekly_array_A.length; j++){
-                    for (let k = 0; k < added_note_array.length; k++){
-                        let this_note = added_note_array[k];
-                        if ( weekly_array_A[j] == $(this_note).html() ){
+            if (weekly_arr_A){
+                for (let j = 0; j < weekly_arr_A.length; j++){
+                    for (let k = 0; k < added_note_arr.length; k++){
+                        let this_note = added_note_arr[k];
+                        if ( weekly_arr_A[j] == $(this_note).html() ){
                             $($(this_note).parent()).addClass('weekly');
-                            $(added_note_array[k]).addClass('weekly');
+                            $(added_note_arr[k]).addClass('weekly');
                             create_new = false;
                             if ($(this_note).hasClass('monthly') && !$(this_note).hasClass('bothstamps')){
                                 $($(this_note).parent()).addClass('bothstamps');
@@ -377,18 +235,18 @@
                         }
                     }
                     if (create_new && $("#mili_diff").html() > 0){
-                        submitNewNote(1, weekly_array_A[j])
+                        submitNewNote(1, weekly_arr_A[j], true)
                     }
                 }
-            }
+            };
             create_new = true;
-            if (weekly_array_B){
-                for (let j = 0; j < weekly_array_B.length; j++){
-                    for (let k = 0; k < added_note_array.length; k++){
-                        let this_note = added_note_array[k];
-                        if ( weekly_array_B[j] == $(this_note).html() ){
+            if (weekly_arr_B){
+                for (let j = 0; j < weekly_arr_B.length; j++){
+                    for (let k = 0; k < added_note_arr.length; k++){
+                        let this_note = added_note_arr[k];
+                        if ( weekly_arr_B[j] == $(this_note).html() ){
                             $($(this_note).parent()).addClass('weekly');
-                            $(added_note_array[k]).addClass('weekly');
+                            $(added_note_arr[k]).addClass('weekly');
                             create_new = false;
                             if ($(this_note).hasClass('monthly') && !$(this_note).hasClass('bothstamps')){
                                 $($(this_note).parent()).addClass('bothstamps');
@@ -397,23 +255,26 @@
                         }
                     }
                     if (create_new && $("#mili_diff").html() > 0){
-                        submitNewNote(2, weekly_array_B[j])
+                        submitNewNote(2, weekly_arr_B[j], true)
                     }
                 }
             }
-            create_new = true;
-            
-            let day_A = dayobj_A.getDate();
-            let day_B = dayobj_B.getDate();
-            let monthly_array_A = routines_parsed['monthly'][day_A];
-            let monthly_array_B = routines_parsed['monthly'][day_B];            
-            if (monthly_array_A){
-                for (let j = 0; j < monthly_array_A.length; j++){
-                    for (let k = 0; k < added_note_array.length; k++){
-                        let this_note = added_note_array[k];
-                        if ( monthly_array_A[j] == $(this_note).html() ){
+        };
+
+        if(routines_parsed['monthly']){
+            let day_A = dayobj_A.getUTCDate();
+            let day_B = dayobj_B.getUTCDate();
+            let monthly_arr_A, monthly_arr_B;
+            if(routines_parsed['monthly'][day_A]){ monthly_arr_A = routines_parsed['monthly'][day_A] };
+            if(routines_parsed['monthly'][day_B]){ monthly_arr_B = routines_parsed['monthly'][day_B] };
+            let create_new = true;
+            if (monthly_arr_A){
+                for (let j = 0; j < monthly_arr_A.length; j++){
+                    for (let k = 0; k < added_note_arr.length; k++){
+                        let this_note = added_note_arr[k];
+                        if ( monthly_arr_A[j] == $(this_note).html() ){
                             $($(this_note).parent()).addClass('monthly');
-                            $(added_note_array[k]).addClass('monthly');
+                            $(added_note_arr[k]).addClass('monthly');
                             create_new = false
                             if ($(this_note).hasClass('weekly') && !$(this_note).hasClass('bothstamps')){
                                 $($(this_note).parent()).addClass('bothstamps');
@@ -422,18 +283,18 @@
                         }
                     }
                     if (create_new && $("#mili_diff").html() > 0){
-                        submitNewNote(1, monthly_array_A[j])
+                        submitNewNote(1, monthly_arr_A[j], true)
                     }
                 }
             }
             create_new = true;
-            if (monthly_array_B){
-                for (let j = 0; j < monthly_array_B.length; j++){
-                    for (let k = 0; k < added_note_array.length; k++){
-                        let this_note = added_note_array[k];
-                        if ( monthly_array_B[j] == $(this_note).html() ){
+            if (monthly_arr_B){
+                for (let j = 0; j < monthly_arr_B.length; j++){
+                    for (let k = 0; k < added_note_arr.length; k++){
+                        let this_note = added_note_arr[k];
+                        if ( monthly_arr_B[j] == $(this_note).html() ){
                             $($(this_note).parent()).addClass('monthly');
-                            $(added_note_array[k]).addClass('monthly');
+                            $(added_note_arr[k]).addClass('monthly');
                             create_new = false;
                             if ($(this_note).hasClass('weekly') && !$(this_note).hasClass('bothstamps')){
                                 $($(this_note).parent()).addClass('bothstamps');
@@ -442,12 +303,12 @@
                         }
                     }
                     if (create_new && $("#mili_diff").html() > 0){
-                        submitNewNote(2, monthly_array_B[j])
+                        submitNewNote(2, monthly_arr_B[j], true)
                     }
                 }
             }
-        } catch (err){}
-    }
+        }
+    };
     applyRoutines($("#routines_raw").html());
     
     // sends the blurred note to evaluateBlurredNote, if context_menu is hidden
@@ -563,13 +424,13 @@
         
         let key_to_routine = $(this).parents('.row-days').find('.hidden_date'+period_of_day_class).html();
         let note_text = $(this).val();
-        let array_with_values = [key_to_routine, note_timestamp, note_text];
+        let arr_with_values = [key_to_routine, note_timestamp, note_text];
 
         $('#weekly_button, #weekly_icon').on('click', function(){
             if (blocker){ return };
-            array_with_values.push('weekly');
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='routine_note_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push('weekly');
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -581,9 +442,9 @@
         });
         $('#monthly_button, #monthly_icon').on('click', function(){
             if (blocker){ return };
-            array_with_values.push('monthly');
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='routine_note_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push('monthly');
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -595,9 +456,9 @@
         });
         $('#highlight_button, #highlight_icon').on('click', function(){
             if (blocker){ return };
-            array_with_values.push('highlight');
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='routine_note_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push('highlight');
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -609,9 +470,9 @@
         });
         $('#unweekly_button, #unweekly_icon').on('click', function(){
             if (blocker){ return };
-            array_with_values.push('unweekly');
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='routine_note_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push('unweekly');
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -623,9 +484,9 @@
         });
         $('#unmonthly_button, #unmonthly_icon').on('click', function(){
             if (blocker){ return };
-            array_with_values.push('unmonthly');
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='routine_note_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push('unmonthly');
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -637,9 +498,9 @@
         });
         $('#unhighlight_button, #unhighlight_icon').on('click', function(){
             if (blocker){ return };
-            array_with_values.push('unhighlight');
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='routine_note_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push('unhighlight');
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -822,32 +683,32 @@
             $("#context_submit_task").css('visibility', 'visible');
         });
 
-        let projects_array = $('.tasks');
+        let projects_arr = $('.tasks');
         let project_index;
-        for (let d = 0; d < projects_array.length; d++){
-            if ( $(in_object).parents('.tasks')[0] == projects_array[d] ){
+        for (let d = 0; d < projects_arr.length; d++){
+            if ( $(in_object).parents('.tasks')[0] == projects_arr[d] ){
                 project_index = d;
                 break
             }
         }
         let old_text = $($(in_object).children('.task-text')[0]).html();
-        let array_with_values = [project_index, old_text];
+        let arr_with_values = [project_index, old_text];
         
         if ($(in_object).hasClass('todo')){
-            array_with_values.push('todo')
+            arr_with_values.push('todo')
         } else if ($(in_object).hasClass('done')){
-            array_with_values.push('done')
+            arr_with_values.push('done')
         }
         
         $('#context_submit_task').on('mousedown', function(){
             if ( $($('#edit_task_text').val()).length < 36 && ($('#new_task_before').val()).length < 36 && $($('#new_task_after').val()).length < 36){
-                array_with_values.push($('#edit_task_text').val());
-                array_with_values.push($('#new_task_before').val());
-                array_with_values.push($('#new_task_after').val());
+                arr_with_values.push($('#edit_task_text').val());
+                arr_with_values.push($('#new_task_before').val());
+                arr_with_values.push($('#new_task_after').val());
             } else{ alert('Sorry, project tasks are limited to 40 characters, but you can add observations to it') };
-            array_with_values.push($('#new_task_deadline').val());
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='project_task_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push($('#new_task_deadline').val());
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='project_task_arr' value='" + string_to_submit + "'/>";
             $("#form-project").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -860,7 +721,7 @@
         
         $('#mark_done_button, #mark_todo_button').on('mousedown', function(){
             if (in_number < context_menu_tasks_clicks){ return };
-            let string_to_submit = JSON.stringify(array_with_values);
+            let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='mark_done_todo' value='" + string_to_submit + "'/>";
             $("#form-project").append(param);
             new_date = new Date();
@@ -873,8 +734,8 @@
         });
         $('#remove_task_button').on('mousedown', function(){
             if (in_number < context_menu_tasks_clicks){ return };
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='remove_task_array' value='" + string_to_submit + "'/>";
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='remove_task_arr' value='" + string_to_submit + "'/>";
             $("#form-project").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -888,9 +749,9 @@
         let this_obs = $(in_object).find('.obs')[0];
         $($(in_object).find('.obs-save-button')).on('mousedown', function(){
             if (in_number < context_menu_tasks_clicks){ return };
-            array_with_values.push($(this_obs).val());
-            let string_to_submit = JSON.stringify(array_with_values);
-            let param = "<input hidden type='text' name='edit_obs_array' value='" + string_to_submit + "'/>";
+            arr_with_values.push($(this_obs).val());
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='edit_obs_arr' value='" + string_to_submit + "'/>";
             $("#form-project").append(param);
             new_date = new Date();
             local_hour = new_date.getHours();
@@ -975,16 +836,16 @@
                 break
             }
         }
-        let array_with_values = [project_index];
+        let arr_with_values = [project_index];
         
         $('#context_submit_project').on('mousedown', function(){
             let deadline_value = $('#context_project_deadline').val();
             let title_value = $('#context_project_title').val();
             if ( ( deadline_value || title_value ) && (deadline_value != '' || title_value != '')){
-                array_with_values.push($('#context_project_deadline').val());
-                array_with_values.push($('#context_project_title').val());
-                let string_to_submit = JSON.stringify(array_with_values);
-                let param = "<input hidden type='text' name='project_title_and_deadline_array' value='" + string_to_submit + "'/>";
+                arr_with_values.push($('#context_project_deadline').val());
+                arr_with_values.push($('#context_project_title').val());
+                let string_to_submit = JSON.stringify(arr_with_values);
+                let param = "<input hidden type='text' name='project_title_and_deadline_arr' value='" + string_to_submit + "'/>";
                 $("#form-project").append(param);
                 new_date = new Date();
                 local_hour = new_date.getHours();
@@ -1035,13 +896,14 @@
         }
     });
 
-    if (parseInt($("#celsius").html())){
+    if ($("#celsius").html()){
         $("#show_c").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
             let buf_temp = $(temps[t]).html();
             $(temps[t]).html(buf_temp + "ºC")
-        }
+        };
+
     } else{
         $("#show_f").hide();
         let temps = $(".weather_temperature");
@@ -1124,18 +986,9 @@
                 let selectedDay = $(event.target).attr('data-date');
                 let selectedMonth = $(event.target).parent().attr('data-month');      // month is 0-indexed
                 let selectedYear = $(event.target).parent().attr('data-year');
-                let new_y = "<input hidden type='text' name='new_y' value='" + selectedYear + "'/>";
-                let new_m = "<input hidden type='text' name='new_m' value='" + selectedMonth + "'/>";
-                let new_d = "<input hidden type='text' name='new_d' value='" + selectedDay + "'/>";
-                $("#form-new_date").append(new_y);
-                $("#form-new_date").append(new_m);
-                $("#form-new_date").append(new_d);
-                new_date = new Date();
-                local_hour = new_date.getHours();
-                UTC_hour = new_date.getUTCHours();
-                let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
-                let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
-                $("form-new_date").append(param_hour);
+                $("#form-new_date").append("<input hidden type='text' name='new_y' value='" + selectedYear + "'/>");
+                $("#form-new_date").append("<input hidden type='text' name='new_m' value='" + selectedMonth + "'/>");
+                $("#form-new_date").append("<input hidden type='text' name='new_d' value='" + selectedDay + "'/>");
                 document.getElementById("form-new_date").submit();
             } else if (event_class.slice(0,7) != 'context'){
                 $(".context_menu.wrapper").css('visibility', 'hidden');

@@ -2,82 +2,90 @@
 const axios = require("axios");
 
 module.exports = async function (in_lat, in_lon, in_tmz_iana, in_hour, in_cel = true) {
-        if (in_cel){
-            in_cel = "";
-        } else{
-            in_cel = "temperature_unit=fahrenheit&";                            // in_cel is taken from the TASKS TABLE. If it is 1, converts to an empty string, since the open-meteo API returns in ºC by default.
-        }                                                                       // To return the temperatures in ºF, the API requires a modifier, which is given if in_cel == 0.
+    console.log('axios entered with:', in_lat, in_lon, in_tmz_iana, in_hour, in_cel)
+        if (in_cel){ in_cel = "" }
+        else{ in_cel = "temperature_unit=fahrenheit&" };
+
         let string_to_axios = `https://api.open-meteo.com/v1/forecast?latitude=${in_lat}&longitude=${in_lon}&hourly=temperature_2m,weathercode&${in_cel}daily=sunrise,sunset&timezone=${in_tmz_iana}&forecast_days=3`
+        console.log(string_to_axios);
         try{
             let axios_response = await axios.get(string_to_axios, {timeout : 3000})
-            let tmp_arr = axios_response.data.hourly.temperature_2m;            // temperatures array is stored
-            let cod_arr = axios_response.data.hourly.weathercode;               // weather codes array is stored
-            let next_6h_hrs = [];                                               // array to store data for the next 6h is declared
+            let hour_arr = axios_response.data.hourly.time;
+            let tmp_arr = axios_response.data.hourly.temperature_2m;
+            let cod_arr = axios_response.data.hourly.weathercode;
+            let daily_info = axios_response.data.daily;
+            
+            const today_arr = [], tomorrow_arr = [], day3_arr = [];
             in_hour = parseInt(in_hour);
-            for (let q = 1; q < 7; q++){                                        // strings like "12", "13"... representing the next 6 hours are assigned
-                let curr_hour_buf = in_hour + q;
-                if (curr_hour_buf > 9){
-                    if (curr_hour_buf < 24){
-                        next_6h_hrs.push(((curr_hour_buf).toString()))
-                    } else{
-                        next_6h_hrs.push( "0" + (curr_hour_buf - 24).toString() )
-                    }
-                } else{
-                    next_6h_hrs.push("0" + (curr_hour_buf.toString()))
-                }
-            }
-            let next_6h_tmp = tmp_arr.slice(in_hour+1, in_hour+7);              // only the temperatures for the next 6h are assigned
-            let next_6h_cod = cod_arr.slice(in_hour+1, in_hour+7);              // only the weather codes for the next 6h are assigned
-            let day1_sunrise = parseInt((axios_response.data.daily.sunrise)[0].slice(11,13));
-            let day1_sunset = parseInt((axios_response.data.daily.sunset)[0].slice(11,13));
-            let next_6h_string = JSON.stringify([next_6h_hrs, next_6h_cod, next_6h_tmp, day1_sunrise, day1_sunset]);      // the array for the next 6h is ready...
-        
-            let day2_tmp = tmp_arr.slice(30, 46);                               // an array with the temperatures between 06h and 21h for the next day is declared and assigned
-            let day2_cod = cod_arr.slice(30, 46);                               // an array with the weather codes between 06h and 21h for the next day is declared and assigned
-            let max_tmp_day2 = [-999, -9];                                      // an array for the MAX temps for the next day (between 06h and 21h) is declared and assigned with buffer values
-            let min_tmp_day2 = [999, -9];                                       // an array for the MIN temps for the next day (between 06h and 21h) is declared and assigned with buffer values
-            let codes_day2_6_9_12_15_18_21 = [  day2_cod[0], day2_tmp[0], day2_cod[3], day2_tmp[3],
-                                                day2_cod[6], day2_tmp[6], day2_cod[9], day2_tmp[9],
-                                                day2_cod[12], day2_tmp[12], day2_cod[15], day2_tmp[15]
-                                            ];
-            for (let i = 0; i < 16; i++){                                       // assigns the real MAX and MIN temps for the next day
-                if (day2_tmp[i] > max_tmp_day2[0]){
-                    max_tmp_day2[0] = day2_tmp[i];
-                    max_tmp_day2[1] = i+6
-                };
-                if (day2_tmp[i] < min_tmp_day2[0]){
-                    min_tmp_day2[0] = day2_tmp[i];
-                    min_tmp_day2[1] = i+6
-                }
-            };
-            let day2_sunrise = parseInt((axios_response.data.daily.sunrise)[1].slice(11,13));
-            let day2_sunset = parseInt((axios_response.data.daily.sunset)[1].slice(11,13));
-            let next_day_string = JSON.stringify([max_tmp_day2, min_tmp_day2, codes_day2_6_9_12_15_18_21, day2_sunrise, day2_sunset]);        // the array for the next day is ready...
-        
-            let day3_tmp = tmp_arr.slice(54, 70);                               // same process for the day after tomorrow
-            let day3_cod = cod_arr.slice(54, 70);
-            let max_tmp_day3 = [-999, -9];
-            let min_tmp_day3 = [999, -9];
-            let codes_day3_6_9_12_15_18_21 = [  day3_cod[0], day3_tmp[0], day3_cod[3], day3_tmp[3],
-                                                day3_cod[6], day3_tmp[6], day3_cod[9], day3_tmp[9],
-                                                day3_cod[12], day3_tmp[12], day3_cod[15], day3_tmp[15]
-                                            ];
-            for (let i = 0; i < 16; i++){
-                if (day3_tmp[i] > max_tmp_day3[0]){
-                    max_tmp_day3[0] = day3_tmp[i];
-                    max_tmp_day3[1] = i+6
-                };
-                if (day3_tmp[i] < min_tmp_day3[0]){
-                    min_tmp_day3[0] = day3_tmp[i];
-                    min_tmp_day3[1] = i+6
+            let max_temp_1 = -999;  let max_temp_2 = -999;  let max_temp_3 = -999;
+            let min_temp_1 = 999;   let min_temp_2 = 999;   let min_temp_3 = 999;
+            let max_hr_1, max_hr_2, max_hr_3, min_hr_1, min_hr_2, min_hr_3;
+            for (let i = in_hour; i < 72; i++){
+                if (i < 24) {
+                    if (5 < i && i < 22){
+                        if (tmp_arr[i] > max_temp_1){
+                            max_temp_1 = Math.round(tmp_arr[i]);
+                            max_hr_1 = hour_arr[i].slice(11,13)
+                        };
+                        if (tmp_arr[i] < min_temp_1){
+                            min_temp_1 = Math.round(tmp_arr[i]);
+                            min_hr_1 = hour_arr[i].slice(11,13)
+                        };
+                    };
+                    today_arr.push([hour_arr[i].slice(11,13), Math.round(tmp_arr[i]), cod_arr[i]])
+                } else if (i < 48) {
+                    if (29 < i && i < 46){
+                        if (tmp_arr[i] > max_temp_2){
+                            max_temp_2 = Math.round(tmp_arr[i]);
+                            max_hr_2 = hour_arr[i].slice(11,13)
+                        };
+                        if (tmp_arr[i] < min_temp_2){
+                            min_temp_2 = Math.round(tmp_arr[i]);
+                            min_hr_2 = hour_arr[i].slice(11,13)
+                        };
+                    };
+                    tomorrow_arr.push([hour_arr[i].slice(11,13), Math.round(tmp_arr[i]), cod_arr[i]])
+                } else {
+                    if (53 < i && i < 70){
+                        if (tmp_arr[i] > max_temp_3){
+                            max_temp_3 = Math.round(tmp_arr[i]);
+                            max_hr_3 = hour_arr[i].slice(11,13)
+                        };
+                        if (tmp_arr[i] < min_temp_3){
+                            min_temp_3 = Math.round(tmp_arr[i]);
+                            min_hr_3 = hour_arr[i].slice(11,13)
+                        };
+                    };
+                    day3_arr.push([hour_arr[i].slice(11,13), Math.round(tmp_arr[i]), cod_arr[i]])
                 }
             };
-            let day3_sunrise = parseInt((axios_response.data.daily.sunrise)[2].slice(11,13));
-            let day3_sunset = parseInt((axios_response.data.daily.sunset)[2].slice(11,13));
-            let day3_string = JSON.stringify([max_tmp_day3, min_tmp_day3, codes_day3_6_9_12_15_18_21, day3_sunrise, day3_sunset]);
-            let string_weather = JSON.stringify([next_6h_string, next_day_string, day3_string]);
-
-            return(string_weather)
+            const today_key =       daily_info.time[0];
+            const tomorrow_key =    daily_info.time[1];
+            const day3_key =        daily_info.time[2];
+            const forecast = {
+                [today_key]: {
+                    'hr_tmp_code': today_arr,
+                    'max': [max_hr_1, max_temp_1],
+                    'min': [min_hr_1, min_temp_1],
+                    'sunrise': parseInt(daily_info.sunrise[0].slice(11,13)),
+                    'sunset': parseInt(daily_info.sunset[0].slice(11,13)),
+                },
+                [tomorrow_key]: {
+                    'hr_tmp_code': tomorrow_arr,
+                    'max': [max_hr_2, max_temp_2],
+                    'min': [min_hr_2, min_temp_2],
+                    'sunrise': parseInt(daily_info.sunrise[1].slice(11,13)),
+                    'sunset': parseInt(daily_info.sunset[1].slice(11,13)),
+                },
+                [day3_key]: {
+                    'hr_tmp_code': day3_arr,
+                    'max': [max_hr_3, max_temp_3],
+                    'min': [min_hr_3, min_temp_3],
+                    'sunrise': parseInt(daily_info.sunrise[2].slice(11,13)),
+                    'sunset': parseInt(daily_info.sunset[2].slice(11,13)),
+                }
+            };
+            return JSON.stringify(forecast)
 
         }catch (err){ console.log('ERROR while axios.get():', err.message);
             return false

@@ -93,6 +93,8 @@ passport.deserializeUser(async function(id, done) {
 const dayModule = require(__dirname + "/dayModule.js");
 const weatherModule = require(__dirname + "/weatherModule.js");
 
+//////////////////////////////////    FUNCTIONS    //////////////////////////////////
+
 async function queryAccId(in_id){
     return new Promise((resolve, reject)=>{
         db.query( "SELECT * FROM account WHERE id = ($1)", [in_id], (err, result)=>{
@@ -129,7 +131,7 @@ async function queryWorkDataUsername(in_username){
     })
 };
 
-async function updateWorkDataFromHome(in_data_db, in_local_hour, in_UTC_hour, in_timestamp){
+async function updateTimeAndWeather(in_data_db, in_local_hour, in_UTC_hour, in_timestamp){
     const loc_data = (JSON.parse(in_data_db['loc_data']))['last'];
     const weather_str = await weatherModule(loc_data['lat'], loc_data['lon'], loc_data['tmz_iana'], in_local_hour, in_data_db['temp_celsius']);
     if(weather_str){
@@ -137,21 +139,19 @@ async function updateWorkDataFromHome(in_data_db, in_local_hour, in_UTC_hour, in
         [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_data_db['username']],
         (err, result) =>{
             if (err){
-                console.log('ERROR in db.query in updateWorkDataFromHome:', err.message);
+                console.log('ERROR in db.query in updateTimeAndWeather:', err.message);
                 return false
             }
             else{
-                console.log('Successfully updated work_data of', in_data_db['username']);
+                console.log('Successfully updated time and weather forecast of', in_data_db['username']);
                 return(result.rows[0])
             }
         });
     } else { return false }
 };
 
-async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
+async function updateFromLogin(in_user_data, in_time_place_obj){
     let loc_data = JSON.parse(in_user_data['loc_data']);
-    console.log('in_time_place_obj received:');
-    console.log(in_time_place_obj);
     if ( !(in_time_place_obj['lat'] == -27.59 && in_time_place_obj['lon'] == -48.45) ){
         loc_data['last']['lat'] = in_time_place_obj['lat'];
         loc_data['last']['lon'] = in_time_place_obj['lon'];
@@ -166,8 +166,8 @@ async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
                 in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str, JSON.stringify(loc_data),
                 in_user_data['username']
             ],(err, result) =>{
-                if (err){ console.log('ERROR in db.query (A) in updateWorkDataFromLogin:', err.message) }
-                else{ console.log('Successfully (A) updated work_data of', in_user_data['username']) }
+                if (err){ console.log('ERROR in db.query (A) in updateFromLogin:', err.message) }
+                else{ console.log('Successfully (A) updated time and weather forecast of', in_user_data['username']) }
             });
         }
     } else {
@@ -178,8 +178,8 @@ async function updateWorkDataFromLogin(in_user_data, in_time_place_obj){
                 in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str,
                 in_user_data['username']
             ],(err, result) =>{
-                if (err){ console.log('ERROR in db.query (B) in updateWorkDataFromLogin:', err.message) }
-                else{ console.log('Successfully (B) updated work_data of', in_user_data['username']) }
+                if (err){ console.log('ERROR in db.query (B) in updateFromLogin:', err.message) }
+                else{ console.log('Successfully (B) updated time and weather forecast of', in_user_data['username']) }
             });
         }
     }
@@ -198,7 +198,7 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
     try{
         weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'])
     } catch{
-        console.log('weatherModule did not return a value for user', in_username + '. Will insert empty array instead')
+        console.log('weatherModule did not return a value for user', in_username + '. Will insert empty arr instead')
         weather_str = JSON.stringify([])
     } finally{
         await db.query(
@@ -247,14 +247,14 @@ function checkMultipleReq(in_obj){
     return JSON.parse(in_obj);
 };
 
-async function updateNotes(notes_str, username){
-    if(!notes_str || !username){
-        console.log('ERROR: updateNotes requires two parameters (notes_str, username)');
+async function updateFromCall(in_column , JSON_str, username){
+    if(!in_column || !JSON_str || !username){
+        console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, username)');
         return false
     } else{ return new Promise ((resolve, reject)=>{
-        db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
-            [notes_str, username], (err, result)=>{
-                if (err){ console.log('ERROR in updateNotes(notes,', username+'):',err.message);
+        db.query(`UPDATE work_data SET ${in_column} = $1 WHERE username = $2`,
+            [JSON_str, username], (err, result)=>{
+                if (err){ console.log('ERROR in updateFromCall:',err.message);
                     resolve(err.message)
                 } else { resolve(true) }
             }
@@ -262,13 +262,12 @@ async function updateNotes(notes_str, username){
     })}
 };
 
-function newNotesStrNew(new_note_array, user_data){
-    console.log('FUNCTION newNotesStrNew(',new_note_array, user_data,')');
-    const new_key = new_note_array[0];
-    const new_text = new_note_array[1];
+function newNotesStrNew(new_note_arr, user_data){
+    const new_key = new_note_arr[0];
+    const new_text = new_note_arr[1];
     const loc_data = (JSON.parse(user_data['loc_data']))['last'];
-    const new_day_obj = new Date(new_key+loc_data['tmz_suffix']);
-    let buf_day_str = new_day_obj.toString();
+    const new_date_obj = new Date(new_key+loc_data['tmz_suffix']);
+    let buf_day_str = new_date_obj.toString();
     let day_str;
     if (buf_day_str[9] == " "){
         buf_day_str = buf_day_str.slice(0,14);
@@ -277,19 +276,17 @@ function newNotesStrNew(new_note_array, user_data){
     let notes = JSON.parse(user_data['notes']);
     if(notes[new_key]){ notes[new_key]['notes'].push([new_text, Date.now(), day_str]) }
     else{ notes[new_key] = {
-        "weekday": new_day_obj.getDay(),
-        "day": new_day_obj.getDate(),
+        "weekday": new_date_obj.getUTCDay(),
+        "day": new_date_obj.getDate(),
         "notes": [[new_text, Date.now(), day_str]]
     }};
-    let return_str = JSON.stringify(notes);
-    console.log('FUNCTION newNotesStrNew will return:', return_str);
-    return return_str
+    return JSON.stringify(notes)
 };
 
-function newNotesStrEdit(edit_note_array, user_data){
-    const new_key = edit_note_array[0];
-    const new_text = edit_note_array[1];
-    const edit_timestamp = edit_note_array[2];
+function newNotesStrEdit(edit_note_arr, user_data){
+    const new_key = edit_note_arr[0];
+    const new_text = edit_note_arr[1];
+    const edit_timestamp = edit_note_arr[2];
     let notes = JSON.parse(user_data['notes']);
     let notes_key = notes[new_key]['notes'];
     for (let i = 0; i < notes_key.length; i++){
@@ -298,17 +295,98 @@ function newNotesStrEdit(edit_note_array, user_data){
             break
         }
     };
-    notes[new_key]['notes'] = notes_key;
+    if (notes_key.length){ notes[new_key]['notes'] = notes_key }
+    else{ delete notes.new_key };
     return JSON.stringify(notes)
 };
+
+function newNotesStrRm(remove_note_arr, user_data){
+    const new_key = remove_note_arr[0];
+    const del_timestamp = remove_note_arr[1];
+    let notes = JSON.parse(user_data['notes']);
+    let notes_key = notes[new_key]['notes'];
+    for (let i = 0; i < notes_key.length; i++){
+        if(notes_key[i][1] == del_timestamp){
+            notes_key.splice(i,1);
+            break 
+        }
+    };
+    if (notes_key.length){ notes[new_key]['notes'] = notes_key }
+    else{ delete notes.new_key };
+    return JSON.stringify(notes)
+};
+
+function newRtnStr(in_rtn_arr, user_data){
+    const new_key = in_rtn_arr[0];
+    const note_timestamp = in_rtn_arr[1];
+    const note_text = in_rtn_arr[2];
+    const loc_data = (JSON.parse(user_data.loc_data))['last']; 
+    const new_date_obj = new Date(new_key+loc_data['tmz_suffix']);
+    let rtn_key = in_rtn_arr[3];
+    let routines = JSON.parse(user_data['high_wly_mly']);
+    if(rtn_key[0] == "u"){
+        rtn_key = rtn_key.slice(2,);
+        if(rtn_key == "weekly"){
+            const weekday = new_date_obj.getUTCDay();
+            let buf_arr = routines['weekly'][weekday];
+            for (let i = 0; i < buf_arr.length; i++){
+                if(buf_arr[i] == note_text){ buf_arr.splice(i,1); break }
+            };
+            if (buf_arr.length){ routines['weekly'][weekday] = buf_arr }
+            else { delete (routines['weekly'])[weekday] }
+        } else if(rtn_key == "monthly"){
+            const day = new_date_obj.getUTCDate();
+            let buf_arr = routines['monthly'][day];
+            for (let i = 0; i < buf_arr.length; i++){
+                if(buf_arr[i] == note_text){ buf_arr.splice(i,1); break }
+            };
+            if (buf_arr.length){ routines['monthly'][day] = buf_arr }
+            else { delete (routines['monthly'])[day] }
+        } else{
+            let buf_arr = routines['highlight'][new_key];
+            for (let i = 0; i < buf_arr.length; i++){
+                if(buf_arr[i][1] == note_timestamp){ buf_arr.splice(i,1); break }
+            };
+            if (buf_arr.length){ routines['highlight'][new_key] = buf_arr }
+            else { delete (routines['highlight'])[new_key] }
+        }
+    } else {
+        if (!routines[rtn_key]){ routines[rtn_key] = {} };
+        if(rtn_key == "weekly"){
+            try{ routines['weekly'][new_date_obj.getUTCDay()].push(note_text) }
+            catch{ routines['weekly'][new_date_obj.getUTCDay()] = [note_text] }
+        } else if(rtn_key == "monthly"){
+            try{ routines['monthly'][new_date_obj.getUTCDate()].push(note_text) }
+            catch{ routines['monthly'][new_date_obj.getUTCDate()] = [note_text] }
+        } else{
+            try{ routines['highlight'][new_key].push([note_text, note_timestamp]) }
+            catch{ routines['highlight'][new_key] = [[note_text, note_timestamp]] }
+        }
+    };
+    return JSON.stringify(routines)
+};
+
+//////////////////////////////////    ROUTES    //////////////////////////////////
 
 app.get('/', (req, res) => {
     res.redirect('/login')
 });
 
-app.get('/home', (req, res) => {
-    if(req.session){ res.redirect(`/home/${req.body.username}`) }
-    else{ res.redirect('/login') }
+app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
+    if(req.session && req.user){
+        await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
+        (err, result)=>{
+            if (err){ return res.redirect('/login') }
+            else if(result.rows.length){
+                if( new Date(result.rows[0].expire) < Date.now() ){ return res.redirect('/login') }
+                else{
+                    try{ return res.redirect(`/home/${req.user.username}`) }
+                    catch{ return res.redirect('/login') }
+                }
+            } else{ return res.redirect('/login') }
+        });
+    } else { res.redirect('/login') }
+
 });
 
 app.get('/login', (req, res) => {
@@ -320,50 +398,66 @@ app.get('/registration_successful', (req, res) => {
 });
 
 app.get('/home/:username', async (req, res) => {
-    if (!req.params.username || req.params.username == "undefined"){ return res.redirect('/login') }
+    if (req.params.username == "undefined"){ return res.redirect('/login') }
     await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
         if (err){ console.log('ERROR in db.query in GET /home/:username:', err.message);
             return res.redirect('/login')
         } else if(result.rows.length){
-            if (  ((result.rows[0].expire).getTime()) < Date.now()  ){
+            const new_date_obj = new Date();
+            if (  ((result.rows[0].expire).getTime()) < new_date_obj.getTime() ){
                 console.log('FAIL to login: cookie with sid', result.rows[0].sid, 'is expired!');
                 return res.redirect('/login')
             };
             const user_id = result.rows[0].sess.passport.user;
-            const upd_user_data = await queryWorkDataId(user_id);
-            if (!upd_user_data){ return res.redirect('/login') };
-            const username = upd_user_data['username'];                      console.log('GET home/'+username);
+            const user_data = await queryWorkDataId(user_id);
+            if (!user_data){ return res.redirect('/login') };
+            const username = user_data['username'];                      console.log('GET home/'+username);
             if (req.params.username != username){ console.log('req.params.username is', req.params.username, 'but username from db is', username, '. At', Date.now(), 'Redirecting to /login');
                 return res.redirect('/login')
             };
-            const notes = JSON.parse(upd_user_data['notes']);                console.log(notes);
-            const routines = JSON.parse(upd_user_data['high_wly_mly']);      //console.log(routines);
-            const projects = JSON.parse(upd_user_data['projects']);          //console.log(projects);
-            const weather = JSON.parse(upd_user_data['weather']);            //console.log(weather);
-            const loc_data = (JSON.parse(upd_user_data.loc_data))['last'];   //console.log(loc_data);
+            const notes = JSON.parse(user_data['notes']);                   //console.log(notes);
+            const routines = user_data['high_wly_mly'];                     //console.log(routines);
+            const projects = user_data['projects'];                         //console.log(projects);
+            const weather = user_data['weather'];                           //console.log(weather);
+            const loc_data = (JSON.parse(user_data.loc_data))['last'];      //console.log(loc_data);
 
-            let dayA_obj = dayModule.dayA(loc_data['tmz_iana']), dayA_key = dayA_obj['YYYY-MM-DD'];
-            let dayB_obj = dayModule.dayB(loc_data['tmz_iana']), dayB_key = dayB_obj['YYYY-MM-DD'];
-            let dayC_obj = dayModule.dayC(loc_data['tmz_iana']), dayC_key = dayC_obj['YYYY-MM-DD'];
-            let A_notes, B_notes, C_notes;
+            let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
 
-            if(notes[dayA_key]){ A_notes = JSON.stringify(notes[dayA_key]['notes']) }
-            else{ A_notes = JSON.stringify([]) };
-            if(notes[dayB_key]){ B_notes = JSON.stringify(notes[dayB_key]['notes']) }
-            else{ B_notes = JSON.stringify([]) };
-            if(notes[dayC_key]){ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
-            else{ C_notes = JSON.stringify([]) };
+            if(req.query.new_y){
+                let q_m = (parseInt(req.query.new_m)+1).toString(); if (q_m.length == 1){ q_m = "0"+q_m };
+                let q_d = req.query.new_d; if (q_d.length == 1){ q_d = "0"+q_d };
+                const key_str = req.query.new_y + '-' + q_m + '-' + q_d + loc_data['tmz_suffix'];
+                new_date_q = new Date(key_str);
+                new_timestamp = new_date_q.getTime();
+                mili_diff = new_timestamp - new_date_obj.getTime();
+                dayA_obj = dayModule.dayA(loc_data['tmz_iana'], new_timestamp); dayA_key = dayA_obj['YYYY-MM-DD'];
+                dayB_obj = dayModule.dayB(loc_data['tmz_iana'], new_timestamp); dayB_key = dayB_obj['YYYY-MM-DD'];
+                dayC_obj = dayModule.dayC(loc_data['tmz_iana'], new_timestamp); dayC_key = dayC_obj['YYYY-MM-DD']
+            } else {
+                dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
+                dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
+                dayC_obj = dayModule.dayC(loc_data['tmz_iana']); dayC_key = dayC_obj['YYYY-MM-DD'];
+                mili_diff = 1
+            };
+            if(!new_timestamp){ new_timestamp = new_date_obj.getTime() };
 
+            const empty_arr_str = JSON.stringify([]);
+            const json_str_false = JSON.stringify(false);
+            try{ A_notes = JSON.stringify(notes[dayA_key]['notes']) }
+            catch{ A_notes = empty_arr_str };
+            try{ B_notes = JSON.stringify(notes[dayB_key]['notes']) }
+            catch{ B_notes = empty_arr_str };
+            try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
+            catch{ C_notes = empty_arr_str };
             res.render('index', {
-                user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : upd_user_data['last_local_hour'],
-                dayA_PH: dayModule.dayA_pretty(), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
-                dayB_PH: dayModule.dayB_pretty(), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
-                dayC_PH: dayModule.dayC_pretty(), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
-                routines_raw_PH_string: upd_user_data['high_wly_mly'], username_PH: upd_user_data['first_name'],
-                mili_diff_PH: 1, projects_PH_str: upd_user_data['projects'],
-                days_7_PH : JSON.stringify([]) , days_31_PH : JSON.stringify([]),
-                next_6h_PH : weather[0], next_day_PH : weather[1], day3_PH : weather[2],
-                wtr_simple_PH : 0, celsius_PH : 1
+                user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
+                dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
+                dayB_PH: dayModule.dayB_pretty(new_timestamp), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
+                dayC_PH: dayModule.dayC_pretty(new_timestamp), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
+                routines_raw_PH_string: user_data['high_wly_mly'], first_name_PH: user_data['first_name'],
+                mili_diff_PH: mili_diff, projects_PH_str: user_data['projects'], username_PH: username,
+                days_7_PH : JSON.stringify([]) , days_31_PH : JSON.stringify([]), weather_PH: weather,
+                wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius']
             })
         } else { console.log('NO COOKIE'); return res.redirect('/login') }
     })
@@ -377,122 +471,109 @@ app.post('/home', async function (req,res){
     };
 
     const username = req.user.username;
-    console.log('>>> POST /home', username);
-    console.log(req.body); //console.log(req.session); console.log(req.sessionID); console.log(req.user); 
+    console.log('POST /home', username); console.log(req.body); //console.log(req.session); console.log(req.sessionID); console.log(req.user); 
     const old_user_data = await queryWorkDataUsername(username); //console.log(old_user_data);
-
-    let upd_user_data, user_hour_timestamp;
+    let user_hour, upd_user_data, user_hour_timestamp;
     
     if (req.body.user_hour_timestamp){
         user_hour_timestamp = checkMultipleReq(req.body.user_hour_timestamp);
-        const user_hour = user_hour_timestamp[0];
+        user_hour = user_hour_timestamp[0];
         const UTC_hour = user_hour_timestamp[1];
         const user_timestamp = user_hour_timestamp[2];
         if ((user_timestamp > (old_user_data['last_timestamp']+3600000)) ||
             (user_hour != old_user_data['last_local_hour'])){
-            let buf_new_db = await updateWorkDataFromHome(old_user_data, user_hour, UTC_hour, user_timestamp)
+            let buf_new_db = await updateTimeAndWeather(old_user_data, user_hour, UTC_hour, user_timestamp)
             if (buf_new_db){ upd_user_data = buf_new_db }
         } else { upd_user_data = false }
     };
 
-    const interval_ID_obj = { 'int_updateNotes' : undefined };
-    async function updateNotes(in_notes_arr, in_interval_A, in_task){
-        console.log('FUNCTION updateNotes(',in_notes_arr, in_interval_A, in_task,')');
+    const interval_ID_obj = {
+        'itv_HdlNot' : undefined,
+        'itv_HdlRtn' : undefined
+    };
+    async function handleNotes(in_notes_arr, in_itv_A, in_task){
         if (upd_user_data == undefined){
-            if(in_interval_A > 100){
-                console.log('Something went wrong. Check function updateWorkDataFromHome. Aborting.');
-                clearInterval(interval_ID_obj['int_updateNotes']);
-                try{ delete (interval_ID_obj['int_updateNotes']) }
-                catch (err){ console.log('ERROR catched in try{ delete (interval_ID_obj["int_updateNotes"]) }:', err.message) }
-                finally{ return false }
+            if(in_itv_A > 100){
+                console.log('Something went wrong. Check function updateTimeAndWeather. Aborting.');
+                clearInterval(interval_ID_obj['itv_HdlNot']);
+                return false
             } else {
-                interval_ID_obj['int_updateNotes'] = setInterval(()=>{
-                    return updateNotes(in_notes_arr,in_interval_A+1, in_task)
+                interval_ID_obj['itv_HdlNot'] = setInterval(()=>{
+                    return handleNotes(in_notes_arr, in_itv_A+1, in_task)
                 },50)
             }
         } else if(upd_user_data){
-            if (in_interval_A) {
-                clearInterval(interval_ID_obj['int_updateNotes']);
-                try{ delete (interval_ID_obj['int_updateNotes']) }
-                catch (err){ console.log('ERROR catched in try{ delete (interval_ID_obj["int_updateNotes"]) }:', err.message) }
-            };
+            if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
-            if (in_task == 'add'){ result_c = await updateNotes( (newNotesStrNew(in_notes_arr, upd_user_data)), username ) }
-            else if (in_task == 'edit'){ result_c = await updateNotes( newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
+            if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, upd_user_data), username ) } else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
+            else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, upd_user_data), username ) }
             return result_c
         } else {
-            if (in_interval_A) {
-                clearInterval(interval_ID_obj['int_updateNotes']);
-                try{ delete (interval_ID_obj['int_updateNotes']) }
-                catch (err){ console.log('ERROR catched in try{ delete (interval_ID_obj["int_updateNotes"]) }:', err.message) }
-            };
+            if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
-            if (in_task == 'add'){ result_c = await updateNotes( (newNotesStrNew(in_notes_arr, old_user_data)), username ) }
-            else if (in_task == 'edit'){ result_c = await updateNotes( newNotesStrEdit(in_notes_arr, old_user_data), username ) }            
+            if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, old_user_data), username ) }
+            else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), username ) }            
+            else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, old_user_data), username ) }
             return result_c
         }
     };
 
-    if(req.body.new_note_array){
-        const new_note_array = checkMultipleReq(req.body.new_note_array);
-        let result = await updateNotes(new_note_array, 0, 'add');
-        console.log('Result from inserting a new note for', username, 'was:', result);
-        return res.redirect(`/home/${username}`)
+    async function handleRoutines(in_rtn_arr, in_itv_B){
+        if (upd_user_data == undefined){
+            if(in_itv_B > 100){
+                console.log('Something went wrong. Check function updateTimeAndWeather. Aborting.');
+                clearInterval(interval_ID_obj['itv_HdlRtn']);
+                return false
+            } else {
+                interval_ID_obj['itv_HdlRtn'] = setInterval(()=>{
+                    return handleRoutines(in_rtn_arr,in_itv_B+1)
+                },50)
+            }
+        } else if(upd_user_data){
+            if (in_itv_B) { clearInterval(interval_ID_obj['itv_HdlRtn']) };
+            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, upd_user_data), username )
+            return result_c
+        } else {
+            if (in_itv_B) { clearInterval(interval_ID_obj['itv_HdlRtn']) };
+            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, old_user_data), username )
+            return result_c
+        }
     };
 
-    if(req.body.edit_note_array){
-        const edit_note_array = checkMultipleReq(req.body.edit_note_array);
-        let result = await updateNotes(edit_note_array, 0, 'edit');
+    if(req.body.new_note_arr){
+        const new_note_arr = checkMultipleReq(req.body.new_note_arr);
+        const result = await handleNotes(new_note_arr, 0, 'add');
+        console.log('Result from inserting a new note for', username, 'was:', result);
+        if (new_note_arr[2] == true){
+            const buf_key = new_note_arr[0];
+            if (user_hour < 17 && user_hour > 3){
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
+            } else{
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
+            }
+        } else { return res.redirect(`/home/${username}`) }
+    };
+
+    if(req.body.edit_note_arr){
+        const edit_note_arr = checkMultipleReq(req.body.edit_note_arr);
+        const result = await handleNotes(edit_note_arr, 0, 'edit');
         console.log('Result from editing a note for', username, 'was:', result);
         return res.redirect(`/home/${username}`)
     };
 
-    if(req.body.remove_note_array){
-        const remove_note_array = checkMultipleReq(req.body.remove_note_array);
-        const new_key = remove_note_array[0];
-        const del_timestamp = remove_note_array[1];
-        let user_data;
-        if(upd_user_data){ user_data = upd_user_data }
-        else{ console.log('upd_user_data is (yet?):', upd_user_data); user_data = old_user_data };
-        let notes = JSON.parse(user_data['notes']);
-        let notes_key = notes[new_key]['notes'];
-        for (let i = 0; i < notes_key.length; i++){
-            if(notes_key[i][1] == del_timestamp){
-                notes_key.splice(i,1);
-                break 
-            }
-        };
-        if (notes_key.length){ notes[new_key]['notes'] = notes_key }
-        else{ delete notes.new_key };
-        await db.query("UPDATE work_data SET notes = $1 WHERE username = $2",
-            [(JSON.stringify(notes)), username], (err, result)=>{
-                if (err){ console.log('ERROR in db.query in <if(req.body.delete_note_array){> in POST /home', username,':',err.message) }
-                if (upd_user_data != undefined) { return res.redirect(`/home/${username}`) };
-                let wait_cycles = 0;
-                setInterval(() => {
-                    if (upd_user_data != undefined || wait_cycles > 16) { return res.redirect(`/home/${username}`) }
-                    wait_cycles += 1
-                }, 200)
-            }
-        )
+    if(req.body.remove_note_arr){
+        const remove_note_arr = checkMultipleReq(req.body.remove_note_arr);
+        const result = await handleNotes(remove_note_arr, 0, 'rm');
+        console.log('Result from removing a note for', username, 'was:', result);
+        return res.redirect(`/home/${username}`)
     };
 
-    if(req.body.routine_note_array){
-        const routine_note_array_str = req.body.routine_note_array;
-        if (routine_note_array_str[0].length > 1){
-            console.log('WARNING! THERE WERE ' + routine_note_array_str.length + ' OBJECTS IN routine_note_array_str!');
-            console.log('FUNCTION CONTINUING CONSIDERING ONLY THE LAST ONE...');
-            routine_note_array_str = routine_note_array_str[routine_note_array_str.length-1]
-        };
-        const routine_note_array = JSON.parse(routine_note_array_str);
-        const new_key = routine_note_array[0];
-        const routine_timestamp = routine_note_array[1];
-        let user_data;
-        if(upd_user_data){ user_data = upd_user_data }
-        else{ console.log('upd_user_data is (yet?):', upd_user_data); user_data = old_user_data };
-        let routines = JSON.parse(user_data['high_wly_mly']);
-
-    }
+    if(req.body.routine_note_arr){
+        const routine_note_arr = checkMultipleReq(req.body.routine_note_arr);
+        const result = await handleRoutines(routine_note_arr, 0);
+        console.log('Result from inserting a new routine for', username, 'was:', result);
+        return res.redirect(`/home/${username}`)
+    };
 
 })
 
@@ -504,12 +585,12 @@ app.post('/login',
         const upd_user_data = upd_user_data_raw.rows[0];
         const loc_data_db = (JSON.parse(upd_user_data['loc_data']))["last"];
         if( time_place_obj['timestamp'] > (upd_user_data['last_timestamp']+3600000) ||       // if 1h+ passed
-            time_place_obj['UTC_hour'] != upd_user_data['last_UTC_hour'] ){                  // if it's not the same hour
-            console.log('fulfilled conditions to updateWorkDataFromLogin table');
-            await updateWorkDataFromLogin(upd_user_data, time_place_obj);
+            time_place_obj['UTC_hour'] != upd_user_data['last_UTC_hour'] || true ){                  // if it's not the same hour
+            console.log('Fulfilled conditions to updateFromLogin table');
+            await updateFromLogin(upd_user_data, time_place_obj);
             return res.redirect(`/home/${user_data_page.username}`)
         } else {
-            console.log('DID NOT fulfilled conditions to updateWorkDataFromLogin table');
+            console.log('DID NOT fulfilled conditions to updateFromLogin table');
             return res.redirect(`/home/${user_data_page.username}`)
         }        
     }
