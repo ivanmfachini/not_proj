@@ -22,6 +22,30 @@ navigator.geolocation.getCurrentPosition(position => {
     lon = parseFloat((position.coords.longitude).toFixed(2)); console.log(lat, lon);
 });
 
+let new_date;
+
+function YYYYMMDD(in_date){
+    const options = {
+        timeZone: tmz_iana,
+        year: "numeric", month:"numeric", day:"numeric",
+        weekday: "short"
+    };
+    const date_str = in_date.toLocaleString('en-US', options); // "Mon, 11/27/2023" "Wed, 1/5/2022"
+    let year = month = day = "";
+    let slashes = 0;
+    for (let a = 5; a < date_str.length; a++){
+        if (date_str[a] != "/"){
+            if(slashes){
+                if(slashes == 1){ day += date_str[a] }
+                else{ year += date_str[a] }
+            } else{ month += date_str[a] }
+        } else{ slashes += 1 }
+    };
+    if (month.length == 1){ month = "0" + month };
+    if (day.length == 1){ day = "0" + day };
+    return(year +'-'+ month +'-'+ day)
+};
+
 function usernameChecker(in_str){
     if (typeof(in_str) != "string" || in_str == "undefined" || in_str == "NaN" ||
         in_str == "null" || in_str == "false" || in_str == "true" ){ return false };
@@ -69,10 +93,10 @@ function login(in_obj = false){
 
     if ( usernameChecker($("#username").val()) ){
         if ( inputChecker($("#password").val()) ){
-            const new_date = new Date();
+            new_date = new Date();
             $("#login-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
                 JSON.stringify({
-                    'local_DateString' : new_date.toDateString(),
+                    'YYYY-MM-DD' : YYYYMMDD(new_date),
                     'local_hour': new_date.getHours(),
                     'UTC_hour': new_date.getUTCHours(),
                     'timestamp': new_date.getTime(),
@@ -196,10 +220,10 @@ $("#register").on('click', function(){
         return
     };
     if (checker == 4){
-        const new_date = new Date();
+        new_date = new Date();
         $("#register-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
             JSON.stringify({
-                'local_DateString' : new_date.toDateString(),
+                'YYYY-MM-DD' : YYYYMMDD(new_date),
                 'local_hour': new_date.getHours(),
                 'UTC_hour': new_date.getUTCHours(),
                 'timestamp': new_date.getTime(),
@@ -287,9 +311,9 @@ $("#demo").on('mousedown', () =>{
     $(this).css('-webkit-transition','all .3s ease-in-out');
     $(this).css('transition','all .3s ease-in-out');
 
-    const new_date = new Date();
+    new_date = new Date();
     const time_place_obj_str = JSON.stringify({
-        'local_DateString' : new_date.toDateString(),
+        'YYYY-MM-DD' : YYYYMMDD(new_date),
         'local_hour': new_date.getHours(),
         'UTC_hour': new_date.getUTCHours(),
         'timestamp': new_date.getTime(),

@@ -158,7 +158,7 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
         loc_data['last']['tmz_iana'] = in_time_place_obj['tmz_iana'];
         loc_data['last']['hour_offset'] = in_time_place_obj['hour_offset'];
         loc_data['last']['tmz_suffix'] = in_time_place_obj['tmz_suffix'];
-        loc_data['last']['local_DateString'] = in_time_place_obj['local_DateString']
+        loc_data['last']['YYYY-MM-DD'] = in_time_place_obj['YYYY-MM-DD']
         const weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'], in_user_data['temp_celsius']);
         if(weather_str){
             await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather, loc_data) = ($1,$2,$3,$4,$5) WHERE username = ($6)",
@@ -216,7 +216,7 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
                 weather_str,                        // weather
                 JSON.stringify({                    // loc_data
                     'last':{
-                        'local_DateString': in_time_place_obj['local_DateString'],
+                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
                         'lat': in_time_place_obj['lat'],
                         'lon': in_time_place_obj['lon'],
                         'tmz_iana': in_time_place_obj['tmz_iana'],
@@ -224,7 +224,7 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
                         'tmz_suffix': in_time_place_obj['tmz_suffix']
                     },
                     'original':{
-                        'local_DateString': in_time_place_obj['local_DateString'],
+                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
                         'lat': in_time_place_obj['lat'],
                         'lon': in_time_place_obj['lon'],
                         'tmz_iana': in_time_place_obj['tmz_iana'],
@@ -386,7 +386,6 @@ app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y
             } else{ return res.redirect('/login') }
         });
     } else { res.redirect('/login') }
-
 });
 
 app.get('/login', (req, res) => {
@@ -416,23 +415,29 @@ app.get('/home/:username', async (req, res) => {
                 return res.redirect('/login')
             };
             const notes = JSON.parse(user_data['notes']);                   //console.log(notes);
-            const routines = user_data['high_wly_mly'];                     //console.log(routines);
+            const routines = JSON.parse(user_data['high_wly_mly']);         //console.log(routines);
             const projects = user_data['projects'];                         //console.log(projects);
             const weather = user_data['weather'];                           //console.log(weather);
             const loc_data = (JSON.parse(user_data.loc_data))['last'];      //console.log(loc_data);
-
             let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
 
             if(req.query.new_y){
                 let q_m = (parseInt(req.query.new_m)+1).toString(); if (q_m.length == 1){ q_m = "0"+q_m };
                 let q_d = req.query.new_d; if (q_d.length == 1){ q_d = "0"+q_d };
-                const key_str = req.query.new_y + '-' + q_m + '-' + q_d + loc_data['tmz_suffix'];
-                new_date_q = new Date(key_str);
-                new_timestamp = new_date_q.getTime();
-                mili_diff = new_timestamp - new_date_obj.getTime();
-                dayA_obj = dayModule.dayA(loc_data['tmz_iana'], new_timestamp); dayA_key = dayA_obj['YYYY-MM-DD'];
-                dayB_obj = dayModule.dayB(loc_data['tmz_iana'], new_timestamp); dayB_key = dayB_obj['YYYY-MM-DD'];
-                dayC_obj = dayModule.dayC(loc_data['tmz_iana'], new_timestamp); dayC_key = dayC_obj['YYYY-MM-DD']
+                const key_str = req.query.new_y + '-' + q_m + '-' + q_d;
+                if( loc_data['YYYY-MM-DD'] != key_str ){
+                    new_date_q = new Date(key_str + loc_data['tmz_suffix']);
+                    new_timestamp = new_date_q.getTime();
+                    mili_diff = new_timestamp - new_date_obj.getTime();
+                    dayA_obj = dayModule.dayA(loc_data['tmz_iana'], new_timestamp); dayA_key = dayA_obj['YYYY-MM-DD'];
+                    dayB_obj = dayModule.dayB(loc_data['tmz_iana'], new_timestamp); dayB_key = dayB_obj['YYYY-MM-DD'];
+                    dayC_obj = dayModule.dayC(loc_data['tmz_iana'], new_timestamp); dayC_key = dayC_obj['YYYY-MM-DD']
+                } else{
+                    dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
+                    dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
+                    dayC_obj = dayModule.dayC(loc_data['tmz_iana']); dayC_key = dayC_obj['YYYY-MM-DD'];
+                    mili_diff = 1
+                }
             } else {
                 dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
                 dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
@@ -442,7 +447,6 @@ app.get('/home/:username', async (req, res) => {
             if(!new_timestamp){ new_timestamp = new_date_obj.getTime() };
 
             const empty_arr_str = JSON.stringify([]);
-            const json_str_false = JSON.stringify(false);
             try{ A_notes = JSON.stringify(notes[dayA_key]['notes']) }
             catch{ A_notes = empty_arr_str };
             try{ B_notes = JSON.stringify(notes[dayB_key]['notes']) }
@@ -585,7 +589,7 @@ app.post('/login',
         const upd_user_data = upd_user_data_raw.rows[0];
         const loc_data_db = (JSON.parse(upd_user_data['loc_data']))["last"];
         if( time_place_obj['timestamp'] > (upd_user_data['last_timestamp']+3600000) ||       // if 1h+ passed
-            time_place_obj['UTC_hour'] != upd_user_data['last_UTC_hour'] || true ){                  // if it's not the same hour
+            time_place_obj['UTC_hour'] != upd_user_data['last_UTC_hour'] ){                  // if it's not the same hour
             console.log('Fulfilled conditions to updateFromLogin table');
             await updateFromLogin(upd_user_data, time_place_obj);
             return res.redirect(`/home/${user_data_page.username}`)
