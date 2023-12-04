@@ -697,7 +697,7 @@
                     <p class="next_event_event"><%=buf_day[0]%></p>
                     <div class="next_event_date-box">
                       <%for (let i = 0; i < buf_day[1].length; i++){%>
-                      <p class="next_event_date"><%=buf_day[1][i]%></p>
+                      <p class="next_event_date"><%=buf_day[1][i].slice(0,11)%></p>
                       <%}%>
                     </div>
                   </div>
@@ -713,7 +713,7 @@
                   <p class="next_event_event"><%=buf_day[0]%></p>
                   <div class="next_event_date-box">
                     <%for (let i = 0; i < buf_day[1].length; i++){%>
-                    <p class="next_event_date"><%=buf_day[1][i]%></p>
+                    <p class="next_event_date"><%=buf_day[1][i].slice(0,11)%></p>
                     <%}%>
                   </div>
                 </div>

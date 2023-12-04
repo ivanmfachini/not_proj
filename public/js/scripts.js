@@ -162,11 +162,12 @@
         }
     };
     
-    function removeNote(day_number, in_timestamp){
+    function removeNote(day_number, in_timestamp, in_fut_date = false){
         let key_to_remove_from;
         if (day_number == 1){ key_to_remove_from = $(".hidden_date"+period_of_day_class).html() }
         else                { key_to_remove_from = $(".hidden_date"+period_of_day_class).last().html() };
-        let string_to_submit = JSON.stringify([key_to_remove_from, in_timestamp]);
+        if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){ in_fut_date = true };
+        let string_to_submit = JSON.stringify([key_to_remove_from, in_timestamp, in_fut_date]);
         let param = "<input hidden type='text' name='remove_note_arr' value='" + string_to_submit + "'/>";
         $("#form-day" + day_number).append(param);
         new_date = new Date();

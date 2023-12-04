@@ -93,7 +93,9 @@ passport.deserializeUser(async function(id, done) {
 const dayModule = require(__dirname + "/dayModule.js");
 const weatherModule = require(__dirname + "/weatherModule.js");
 
+/////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////    FUNCTIONS    //////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 
 async function queryAccId(in_id){
     return new Promise((resolve, reject)=>{
@@ -265,19 +267,13 @@ async function updateFromCall(in_column , JSON_str, username){
 function newNotesStrNew(new_note_arr, user_data){
     const new_key = new_note_arr[0];
     const new_text = new_note_arr[1];
-    const loc_data = (JSON.parse(user_data['loc_data']))['last'];
-    const new_date_obj = new Date(new_key+loc_data['tmz_suffix']);
-    let buf_day_str = new_date_obj.toString();
-    let day_str;
-    if (buf_day_str[9] == " "){
-        buf_day_str = buf_day_str.slice(0,14);
-        day_str = buf_day_str.substring(0,8) + "0" + buf_day_str.substring(8)
-    } else { day_str = buf_day_str.slice(0,15) }
+    const new_date_obj = new Date(new_key);
+    let day_str = new_date_obj.toUTCString().slice(0,16);
     let notes = JSON.parse(user_data['notes']);
     if(notes[new_key]){ notes[new_key]['notes'].push([new_text, Date.now(), day_str]) }
     else{ notes[new_key] = {
         "weekday": new_date_obj.getUTCDay(),
-        "day": new_date_obj.getDate(),
+        "day": new_date_obj.getUTCDate(),
         "notes": [[new_text, Date.now(), day_str]]
     }};
     return JSON.stringify(notes)
@@ -366,106 +362,104 @@ function newRtnStr(in_rtn_arr, user_data){
     return JSON.stringify(routines)
 };
 
-function handle31(monthly, notes, now_timestamp, user_yyyymmdd){
-    const user_year = user_yyyymmdd.slice(0,5);
-    const user_month = user_yyyymmdd.slice(5,7);
-    let next_year = user_year;
-    let next_month;
-    next_month = parseInt(user_yyyymmdd.slice(5,7))+1;
-    if (next_month > 12){
-        next_month = "01";
-        next_year = (parseInt(user_year)+1).toString()
-    } else if (next_month < 10){ next_month = "0" + next_month.toString() }
-    else{ next_month = next_month.toString() };                
-    const user_day = parseInt(user_yyyymmdd.slice(8,));
-    let buffer31 = [];
-    function iterateAndPush(in_new_monthly_date, in_new_key, in_value){
-        let notes_day;
-        if (notes[in_new_key]){ notes_day = notes[in_new_key]['notes'] };
-        if (notes_day){
-            for(let l = 0; l < in_value.length; l++){
-                let already_there = false;
-                for (let k = 0; k < notes_day; k++){
-                    if (notes_day[k][0] == in_value[l]){ already_there = true }
-                };
-                if (!already_there){ buffer31.push([in_value[l], in_new_monthly_date.slice(0,16)]) }
-            };
-        } else{
-            for(let l = 0; l < in_value.length; l++){
-                buffer31.push([in_value[l], in_new_monthly_date.slice(0,16)])
-            };
-        }
-    };
-    Object.entries(monthly).forEach(([key, value]) => {
-        if (key > user_day){
-            if (key > 27){
-                for(let i = 0; i < 5; i++){
-                    let new_day = (key - i).toString();
-                    let new_key = user_year+'-'+user_month+'-'+new_day;
-                    let new_monthly_date;
-                    try{
-                        new_monthly_date = new Date(new_key).toUTCString();
-                        if (new_monthly_date != "Invalid Date" && parseInt(new_monthly_date.slice(5,7)) == key ){
-                            iterateAndPush(new_monthly_date, new_key, value);
-                            break
+function iterate31days(in_notes, in_timestamp){
+    let buf_7 = [];
+    let buf_31 = [];
+    let buf_date, day_notes, date_str;
+    Object.entries(in_notes).forEach(([key, value]) => {
+        console.log('######################################################');
+        console.log('now iterating:', key, value);
+        buf_date = new Date(key);
+        day_notes = value['notes'];
+        if (buf_date.getTime() < in_timestamp + 86400000){ console.log('discarded A') }                // in the past or today or tomorrow
+        else if (buf_date.getTime() < in_timestamp + 2764800000){           // < 32
+            console.log('VALID!');
+            date_str = buf_date.toUTCString().slice(0,16);
+            if (buf_date.getTime() < in_timestamp + 691200000){             // < 8
+                console.log('smaller than 8');
+                for (let n = 0; n < day_notes.length; n++){
+                    let already_there = false;
+                    if (buf_7.length){
+                        for (let d = 0; d < buf_7.length; d++){
+                            if(day_notes[n][0] == buf_7[d][0]){
+                                already_there = true;
+                                if (buf_7[d][1].length == 2){
+                                    buf_7[d][1].push('...');
+                                    break
+                                } else if (buf_7[d][1].length == 1){
+                                    if (new Date(buf_7[d][1][0]).getTime() < buf_date.getTime() ){
+                                        buf_7[d][1].push(date_str)
+                                    } else{
+                                        buf_7[d][1].unshift(date_str)
+                                    };
+                                    break
+                                }
+                            }
+                        };
+                        if (!already_there){
+                            for (let b = 0; b < buf_7.length; b++){
+                                if (new Date(buf_7[b][1][0]).getTime() < buf_date.getTime()){
+                                    if (!buf_7[b+1]){
+                                        buf_7.push([day_notes[n][0],[date_str]]);
+                                        break
+                                    }
+                                } else{
+                                    buf_7.splice(b,0,[day_notes[n][0],[date_str]]);
+                                    break
+                                }
+                            }
                         }
-                    } catch{}
+                    } else{
+                        buf_7.push([day_notes[n][0],[date_str]])
+                    }
                 }
             } else{
-                let new_day = key.toString();
-                if (new_day.length == 1){ new_day = "0" + new_day };
-                let new_key = user_year+'-'+user_month+'-'+new_day;
-                let new_monthly_date = new Date(new_key).toUTCString();
-                iterateAndPush(new_monthly_date, new_key, value)
-            }
-        } else if (key < user_day) {
-            let new_day = key.toString();
-            if (new_day.length == 1){ new_day = "0" + new_day };
-            let new_key =  next_year+'-'+next_month+'-'+new_day;        //those were defined earlier and are not necessarily y+1 and m+1
-            const test_date = new Date(new_key);
-            if(test_date.getTime() < now_timestamp + 2678400000){       // if test_date is not 31days+ into the future
-                iterateAndPush(new_monthly_date, new_key, value)
-            }
-        }
-    });
-    return buffer31
-};
-
-function handle7(weekly, now_timestamp, notes){
-    let buf7 = [];
-    Object.entries(weekly).forEach(([key, value]) => {
-        let buf_tmp, buf_date;
-        for (let j = 172800000; j < 777600000; j+=86400000){        // 2 days, 9 days, 1 day
-            buf_tmp = now_timestamp + j;
-            for (let k = 0; k < 2678400000; k+=604800000){          // 0, 31, 7
-                buf_date = new Date(buf_tmp + k);
-                if (buf_date.getUTCDay() == key){
-                    for (let i = 0; i < value.length; i++){
-                        let this_month = ((buf_date.getUTCMonth())+1).toString();
-                        if (this_month.length == 1){ this_month = "0" + this_month };
-                        let this_day = (buf_date.getUTCDate()).toString();
-                        if (this_day.length == 1){ this_day = "0" + this_day };
-                        let this_yyyymmdd = (buf_date.getUTCFullYear()).toString()+'-'+this_month+'-'+this_day;
-                        let this_notes;
-                        if (notes[this_yyyymmdd]){ this_notes = notes[this_yyyymmdd]['notes'] };
-                        if (this_notes){
-                            let already_there = false;
-                            for (let l = 0; l < this_notes.length; l++){
-                                if(this_notes[l][0] == value[i]){ already_there = true }
-                            };
-                            if (!already_there){ buf7.push([value[i], (buf_date.toUTCString()).slice(0,16)]) }
-                        } else{
-                            buf7.push([value[i], (buf_date.toUTCString()).slice(0,16)])
+                console.log('bigger or equal to 8');
+                for (let n = 0; n < day_notes.length; n++){
+                    let already_there = false;
+                    if (buf_31.length){
+                        for (let d = 0; d < buf_31.length; d++){
+                            if(day_notes[n][0] == buf_31[d][0]){
+                                already_there = true;
+                                if (buf_31[d][1].length == 2){
+                                    buf_31[d][1].push('...');
+                                    break
+                                } else if (buf_31[d][1].length == 1){
+                                    if (new Date(buf_31[d][1][0]).getTime() < buf_date.getTime() ){
+                                        buf_31[d][1].push(date_str)
+                                    } else{
+                                        buf_31[d][1].unshift(date_str)
+                                    };
+                                    break
+                                }
+                            }
                         };
-                    }                                
-                } else{ break }
+                        if (!already_there){
+                            for (let b = 0; b < buf_31.length; b++){
+                                if (new Date(buf_31[b][1][0]).getTime() < buf_date.getTime()){
+                                    if (!buf_31[b+1]){
+                                        buf_31.push([day_notes[n][0],[date_str]]);
+                                        break
+                                    }
+                                } else{
+                                    buf_31.splice(b,0,[day_notes[n][0],[date_str]]);
+                                    break
+                                }
+                            }
+                        }
+                    } else{
+                        buf_31.push([day_notes[n][0],[date_str]])
+                    }
+                }
             }
-        }
+        } else{ console.log('discarded B')}
     });
-    return buf7
+    return[buf_7,buf_31]
 };
 
+//////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////    ROUTES    //////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
 
 app.get('/', (req, res) => {
     res.redirect('/login')
@@ -523,12 +517,19 @@ app.get('/home/:username', async (req, res) => {
             const monthly =     routines['monthly'];
             const user_yyyymmdd = loc_data['YYYY-MM-DD'];
 
-            let days_7 = [];
-            let days_31 = [];
-            if(weekly){ days_7 = handle7(weekly, now_timestamp, notes) };
-            if(monthly){ days_31 = handle31(monthly, notes, now_timestamp, user_yyyymmdd) };
-            console.log(days_7);
-            console.log(days_31);
+            const days_arr = iterate31days(notes, now_timestamp);
+            let days_7 = days_arr[0];
+            let days_31 = days_arr[1];
+            console.log(days_7); console.log(days_31);
+            console.log('###############################################################');
+
+            if(weekly){
+
+            };
+            if(monthly){
+
+            };
+            //console.log(days_7); console.log(days_31);
             
             let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
             if(req.query.new_y){
@@ -564,6 +565,7 @@ app.get('/home/:username', async (req, res) => {
             try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
             catch{ C_notes = empty_arr_str };
             console.log(dayA_key, dayB_key, dayC_key);
+
             res.render('index', {
                 user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
                 dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
@@ -571,7 +573,7 @@ app.get('/home/:username', async (req, res) => {
                 dayC_PH: dayModule.dayC_pretty(new_timestamp), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
                 routines_raw_PH_string: user_data['high_wly_mly'], first_name_PH: user_data['first_name'],
                 mili_diff_PH: mili_diff, projects_PH_str: user_data['projects'], username_PH: username,
-                days_7_PH : JSON.stringify([]) , days_31_PH : JSON.stringify([]), weather_PH: weather,
+                days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31), weather_PH: weather,
                 wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius']
             })
         } else { console.log('NO COOKIE'); return res.redirect('/login') }
@@ -689,7 +691,14 @@ app.post('/home', async function (req,res){
         const remove_note_arr = checkMultipleReq(req.body.remove_note_arr);
         const result = await handleNotes(remove_note_arr, 0, 'rm');
         console.log('Result from removing a note for', username, 'was:', result);
-        return res.redirect(`/home/${username}`)
+        if (remove_note_arr[2] == true){
+            const buf_key = remove_note_arr[0];
+            if (user_hour < 17 && user_hour > 3){
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
+            } else{
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
+            }
+        } else { return res.redirect(`/home/${username}`) }
     };
 
     if(req.body.routine_note_arr){

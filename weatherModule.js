@@ -2,7 +2,6 @@
 const axios = require("axios");
 
 module.exports = async function (in_lat, in_lon, in_tmz_iana, in_hour, in_cel = true) {
-    console.log('axios entered with:', in_lat, in_lon, in_tmz_iana, in_hour, in_cel)
         if (in_cel){ in_cel = "" }
         else{ in_cel = "temperature_unit=fahrenheit&" };
 

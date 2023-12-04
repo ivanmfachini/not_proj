@@ -13,14 +13,12 @@ module.exports = {
 
     "dayA" : function( in_tmz_iana, input_timestamp = Date.now() ){
         const new_date = new Date(input_timestamp);
-        console.log('daymodule, new_date is:', new_date);
         const options = {
             timeZone: in_tmz_iana,
             year: "numeric", month:"numeric", day:"numeric",
             weekday: "short"
         };
         const date_str = new_date.toLocaleString('en-US', options); // "Mon, 11/27/2023" "Wed, 1/5/2022"
-        console.log('date_str is:', date_str);
         let year = month = day = "";
         let slashes = 0;
         for (let a = 5; a < date_str.length; a++){
