@@ -366,6 +366,105 @@ function newRtnStr(in_rtn_arr, user_data){
     return JSON.stringify(routines)
 };
 
+function handle31(monthly, notes, now_timestamp, user_yyyymmdd){
+    const user_year = user_yyyymmdd.slice(0,5);
+    const user_month = user_yyyymmdd.slice(5,7);
+    let next_year = user_year;
+    let next_month;
+    next_month = parseInt(user_yyyymmdd.slice(5,7))+1;
+    if (next_month > 12){
+        next_month = "01";
+        next_year = (parseInt(user_year)+1).toString()
+    } else if (next_month < 10){ next_month = "0" + next_month.toString() }
+    else{ next_month = next_month.toString() };                
+    const user_day = parseInt(user_yyyymmdd.slice(8,));
+    let buffer31 = [];
+    function iterateAndPush(in_new_monthly_date, in_new_key, in_value){
+        let notes_day;
+        if (notes[in_new_key]){ notes_day = notes[in_new_key]['notes'] };
+        if (notes_day){
+            for(let l = 0; l < in_value.length; l++){
+                let already_there = false;
+                for (let k = 0; k < notes_day; k++){
+                    if (notes_day[k][0] == in_value[l]){ already_there = true }
+                };
+                if (!already_there){ buffer31.push([in_value[l], in_new_monthly_date.slice(0,16)]) }
+            };
+        } else{
+            for(let l = 0; l < in_value.length; l++){
+                buffer31.push([in_value[l], in_new_monthly_date.slice(0,16)])
+            };
+        }
+    };
+    Object.entries(monthly).forEach(([key, value]) => {
+        if (key > user_day){
+            if (key > 27){
+                for(let i = 0; i < 5; i++){
+                    let new_day = (key - i).toString();
+                    let new_key = user_year+'-'+user_month+'-'+new_day;
+                    let new_monthly_date;
+                    try{
+                        new_monthly_date = new Date(new_key).toUTCString();
+                        if (new_monthly_date != "Invalid Date" && parseInt(new_monthly_date.slice(5,7)) == key ){
+                            iterateAndPush(new_monthly_date, new_key, value);
+                            break
+                        }
+                    } catch{}
+                }
+            } else{
+                let new_day = key.toString();
+                if (new_day.length == 1){ new_day = "0" + new_day };
+                let new_key = user_year+'-'+user_month+'-'+new_day;
+                let new_monthly_date = new Date(new_key).toUTCString();
+                iterateAndPush(new_monthly_date, new_key, value)
+            }
+        } else if (key < user_day) {
+            let new_day = key.toString();
+            if (new_day.length == 1){ new_day = "0" + new_day };
+            let new_key =  next_year+'-'+next_month+'-'+new_day;        //those were defined earlier and are not necessarily y+1 and m+1
+            const test_date = new Date(new_key);
+            if(test_date.getTime() < now_timestamp + 2678400000){       // if test_date is not 31days+ into the future
+                iterateAndPush(new_monthly_date, new_key, value)
+            }
+        }
+    });
+    return buffer31
+};
+
+function handle7(weekly, now_timestamp, notes){
+    let buf7 = [];
+    Object.entries(weekly).forEach(([key, value]) => {
+        let buf_tmp, buf_date;
+        for (let j = 172800000; j < 777600000; j+=86400000){        // 2 days, 9 days, 1 day
+            buf_tmp = now_timestamp + j;
+            for (let k = 0; k < 2678400000; k+=604800000){          // 0, 31, 7
+                buf_date = new Date(buf_tmp + k);
+                if (buf_date.getUTCDay() == key){
+                    for (let i = 0; i < value.length; i++){
+                        let this_month = ((buf_date.getUTCMonth())+1).toString();
+                        if (this_month.length == 1){ this_month = "0" + this_month };
+                        let this_day = (buf_date.getUTCDate()).toString();
+                        if (this_day.length == 1){ this_day = "0" + this_day };
+                        let this_yyyymmdd = (buf_date.getUTCFullYear()).toString()+'-'+this_month+'-'+this_day;
+                        let this_notes;
+                        if (notes[this_yyyymmdd]){ this_notes = notes[this_yyyymmdd]['notes'] };
+                        if (this_notes){
+                            let already_there = false;
+                            for (let l = 0; l < this_notes.length; l++){
+                                if(this_notes[l][0] == value[i]){ already_there = true }
+                            };
+                            if (!already_there){ buf7.push([value[i], (buf_date.toUTCString()).slice(0,16)]) }
+                        } else{
+                            buf7.push([value[i], (buf_date.toUTCString()).slice(0,16)])
+                        };
+                    }                                
+                } else{ break }
+            }
+        }
+    });
+    return buf7
+};
+
 //////////////////////////////////    ROUTES    //////////////////////////////////
 
 app.get('/', (req, res) => {
@@ -403,7 +502,8 @@ app.get('/home/:username', async (req, res) => {
             return res.redirect('/login')
         } else if(result.rows.length){
             const new_date_obj = new Date();
-            if (  ((result.rows[0].expire).getTime()) < new_date_obj.getTime() ){
+            const now_timestamp = new_date_obj.getTime();
+            if (  ((result.rows[0].expire).getTime()) < now_timestamp ){
                 console.log('FAIL to login: cookie with sid', result.rows[0].sid, 'is expired!');
                 return res.redirect('/login')
             };
@@ -414,13 +514,23 @@ app.get('/home/:username', async (req, res) => {
             if (req.params.username != username){ console.log('req.params.username is', req.params.username, 'but username from db is', username, '. At', Date.now(), 'Redirecting to /login');
                 return res.redirect('/login')
             };
-            const notes = JSON.parse(user_data['notes']);                   //console.log(notes);
-            const routines = JSON.parse(user_data['high_wly_mly']);         //console.log(routines);
-            const projects = user_data['projects'];                         //console.log(projects);
-            const weather = user_data['weather'];                           //console.log(weather);
-            const loc_data = (JSON.parse(user_data.loc_data))['last'];      //console.log(loc_data);
-            let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
+            const notes =       JSON.parse(user_data['notes']);                     //console.log(notes);
+            const routines =    JSON.parse(user_data['high_wly_mly']);              //console.log(routines);
+            const projects =    user_data['projects'];                              //console.log(projects);
+            const weather =     user_data['weather'];                               //console.log(weather);
+            const loc_data =    (JSON.parse(user_data.loc_data))['last'];           //console.log(loc_data);
+            const weekly =      routines['weekly'];
+            const monthly =     routines['monthly'];
+            const user_yyyymmdd = loc_data['YYYY-MM-DD'];
 
+            let days_7 = [];
+            let days_31 = [];
+            if(weekly){ days_7 = handle7(weekly, now_timestamp, notes) };
+            if(monthly){ days_31 = handle31(monthly, notes, now_timestamp, user_yyyymmdd) };
+            console.log(days_7);
+            console.log(days_31);
+            
+            let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
             if(req.query.new_y){
                 let q_m = (parseInt(req.query.new_m)+1).toString(); if (q_m.length == 1){ q_m = "0"+q_m };
                 let q_d = req.query.new_d; if (q_d.length == 1){ q_d = "0"+q_d };
@@ -509,7 +619,8 @@ app.post('/home', async function (req,res){
         } else if(upd_user_data){
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
-            if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, upd_user_data), username ) } else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
+            if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, upd_user_data), username ) }
+            else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
             else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, upd_user_data), username ) }
             return result_c
         } else {
