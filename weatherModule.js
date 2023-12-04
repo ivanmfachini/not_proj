@@ -20,7 +20,7 @@ module.exports = async function (in_lat, in_lon, in_tmz_iana, in_hour, in_cel = 
             let max_temp_1 = -999;  let max_temp_2 = -999;  let max_temp_3 = -999;
             let min_temp_1 = 999;   let min_temp_2 = 999;   let min_temp_3 = 999;
             let max_hr_1, max_hr_2, max_hr_3, min_hr_1, min_hr_2, min_hr_3;
-            for (let i = in_hour; i < 72; i++){
+            for (let i = 0; i < 72; i++){
                 if (i < 24) {
                     if (5 < i && i < 22){
                         if (tmp_arr[i] > max_temp_1){

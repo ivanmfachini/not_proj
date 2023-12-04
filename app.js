@@ -563,6 +563,7 @@ app.get('/home/:username', async (req, res) => {
             catch{ B_notes = empty_arr_str };
             try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
             catch{ C_notes = empty_arr_str };
+            console.log(dayA_key, dayB_key, dayC_key);
             res.render('index', {
                 user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
                 dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
@@ -673,7 +674,15 @@ app.post('/home', async function (req,res){
         const edit_note_arr = checkMultipleReq(req.body.edit_note_arr);
         const result = await handleNotes(edit_note_arr, 0, 'edit');
         console.log('Result from editing a note for', username, 'was:', result);
-        return res.redirect(`/home/${username}`)
+        if (edit_note_arr[3] == true){
+            const buf_key = edit_note_arr[0];
+            if (user_hour < 17 && user_hour > 3){
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
+            } else{
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
+            }
+        } else { return res.redirect(`/home/${username}`) }
+        //return res.redirect(`/home/${username}`)
     };
 
     if(req.body.remove_note_arr){

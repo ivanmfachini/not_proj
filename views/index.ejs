@@ -95,16 +95,22 @@
             </div> <!-- class="col col-days ngttime">-->
 
             <div class="weather_day" id="weather_day1">
-              <%var current_hour=new Date().getHours();%>
+              <%var new_date=new Date();%>
+              <%var new_y=new_date.getFullYear().toString();%>
+              <%var new_m=(new_date.getMonth()+1).toString();%>
+              <%var new_d=new_date.getDate().toString();%>
+              <%if(new_m.length == 1){new_m="0"+new_m};%>
+              <%if(new_d.length == 1){new_d="0"+new_d};%>
+              <%var new_yyyymmdd = new_y+"-"+new_m+"-"+new_d;%>
+              <%var current_hour=new_date.getHours();%>
               <%const weather=JSON.parse(weather_PH);%>
               <%var dayA_wtr, dayB_wtr, dayC_wtr;%>
-              <%if(3 < current_hour && current_hour < 17){%>
+              <%if(3 < current_hour && current_hour < 17 && dayA_hidden_date_PH == new_yyyymmdd){%>
 
                 <%if(weather[dayA_hidden_date_PH]){%>
                   <%dayA_wtr=weather[dayA_hidden_date_PH];%>
-                  <p id="next_6_hours" style="align-self: baseline; height: fit-content;">Next 6 hours:</p>
                   <div class="hourly_weather">
-                    <%for(let f = 0; f < 6; f++){%>
+                    <%for(let f = 1; f < 7; f++){%>
                       <div class="hour_weather">
                         <%let wtr_f=dayA_wtr["hr_tmp_code"][current_hour+f];%>
                         <p class="hour_hour_weather"><%=wtr_f[0]%></p>
@@ -180,11 +186,120 @@
                       </div> <!-- class="hour_weather" -->
                     <%}%>
                   </div> <!-- class="hourly_weather" -->
+                  <div class="max_min_temp" style="height: 30px;">
+                    <div class="temp_box  temp_box_min" style="margin-top: 9px; width: 70px; display: flex; padding-left: 3px;">
+                      <p>Next 6h</p>
+                    </div>
+                    <div class="square_receiver" style="width: calc(100% - 70px);">
+                      <div class="transparent_squareA" style="width: calc(100% - 10px)"></div>
+                    </div>
+                  </div>
                 <%}%>
 
-              <%}else{%>
+              <%}else if (3 < current_hour && current_hour < 17){%>
 
-                <%if(weather[dayB_hidden_date_PH]){%>
+                <%if(weather[dayA_hidden_date_PH] != undefined){%>
+                  <%dayA_wtr=weather[dayA_hidden_date_PH];%>
+                  <div class="day_weather">
+                    <div class="hourly_weather">
+                      <%for (let x = 6; x < 22; x+=3){%>
+                        <%let wtr_x=dayA_wtr["hr_tmp_code"][x];%>
+                        <div class="hour_weather">
+                          <p class="hour_hour_weather"><%=wtr_x[0]%></p>
+                          <%let code_day2_x = wtr_x[2];%>
+                          <%if (code_day2_x < 3){%>
+                            <%if (dayA_wtr.sunset > x && x > dayA_wtr.sunrise){%>
+                              <%if(code_day2_x == 0 || code_day2_x == 1){%>
+                                <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-sun-fill" viewBox="0 0 16 16">
+                                  <path d="M8 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM8 0a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 0zm0 13a.5.5 0 0 1 .5.5v2a.5.5 0 0 1-1 0v-2A.5.5 0 0 1 8 13zm8-5a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2a.5.5 0 0 1 .5.5zM3 8a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1 0-1h2A.5.5 0 0 1 3 8zm10.657-5.657a.5.5 0 0 1 0 .707l-1.414 1.415a.5.5 0 1 1-.707-.708l1.414-1.414a.5.5 0 0 1 .707 0zm-9.193 9.193a.5.5 0 0 1 0 .707L3.05 13.657a.5.5 0 0 1-.707-.707l1.414-1.414a.5.5 0 0 1 .707 0zm9.193 2.121a.5.5 0 0 1-.707 0l-1.414-1.414a.5.5 0 0 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .707zM4.464 4.465a.5.5 0 0 1-.707 0L2.343 3.05a.5.5 0 1 1 .707-.707l1.414 1.414a.5.5 0 0 1 0 .708z"/>
+                                </svg>
+                              <%} else if (code_day2_x == 2){%>
+                                <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sun-fill" viewBox="0 0 16 16">
+                                  <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                                  <path d="M10.5 1.5a.5.5 0 0 0-1 0v1a.5.5 0 0 0 1 0v-1zm3.743 1.964a.5.5 0 1 0-.707-.707l-.708.707a.5.5 0 0 0 .708.708l.707-.708zm-7.779-.707a.5.5 0 0 0-.707.707l.707.708a.5.5 0 1 0 .708-.708l-.708-.707zm1.734 3.374a2 2 0 1 1 3.296 2.198c.199.281.372.582.516.898a3 3 0 1 0-4.84-3.225c.352.011.696.055 1.028.129zm4.484 4.074c.6.215 1.125.59 1.522 1.072a.5.5 0 0 0 .039-.742l-.707-.707a.5.5 0 0 0-.854.377zM14.5 6.5a.5.5 0 0 0 0 1h1a.5.5 0 0 0 0-1h-1z"/>
+                                </svg>
+                              <%}%>
+                            <%} else{%>
+                              <%if (code_day2_x == 0){%>
+                                <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-stars-fill" viewBox="0 0 16 16">
+                                  <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                                  <path d="M10.794 3.148a.217.217 0 0 1 .412 0l.387 1.162c.173.518.579.924 1.097 1.097l1.162.387a.217.217 0 0 1 0 .412l-1.162.387a1.734 1.734 0 0 0-1.097 1.097l-.387 1.162a.217.217 0 0 1-.412 0l-.387-1.162A1.734 1.734 0 0 0 9.31 6.593l-1.162-.387a.217.217 0 0 1 0-.412l1.162-.387a1.734 1.734 0 0 0 1.097-1.097l.387-1.162zM13.863.099a.145.145 0 0 1 .274 0l.258.774c.115.346.386.617.732.732l.774.258a.145.145 0 0 1 0 .274l-.774.258a1.156 1.156 0 0 0-.732.732l-.258.774a.145.145 0 0 1-.274 0l-.258-.774a1.156 1.156 0 0 0-.732-.732l-.774-.258a.145.145 0 0 1 0-.274l.774-.258c.346-.115.617-.386.732-.732L13.863.1z"/>
+                                </svg>
+                              <%} else if (code_day2_x == 1){%>
+                                <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-moon-fill" viewBox="0 0 16 16">
+                                  <path d="M6 .278a.768.768 0 0 1 .08.858 7.208 7.208 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277.527 0 1.04-.055 1.533-.16a.787.787 0 0 1 .81.316.733.733 0 0 1-.031.893A8.349 8.349 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.752.752 0 0 1 6 .278z"/>
+                                </svg>
+                              <%} else if (code_day2_x == 2){%>
+                                <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-moon-fill" viewBox="0 0 16 16">
+                                  <path d="M11.473 11a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 16h8.5a2.5 2.5 0 0 0 0-5h-.027z"/>
+                                  <path d="M11.286 1.778a.5.5 0 0 0-.565-.755 4.595 4.595 0 0 0-3.18 5.003 5.46 5.46 0 0 1 1.055.209A3.603 3.603 0 0 1 9.83 2.617a4.593 4.593 0 0 0 4.31 5.744 3.576 3.576 0 0 1-2.241.634c.162.317.295.652.394 1a4.59 4.59 0 0 0 3.624-2.04.5.5 0 0 0-.565-.755 3.593 3.593 0 0 1-4.065-5.422z"/>
+                                </svg>
+                              <%}%>
+                            <%}%>
+                          <%} else if (code_day2_x == 3){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clouds-fill" viewBox="0 0 16 16">
+                              <path d="M11.473 9a4.5 4.5 0 0 0-8.72-.99A3 3 0 0 0 3 14h8.5a2.5 2.5 0 1 0-.027-5z"/>
+                              <path d="M14.544 9.772a3.506 3.506 0 0 0-2.225-1.676 5.502 5.502 0 0 0-6.337-4.002 4.002 4.002 0 0 1 7.392.91 2.5 2.5 0 0 1 1.17 4.769z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 45){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-fog-fill" viewBox="0 0 16 16">
+                              <path d="M3 13.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm0 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm10.405-9.473a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 12H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 48){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-haze-fill" viewBox="0 0 16 16">
+                              <path d="M4 11.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm-3 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zm2 2a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM13.405 4.027a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 51 || code_day2_x == 53 || code_day2_x == 55){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-drizzle-fill" viewBox="0 0 16 16">
+                              <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm-3.5 1.5a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm6 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm.747-8.498a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 56 || code_day2_x == 57 || code_day2_x == 66 || code_day2_x == 67){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-sleet-fill" viewBox="0 0 16 16">
+                              <path d="M2.375 13.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zM6.375 13.5a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 0 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm2.151 2.447a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 1 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 1 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm1.849-2.447a.5.5 0 0 1 .223.67l-.5 1a.5.5 0 1 1-.894-.447l.5-1a.5.5 0 0 1 .67-.223zm1.181-7.026a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 61 || code_day2_x == 63 || code_day2_x == 80 || code_day2_x == 81){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-fill" viewBox="0 0 16 16">
+                              <path d="M4.158 12.025a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.317zm3 0a.5.5 0 0 1 .316.633l-1 3a.5.5 0 1 1-.948-.316l1-3a.5.5 0 0 1 .632-.317zm.247-6.998a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 11H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 65 || code_day2_x == 82){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-rain-heavy-fill" viewBox="0 0 16 16">
+                              <path d="M4.176 11.032a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm3 0a.5.5 0 0 1 .292.643l-1.5 4a.5.5 0 0 1-.936-.35l1.5-4a.5.5 0 0 1 .644-.293zm.229-7.005a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 71 || code_day2_x == 73 || code_day2_x == 75 || code_day2_x == 85 || code_day2_x == 86 || code_day2_x == 77){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-snow-fill" viewBox="0 0 16 16">
+                              <path d="M2.625 11.5a.25.25 0 0 1 .25.25v.57l.501-.287a.25.25 0 0 1 .248.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm2.75 2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-2.75-2a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 1 1-.5 0v-.57l-.501.287a.25.25 0 0 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm5.5 0a.25.25 0 0 1 .25.25v.57l.5-.287a.25.25 0 0 1 .249.434l-.495.283.495.283a.25.25 0 0 1-.248.434l-.501-.286v.569a.25.25 0 0 1-.5 0v-.57l-.501.287a.25.25 0 1 1-.248-.434l.495-.283-.495-.283a.25.25 0 0 1 .248-.434l.501.286v-.569a.25.25 0 0 1 .25-.25zm-.22-7.223a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10.25H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%} else if (code_day2_x == 95 || code_day2_x == 96 || code_day2_x == 99){%>
+                            <svg class="weather_icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cloud-lightning-rain-fill" viewBox="0 0 16 16">
+                              <path d="M2.658 11.026a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.5 1.5a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 1 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm9.5 0a.5.5 0 0 1 .316.632l-.5 1.5a.5.5 0 0 1-.948-.316l.5-1.5a.5.5 0 0 1 .632-.316zm-7.105-1.25A.5.5 0 0 1 7.5 11h1a.5.5 0 0 1 .474.658l-.28.842H9.5a.5.5 0 0 1 .39.812l-2 2.5a.5.5 0 0 1-.875-.433L7.36 14H6.5a.5.5 0 0 1-.447-.724l1-2zm6.352-7.249a5.001 5.001 0 0 0-9.499-1.004A3.5 3.5 0 1 0 3.5 10H13a3 3 0 0 0 .405-5.973z"/>
+                            </svg>
+                          <%};%>
+                          <p class="weather_temperature"><%=wtr_x[1]%></p>
+                        </div> <!-- class="hour_weather" -->
+                      <%}%>
+                    </div> <!-- class="hourly_weather" -->
+
+                    <div class="max_min_temp">
+                      <div class="square_receiver receiver_left">
+                        <div class="transparent_squareA transparent_left"></div>
+                      </div>
+                      <div class="temp_box  temp_box_max">
+                        <p class="max_min_box"><span class="span_arrow" style="color: lightcoral;">&#8593; </span><%=dayA_wtr.max[1]%> at <%=dayA_wtr.max[0]%>h</p>
+                      </div>
+                      <div class="temp_box  temp_box_min">
+                        <p class="max_min_box"><span class="span_arrow" style="color: lightskyblue;">&#8595; </span><%=dayA_wtr.min[1]%> at <%=dayA_wtr.min[0]%>h</p>
+                      </div>
+                      <div class="square_receiver">
+                        <div class="transparent_squareA"></div>
+                      </div>
+                    </div>
+
+                  </div> <!-- class="day_weather" -->
+                <%}%>
+
+              <%} else{%>
+
+                <%if(weather[dayB_hidden_date_PH] != undefined){%>
                   <%dayB_wtr=weather[dayB_hidden_date_PH];%>
                   <div class="day_weather">
                     <div class="hourly_weather">
@@ -365,7 +480,7 @@
 
               <%if(3 < current_hour && current_hour < 17){%>
 
-                <%if(weather[dayB_hidden_date_PH]){%>
+                <%if(weather[dayB_hidden_date_PH] != undefined){%>
                   <%dayB_wtr=weather[dayB_hidden_date_PH];%>
                   <div class="day_weather">
                     <div class="hourly_weather">
@@ -466,7 +581,7 @@
 
               <%}else{%>
 
-                <%if(weather[dayC_hidden_date_PH]){%>
+                <%if(weather[dayC_hidden_date_PH] != undefined){%>
                   <%dayC_wtr=weather[dayC_hidden_date_PH];%>
                   <div class="day_weather">
                     <div class="hourly_weather">

@@ -3,7 +3,7 @@
     let blurred_id, period_of_day_class;                                                    // these variables will store values important to
     let recent_onclick = {"text": "" , "id": "", 'timestamp' : 0};                          // control the user's interaction with the page's
     let older_onclick = {"text": "" , "id": "", 'timestamp' : 0};                           // elements (especially clicks) and the time
-    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour;
+    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd;
     let context_menu_tasks_clicks = 0;
     let context_menu_project_clicks = 0;
     
@@ -16,6 +16,14 @@
         let currentDay = dayObj_today.toLocaleDateString('en-US', options);
         let tomorrowDay = dayObj_tomorrow.toLocaleDateString('en-US', options);
         local_hour = parseInt(dayObj_today.toString().slice(16,18));                      // <-- assigns the hour of the day (local time)
+        
+        now_y = dayObj_today.getFullYear().toString();
+        now_m = (dayObj_today.getMonth()+1).toString();
+        now_d = (dayObj_today.getDate()).toString();
+        if (now_m.length == 1){ now_m = "0" + now_m };
+        if (now_d.length == 1){ now_d = "0" + now_d };
+        now_yyyymmdd = now_y+'-'+now_m+'-'+now_d;
+
         if(local_hour > 3 && local_hour < 17){
 
             period_of_day_class = '.daytime';
@@ -93,7 +101,8 @@
         if(checker){
             let key_to_add;
             if (day_number == 1){ key_to_add = $(".hidden_date"+period_of_day_class).html() }
-            else                { key_to_add = $(".hidden_date"+period_of_day_class).last().html() }            
+            else                { key_to_add = $(".hidden_date"+period_of_day_class).last().html() };
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){ in_fut_date = true };
             let string_to_submit = JSON.stringify([key_to_add, checker, in_fut_date]);
             let param = "<input hidden type='text' name='new_note_arr' value='" + string_to_submit + "'/>";
             $("#form-day" + day_number).append(param);
@@ -115,7 +124,12 @@
             let key_to_edit;
             if (day_number == 1){ key_to_edit = $(".hidden_date"+period_of_day_class).html() }
             else                { key_to_edit = $(".hidden_date"+period_of_day_class).last().html() };
-            let string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp]);
+            let string_to_submit;
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp, true])
+            }else{
+                string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp, false])
+            };
             let param = "<input hidden type='text' name='edit_note_arr' value='" + string_to_submit + "'/>";
             $("#form-day" + day_number).append(param);
             new_date = new Date();
