@@ -689,7 +689,7 @@
             <%let days_31 = JSON.parse(days_31_PH);%>
             <div class="col col-days" id="next_7_days">
               <div class="specific_next_event" id="next_events_title">
-                <h5>+7 days:</h5>
+                <h5>In 7 days:</h5>
               </div>              
                 <%for (let d = 0; d < days_7.length; d++){%>
                   <%let buf_day = days_7[d];%>
@@ -705,7 +705,7 @@
             </div>
             <div class="col col-days" id="next_30_days">
               <div class="specific_next_event" id="next_events_title">
-                <h5>+31 days:</h5>
+                <h5>8~31 days:</h5>
               </div>
               <%for (let e = 0; e < days_31.length; e++){%>
                 <%let buf_day = days_31[e];%>

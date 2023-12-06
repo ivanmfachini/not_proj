@@ -254,20 +254,30 @@ async function updateFromCall(in_column , JSON_str, username){
         console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, username)');
         return false
     } else{ return new Promise ((resolve, reject)=>{
-        db.query(`UPDATE work_data SET ${in_column} = $1 WHERE username = $2`,
-            [JSON_str, username], (err, result)=>{
-                if (err){ console.log('ERROR in updateFromCall:',err.message);
-                    resolve(err.message)
-                } else { resolve(true) }
-            }
-        )
+        if (JSON_str.length == 2){
+            db.query(`UPDATE work_data SET (${in_column[0]},${in_column[1]}) = ($1,$2) WHERE username = $3`,
+                [JSON_str[0], JSON_str[1], username], (err, result)=>{
+                    if (err){ console.log('ERROR in updateFromCall:',err.message);
+                        resolve(err.message)
+                    } else { resolve(true) }
+                }
+            )
+        } else{
+            db.query(`UPDATE work_data SET ${in_column} = $1 WHERE username = $2`,
+                [JSON_str, username], (err, result)=>{
+                    if (err){ console.log('ERROR in updateFromCall:',err.message);
+                        resolve(err.message)
+                    } else { resolve(true) }
+                }
+            )
+        }
     })}
 };
 
 function newNotesStrNew(new_note_arr, user_data){
     const new_key = new_note_arr[0];
     const new_text = new_note_arr[1];
-    const new_date_obj = new Date(new_key);
+    const new_date_obj = new Date(new_key+"T00:00:00.000");
     let day_str = new_date_obj.toUTCString().slice(0,16);
     let notes = JSON.parse(user_data['notes']);
     if(notes[new_key]){ notes[new_key]['notes'].push([new_text, Date.now(), day_str]) }
@@ -291,6 +301,7 @@ function newNotesStrEdit(edit_note_arr, user_data){
             break
         }
     };
+
     if (notes_key.length){ notes[new_key]['notes'] = notes_key }
     else{ delete notes.new_key };
     return JSON.stringify(notes)
@@ -308,7 +319,7 @@ function newNotesStrRm(remove_note_arr, user_data){
         }
     };
     if (notes_key.length){ notes[new_key]['notes'] = notes_key }
-    else{ delete notes.new_key };
+    else{ delete notes[new_key] };
     return JSON.stringify(notes)
 };
 
@@ -362,97 +373,252 @@ function newRtnStr(in_rtn_arr, user_data){
     return JSON.stringify(routines)
 };
 
-function iterate31days(in_notes, in_timestamp){
-    let buf_7 = [];
-    let buf_31 = [];
-    let buf_date, day_notes, date_str;
-    Object.entries(in_notes).forEach(([key, value]) => {
-        console.log('######################################################');
-        console.log('now iterating:', key, value);
-        buf_date = new Date(key);
-        day_notes = value['notes'];
-        if (buf_date.getTime() < in_timestamp + 86400000){ console.log('discarded A') }                // in the past or today or tomorrow
-        else if (buf_date.getTime() < in_timestamp + 2764800000){           // < 32
-            console.log('VALID!');
-            date_str = buf_date.toUTCString().slice(0,16);
-            if (buf_date.getTime() < in_timestamp + 691200000){             // < 8
-                console.log('smaller than 8');
-                for (let n = 0; n < day_notes.length; n++){
-                    let already_there = false;
-                    if (buf_7.length){
-                        for (let d = 0; d < buf_7.length; d++){
-                            if(day_notes[n][0] == buf_7[d][0]){
-                                already_there = true;
-                                if (buf_7[d][1].length == 2){
-                                    buf_7[d][1].push('...');
-                                    break
-                                } else if (buf_7[d][1].length == 1){
-                                    if (new Date(buf_7[d][1][0]).getTime() < buf_date.getTime() ){
-                                        buf_7[d][1].push(date_str)
-                                    } else{
-                                        buf_7[d][1].unshift(date_str)
-                                    };
-                                    break
-                                }
-                            }
-                        };
-                        if (!already_there){
-                            for (let b = 0; b < buf_7.length; b++){
-                                if (new Date(buf_7[b][1][0]).getTime() < buf_date.getTime()){
-                                    if (!buf_7[b+1]){
-                                        buf_7.push([day_notes[n][0],[date_str]]);
-                                        break
-                                    }
-                                } else{
-                                    buf_7.splice(b,0,[day_notes[n][0],[date_str]]);
-                                    break
-                                }
-                            }
-                        }
-                    } else{
-                        buf_7.push([day_notes[n][0],[date_str]])
-                    }
-                }
-            } else{
-                console.log('bigger or equal to 8');
-                for (let n = 0; n < day_notes.length; n++){
-                    let already_there = false;
-                    if (buf_31.length){
-                        for (let d = 0; d < buf_31.length; d++){
-                            if(day_notes[n][0] == buf_31[d][0]){
-                                already_there = true;
-                                if (buf_31[d][1].length == 2){
-                                    buf_31[d][1].push('...');
-                                    break
-                                } else if (buf_31[d][1].length == 1){
-                                    if (new Date(buf_31[d][1][0]).getTime() < buf_date.getTime() ){
-                                        buf_31[d][1].push(date_str)
-                                    } else{
-                                        buf_31[d][1].unshift(date_str)
-                                    };
-                                    break
-                                }
-                            }
-                        };
-                        if (!already_there){
-                            for (let b = 0; b < buf_31.length; b++){
-                                if (new Date(buf_31[b][1][0]).getTime() < buf_date.getTime()){
-                                    if (!buf_31[b+1]){
-                                        buf_31.push([day_notes[n][0],[date_str]]);
-                                        break
-                                    }
-                                } else{
-                                    buf_31.splice(b,0,[day_notes[n][0],[date_str]]);
-                                    break
-                                }
-                            }
-                        }
-                    } else{
-                        buf_31.push([day_notes[n][0],[date_str]])
-                    }
+function newNotesStrEditRtn(in_arr, user_data){
+    console.log('FUNCTION received in_arr and user_data:');
+    console.log(in_arr);
+    console.log(user_data);
+    const new_key = in_arr[0];
+    const new_text = in_arr[1];
+    const edit_timestamp = in_arr[3];
+    let notes = JSON.parse(user_data['notes']);
+    let notes_key = notes[new_key]['notes'];
+    for (let i = 0; i < notes_key.length; i++){
+        if(notes_key[i][1] == edit_timestamp){
+            notes_key[i][0] = new_text;
+            break
+        }
+    };
+    let routines = JSON.parse(user_data['high_wly_mly']);
+    if (in_arr[4] == "weekly" || in_arr[4] == "bothstamps"){
+        let weekday = new Date(new_key+"T00:00:00.000").getUTCDay();
+        let this_length = routines['weekly'][weekday].length;
+        if (this_length == 1){ routines['weekly'][weekday][0] = new_text }
+        else{
+            for (let a = 0; a < this_length; a++){
+                if (routines['weekly'][weekday][a] == in_arr[2]){
+                    routines['weekly'][weekday][a] = new_text;
+                    break
                 }
             }
-        } else{ console.log('discarded B')}
+        }
+    } else if (in_arr[4] == "monthly" || in_arr[4] == "bothstamps"){
+        let day = new Date(new_key+"T00:00:00.000").getUTCDate();
+        let this_length = routines['monthly'][day].length;
+        if (this_length == 1){ routines['monthly'][day][0] = new_text }
+        else{
+            for (let a = 0; a < this_length; a++){
+                if (routines['monthly'][day][a] == in_arr[2]){
+                    routines['monthly'][day][a] = new_text;
+                    break
+                }
+            }
+        }
+    };
+    console.log('WILL RETURN:');
+    console.log(notes);
+    console.log(routines);
+    return [JSON.stringify(notes), JSON.stringify(routines)]
+};
+
+
+function addToDaysArrFromRoutines(in_arr, value, buf_date, date_str){
+    let buf_arr = in_arr;
+    for (let v = 0; v < value.length; v++){
+        let already_there = false;
+        for (let b = 0; b < buf_arr.length; b++){
+            if(value[v] == buf_arr[b][0]){
+                let buf_added = buf_arr[b];
+                already_there = true;
+                if(buf_added[1].length == 2){
+                    if(new Date(buf_added[1][1]).getTime() > buf_date.getTime()){
+                        buf_added[1][1] = date_str;
+                        buf_added[1].push('...')
+                    } else{
+                        buf_added[1].push('...')
+                    }
+                } else if (buf_added[1].length == 1 && buf_added[1][0] != date_str){
+                    if(new Date(buf_added[1][0]).getTime() < buf_date.getTime()){
+                        buf_added[1].push(date_str)
+                    } else if(new Date(buf_added[1][0]).getTime() > buf_date.getTime()){
+                        buf_added[1].unshift(date_str)
+                    }
+                };
+                buf_arr[b] = buf_added;
+                break
+            }
+        };
+        if (!already_there){
+            if(buf_arr.length){
+                for (let b = 0; b < buf_arr.length; b++){
+                    if (new Date(buf_arr[b][1][0]).getTime() <= buf_date.getTime()){
+                        if (!buf_arr[b+1]){
+                            buf_arr.push([value[v],[date_str]]);
+                            break
+                        }
+                    } else if (new Date(buf_arr[b][1][0]).getTime() > buf_date.getTime()){
+                        buf_arr.splice(b,0,[value[v],[date_str]]);
+                        break
+                    }
+                }
+            } else{ buf_arr.push([value[v],[date_str]]) }
+        }
+    };
+    return buf_arr
+};
+
+function handleWeekly(weekly, now_timestamp, days_7, days_31, in_hour){
+    let buffer7 = days_7;
+    let buffer31 = days_31;
+    let buf_date, date_str, beginning, end;
+    if (in_hour < 17 && in_hour > 3){
+        beginning = 2; end = 9
+    } else{
+        beginning = 3; end = 10
+    };    
+    Object.entries(weekly).forEach(([key, value]) => {
+        for (let d = beginning; d < end; d+= 1){
+            for (let k = 0; k < 5; k++){                            // iterate 1~4 weeks
+                buf_date = new Date (now_timestamp + ((d*86400000)+(k*604800000)));
+                if (buf_date.getUTCDay() == key){
+                    date_str = buf_date.toUTCString().slice(0,16);
+                    if (d < 8){
+                        if(!k){                                     // goes to days_7
+                            buffer7 = addToDaysArrFromRoutines(days_7, value, buf_date, date_str)
+                        } else{       
+                            buffer31 = addToDaysArrFromRoutines(days_31, value, buf_date, date_str)
+                        }                                    
+                    } else{                                             // goes to days_31
+                        buffer31 = addToDaysArrFromRoutines(days_31, value, buf_date, date_str)
+                    }
+                } else{ break }
+            }
+        }
+    });
+    return [buffer7, buffer31]
+};
+
+function handleMonthly(monthly, now_timestamp, days_7, days_31, user_yyyymmdd, in_local_hour){
+    let buffer7 = days_7;
+    let buffer31 = days_31;
+
+    let year_str = user_yyyymmdd.slice(0,4);    //0123-56-89
+    let month_str = user_yyyymmdd.slice(5,7);
+
+    Object.entries(monthly).forEach(([key, value]) => {
+        let buf_day, buf_date, buf_timestamp, date_str, margin;
+
+        if (key > 28){
+            buf_day = key.toString();
+            buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000");
+            if (in_local_hour < 17 && in_local_hour > 3){ margin = 259200000 }
+            else{ margin = 345600000 };
+            if (buf_date.getTime() - now_timestamp < margin){
+                buf_timestamp = buf_date.getTime() + 2678400000;            // +31d
+                buf_date = new Date(buf_timestamp);
+                let current_day = buf_date.getUTCDate();
+                let k = 1
+                while(current_day < 6){
+                    buf_date = new Date(buf_timestamp - (k * 86400000));
+                    current_day = buf_date.getUTCDate();
+                    k += 1
+                }
+            }
+        } else{
+            if (key < 10){ buf_day = "0" + key.toString() }
+            else { buf_day = key.toString() };
+            buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000");
+            if (in_local_hour < 17 && in_local_hour > 3){ margin = 259200000 }
+            else{ margin = 345600000 };
+            if (buf_date.getTime() - now_timestamp < margin){
+                month_str = parseInt(month_str)+1;
+                if (month_str == 13){
+                    month_str = "01";
+                    year_str = (parseInt(year_str)+1).toString()
+                } else if (month_str < 10){ month_str = "0" + month_str.toString() }
+                else{ month_str = month_str.toString() };
+                buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000")
+            }
+        };
+        date_str = buf_date.toUTCString().slice(0,16);
+        buf_timestamp = buf_date.getTime();
+        if (buf_timestamp < now_timestamp + 691200000){             // goes to days_7
+            buffer7 = addToDaysArrFromRoutines(days_7, value, buf_date, date_str)
+        } else{                                                     // goes to days_31
+            buffer31 = addToDaysArrFromRoutines(days_31, value, buf_date, date_str)
+        }
+    });
+    return [buffer7, buffer31]
+};
+
+function addToDaysArrFromNotes(in_arr, day_notes, buf_date, date_str){
+    let buf_arr = in_arr;
+    for (let n = 0; n < day_notes.length; n++){
+        let already_there = false;
+        if (buf_arr.length){
+            for (let d = 0; d < buf_arr.length; d++){
+                if(day_notes[n][0] == buf_arr[d][0]){
+                    let buf_added = buf_arr[d];
+                    already_there = true;
+                    if (buf_added[1].length == 2){
+                        if(new Date(buf_added[1][1]).getTime() > buf_date.getTime()){
+                            buf_added[1][1] = date_str;
+                            buf_added[1].push('...')
+                        } else{
+                            buf_added[1].push('...')
+                        }
+                    } else if (buf_added[1].length == 1 && buf_added[1][0] != date_str){
+                        if (new Date(buf_added[1][0]).getTime() < buf_date.getTime() ){
+                            buf_added[1].push(date_str)
+                        } else if (new Date(buf_added[1][0]).getTime() > buf_date.getTime() ){
+                            buf_added[1].unshift(date_str)
+                        }
+                    };
+                    buf_arr[d] = buf_added;
+                    break
+                }
+            };
+            if (!already_there){
+                if (buf_arr.length){
+                    for (let b = 0; b < buf_arr.length; b++){
+                        if (new Date(buf_arr[b][1][0]).getTime() <= buf_date.getTime()){
+                            if (!buf_arr[b+1]){
+                                buf_arr.push([day_notes[n][0],[date_str]]);
+                                break
+                            }
+                        } else {
+                            buf_arr.splice(b,0,[day_notes[n][0],[date_str]]);
+                            break
+                        }
+                    }
+                } else{
+                    buf_arr.push([day_notes[n][0],[date_str]]);
+                }
+            }
+        } else{
+            buf_arr.push([day_notes[n][0],[date_str]]);
+        }
+    };
+    return buf_arr
+};
+
+function iterate31days(in_notes, in_timestamp, in_local_hour){
+    let buf_7 = [];
+    let buf_31 = [];
+    let buf_date, day_notes, date_str, margin;
+    Object.entries(in_notes).forEach(([key, value]) => {
+        buf_date = new Date(key+"T00:00:00.000");
+        day_notes = value['notes'];
+        if (in_local_hour < 17 && in_local_hour > 3){ margin = 259200000 }
+        else{ margin = 345600000 };
+        if (buf_date.getTime() < in_timestamp + margin){ console.log('discarded A') }                // in the past or today or tomorrow
+        else if (buf_date.getTime() < in_timestamp + 2764800000){           // < 32
+            date_str = buf_date.toUTCString().slice(0,16);
+            if (buf_date.getTime() < in_timestamp + 691200000){             // < 8
+                buf_7 = addToDaysArrFromNotes(buf_7, day_notes, buf_date, date_str)
+            } else{
+                buf_31 = addToDaysArrFromNotes(buf_31, day_notes, buf_date, date_str)
+            }
+        }
     });
     return[buf_7,buf_31]
 };
@@ -516,20 +682,25 @@ app.get('/home/:username', async (req, res) => {
             const weekly =      routines['weekly'];
             const monthly =     routines['monthly'];
             const user_yyyymmdd = loc_data['YYYY-MM-DD'];
+            const today_timestamp = new Date(user_yyyymmdd+"T00:00:00.000").getTime();
+            let buffer_arrays;
 
-            const days_arr = iterate31days(notes, now_timestamp);
-            let days_7 = days_arr[0];
-            let days_31 = days_arr[1];
-            console.log(days_7); console.log(days_31);
-            console.log('###############################################################');
+            buffer_arrays = iterate31days(notes, today_timestamp, user_data['last_local_hour']);
+            let days_7 = buffer_arrays[0];
+            let days_31 = buffer_arrays[1];
+            //console.log('days_7 and days_31 adding existing notes:'); console.log(days_7); console.log(days_31);
 
-            if(weekly){
-
+            if(weekly && weekly != {}){
+                buffer_arrays = handleWeekly(weekly, today_timestamp, days_7, days_31, user_data['last_local_hour']);
+                days_7 = buffer_arrays[0];
+                days_31 = buffer_arrays[1];
             };
-            if(monthly){
-
+            if(monthly && monthly != {}){
+                buffer_arrays = handleMonthly(monthly, today_timestamp, days_7, days_31, user_yyyymmdd, user_data['last_local_hour']);
+                days_7 = buffer_arrays[0];
+                days_31 = buffer_arrays[1];
             };
-            //console.log(days_7); console.log(days_31);
+            //console.log('days_7 and days_31 after adding routines:'); console.log(days_7); console.log(days_31);
             
             let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
             if(req.query.new_y){
@@ -564,7 +735,6 @@ app.get('/home/:username', async (req, res) => {
             catch{ B_notes = empty_arr_str };
             try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
             catch{ C_notes = empty_arr_str };
-            console.log(dayA_key, dayB_key, dayC_key);
 
             res.render('index', {
                 user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
@@ -610,6 +780,7 @@ app.post('/home', async function (req,res){
     };
     async function handleNotes(in_notes_arr, in_itv_A, in_task){
         if (upd_user_data == undefined){
+            console.log('CCCCCCCCCCC:', in_itv_A);
             if(in_itv_A > 100){
                 console.log('Something went wrong. Check function updateTimeAndWeather. Aborting.');
                 clearInterval(interval_ID_obj['itv_HdlNot']);
@@ -620,18 +791,22 @@ app.post('/home', async function (req,res){
                 },50)
             }
         } else if(upd_user_data){
+            console.log('AAAAAAAAAAA');
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
             if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, upd_user_data), username ) }
             else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
             else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, upd_user_data), username ) }
+            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), username ) }
             return result_c
         } else {
+            console.log('BBBBBBBBBBB');
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
             if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, old_user_data), username ) }
             else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), username ) }            
             else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, old_user_data), username ) }
+            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, old_user_data), username ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
             return result_c
         }
     };
@@ -663,7 +838,7 @@ app.post('/home', async function (req,res){
         const result = await handleNotes(new_note_arr, 0, 'add');
         console.log('Result from inserting a new note for', username, 'was:', result);
         if (new_note_arr[2] == true){
-            const buf_key = new_note_arr[0];
+            const buf_key = new_note_arr[3];
             if (user_hour < 17 && user_hour > 3){
                 return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
             } else{
@@ -677,14 +852,13 @@ app.post('/home', async function (req,res){
         const result = await handleNotes(edit_note_arr, 0, 'edit');
         console.log('Result from editing a note for', username, 'was:', result);
         if (edit_note_arr[3] == true){
-            const buf_key = edit_note_arr[0];
+            const buf_key = edit_note_arr[4];
             if (user_hour < 17 && user_hour > 3){
                 return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
             } else{
                 return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
             }
         } else { return res.redirect(`/home/${username}`) }
-        //return res.redirect(`/home/${username}`)
     };
 
     if(req.body.remove_note_arr){
@@ -692,7 +866,7 @@ app.post('/home', async function (req,res){
         const result = await handleNotes(remove_note_arr, 0, 'rm');
         console.log('Result from removing a note for', username, 'was:', result);
         if (remove_note_arr[2] == true){
-            const buf_key = remove_note_arr[0];
+            const buf_key = remove_note_arr[3];
             if (user_hour < 17 && user_hour > 3){
                 return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
             } else{
@@ -708,22 +882,36 @@ app.post('/home', async function (req,res){
         return res.redirect(`/home/${username}`)
     };
 
+    if(req.body.edit_routine_note){     //[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
+        const edit_routine_note = checkMultipleReq(req.body.edit_routine_note);
+        console.log(edit_routine_note);
+        const result = await handleNotes(edit_routine_note, 0, 'editrtn');
+        console.log('Result from editing a routine note for', username, 'was:', result);
+        if (edit_routine_note[5] == true){
+            const buf_key = edit_routine_note[6];
+            if (user_hour < 17 && user_hour > 3){
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
+            } else{
+                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
+            }
+        } else { return res.redirect(`/home/${username}`) }
+    };
+
 })
 
 app.post('/login',
     passport.authenticate('local', { failureRedirect: '/fail' }), async function(req, res) {
         const user_data_page = req.body;
         const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
-        const upd_user_data_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
-        const upd_user_data = upd_user_data_raw.rows[0];
-        const loc_data_db = (JSON.parse(upd_user_data['loc_data']))["last"];
-        if( time_place_obj['timestamp'] > (upd_user_data['last_timestamp']+3600000) ||       // if 1h+ passed
-            time_place_obj['UTC_hour'] != upd_user_data['last_UTC_hour'] ){                  // if it's not the same hour
-            console.log('Fulfilled conditions to updateFromLogin table');
-            await updateFromLogin(upd_user_data, time_place_obj);
+        const user_data_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
+        const user_data = user_data_raw.rows[0];
+        if( time_place_obj['UTC_hour'] != parseInt(user_data['last_utc_hour']) ||
+            time_place_obj['timestamp'] > (parseInt(user_data['last_timestamp'])+3600000) ){
+            console.log('Fulfilled conditions to call updateFromLogin');
+            await updateFromLogin(user_data, time_place_obj);
             return res.redirect(`/home/${user_data_page.username}`)
         } else {
-            console.log('DID NOT fulfilled conditions to updateFromLogin table');
+            console.log('DID NOT fulfilled conditions to call updateFromLogin');
             return res.redirect(`/home/${user_data_page.username}`)
         }        
     }

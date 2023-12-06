@@ -68,7 +68,7 @@
             console.log('min_idle is', min_idle, 'calling greeting()');
             greeting()
         }
-    },600000)   //1min
+    },60000)   //1min
     
     // Customize note's opacity for better visuals
     $(".new_note").parent().css("opacity", "0.3");
@@ -100,10 +100,11 @@
         let checker = sanitizeTextInput(in_text);
         if(checker){
             let key_to_add;
-            if (day_number == 1){ key_to_add = $(".hidden_date"+period_of_day_class).html() }
+            let A_day_key = $(".hidden_date"+period_of_day_class).html();
+            if (day_number == 1){ key_to_add = A_day_key }
             else                { key_to_add = $(".hidden_date"+period_of_day_class).last().html() };
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){ in_fut_date = true };
-            let string_to_submit = JSON.stringify([key_to_add, checker, in_fut_date]);
+            let string_to_submit = JSON.stringify([key_to_add, checker, in_fut_date, A_day_key]);
             let param = "<input hidden type='text' name='new_note_arr' value='" + string_to_submit + "'/>";
             $("#form-day" + day_number).append(param);
             new_date = new Date();
@@ -122,13 +123,14 @@
         let checker = sanitizeTextInput(in_text);
         if(checker){
             let key_to_edit;
-            if (day_number == 1){ key_to_edit = $(".hidden_date"+period_of_day_class).html() }
+            let A_day_key = $(".hidden_date"+period_of_day_class).html();
+            if (day_number == 1){ key_to_edit = A_day_key }
             else                { key_to_edit = $(".hidden_date"+period_of_day_class).last().html() };
             let string_to_submit;
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
-                string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp, true])
+                string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp, true, A_day_key])
             }else{
-                string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp, false])
+                string_to_submit = JSON.stringify([key_to_edit, checker, in_timestamp, false, A_day_key])
             };
             let param = "<input hidden type='text' name='edit_note_arr' value='" + string_to_submit + "'/>";
             $("#form-day" + day_number).append(param);
@@ -147,7 +149,13 @@
     function submitEdittedRoutineNote(in_key, in_timestamp, in_new_text, in_old_text, in_class){
         let checker = sanitizeTextInput(in_new_text);
         if(checker){
-            let string_to_submit = JSON.stringify([in_key, checker, in_old_text, in_timestamp, in_class]);
+            let A_day_key = $(".hidden_date"+period_of_day_class).html();
+            let string_to_submit;
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                string_to_submit = JSON.stringify([in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key])
+            }else{
+                string_to_submit = JSON.stringify([in_key, checker, in_old_text, in_timestamp, in_class, false])
+            };
             let param = "<input hidden type='text' name='edit_routine_note' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
             new_date = new Date();
@@ -164,10 +172,11 @@
     
     function removeNote(day_number, in_timestamp, in_fut_date = false){
         let key_to_remove_from;
-        if (day_number == 1){ key_to_remove_from = $(".hidden_date"+period_of_day_class).html() }
+        let A_day_key = $(".hidden_date"+period_of_day_class).html();
+        if (day_number == 1){ key_to_remove_from = A_day_key }
         else                { key_to_remove_from = $(".hidden_date"+period_of_day_class).last().html() };
         if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){ in_fut_date = true };
-        let string_to_submit = JSON.stringify([key_to_remove_from, in_timestamp, in_fut_date]);
+        let string_to_submit = JSON.stringify([key_to_remove_from, in_timestamp, in_fut_date, A_day_key]);
         let param = "<input hidden type='text' name='remove_note_arr' value='" + string_to_submit + "'/>";
         $("#form-day" + day_number).append(param);
         new_date = new Date();
