@@ -637,7 +637,7 @@ async function handleWeatherChange(temp_letter, user_id){
     let new_value = temp_letter[1];
     return new Promise((resolve, reject)=>{
         if (new_value == "o" || new_value == "s"){
-            if (new_value = "o")    { new_value = false }
+            if (new_value == "o")    { new_value = false }
             else                    { new_value = true }
             db.query("UPDATE work_data SET wtr_simple = $1 WHERE user_id = $2",
             [new_value, user_id], (err,result)=>{
@@ -806,7 +806,7 @@ app.get('/home/:username', async (req, res) => {
             catch{ C_notes = empty_arr_str };
 
             res.render('index', {
-                user_timezone_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
+                tmz_suffix_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
                 dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
                 dayB_PH: dayModule.dayB_pretty(new_timestamp), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
                 dayC_PH: dayModule.dayC_pretty(new_timestamp), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
@@ -942,10 +942,10 @@ app.post('/home', async function (req,res){
         const temp_letter = checkMultipleReq(req.body.temp_letter);
         await handleWeatherChange(temp_letter, user_id);
         return res.redirect(`/home/${username}`)
-    }
+    };
         
 
-})
+});
 
 app.post('/login',
     passport.authenticate('local', { failureRedirect: '/fail' }), async function(req, res) {

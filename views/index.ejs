@@ -18,7 +18,7 @@
     <div hidden id="wtr_simple" style="height: 0;"><%=wtr_simple_PH%></div>
     <div hidden id="celsius" style="height: 0;"><%=celsius_PH%></div>
     <div hidden id="mili_diff" style="height: 0;"><%=mili_diff_PH%></div>
-
+    <div hidden id="tmz_suffix" style="height: 0;"><%=tmz_suffix_PH%></div>
 
     <div id="shine-div">      
       <div class="container">
@@ -751,7 +751,7 @@
                               <div class="gray_rectangle"></div>
                               <p class="task-text"><%=buffer_proj_m[o]["task"]%></p>
                               <%if (buffer_proj_m[o]["deadline"]){%>
-                              <p class="task-deadline"><%=new Date(buffer_proj_m[o]["deadline"]+user_timezone_PH).toString().slice(4,15)%></p>
+                              <p class="task-deadline"><%=new Date(buffer_proj_m[o]["deadline"]+tmz_suffix_PH).toString().slice(4,15)%></p>
                               <p hidden class="task-deadline-YYYY-MM-DD"><%=buffer_proj_m[o]["deadline"]%></p>
                               <%}%>
                             </div>
@@ -776,7 +776,7 @@
                               <div class="gray_rectangle"></div>
                               <p class="task-text"><%=buffer_proj_mm[n]["task"]%></p>
                               <%if (buffer_proj_mm[n]["deadline"]){%>
-                              <p class="task-deadline"><%=new Date(buffer_proj_mm[n]["deadline"]+user_timezone_PH).toString().slice(4,15)%></p>
+                              <p class="task-deadline"><%=new Date(buffer_proj_mm[n]["deadline"]+tmz_suffix_PH).toString().slice(4,15)%></p>
                               <p hidden class="task-deadline-YYYY-MM-DD"><%=buffer_proj_mm[n]["deadline"]%></p>
                               <%}%>
                             </div>
@@ -786,7 +786,7 @@
                           <%}%>
                         </div>
                         <%if (projects_PH[m]["final_deadline"]){%>
-                          <%let buffer_ddl = new Date(projects_PH[m]["final_deadline"]+user_timezone_PH).toString();%>
+                          <%let buffer_ddl = new Date(projects_PH[m]["final_deadline"]+tmz_suffix_PH).toString();%>
                         <div class="final_deadline-box"><%=(buffer_ddl.slice(3,10)+', '+buffer_ddl.slice(10,16))%></div>
                         <%}%>
                       </div>

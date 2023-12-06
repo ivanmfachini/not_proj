@@ -3,7 +3,7 @@
     let blurred_id, period_of_day_class;                                                    // these variables will store values important to
     let recent_onclick = {"text": "" , "id": "", 'timestamp' : 0};                          // control the user's interaction with the page's
     let older_onclick = {"text": "" , "id": "", 'timestamp' : 0};                           // elements (especially clicks) and the time
-    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd;
+    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd, A_day_key, tmz_suffix, is_it_today;
     let context_menu_tasks_clicks = 0;
     let context_menu_project_clicks = 0;
     
@@ -16,13 +16,14 @@
         let currentDay = dayObj_today.toLocaleDateString('en-US', options);
         let tomorrowDay = dayObj_tomorrow.toLocaleDateString('en-US', options);
         local_hour = parseInt(dayObj_today.toString().slice(16,18));                      // <-- assigns the hour of the day (local time)
-        
+
         now_y = dayObj_today.getFullYear().toString();
         now_m = (dayObj_today.getMonth()+1).toString();
         now_d = (dayObj_today.getDate()).toString();
         if (now_m.length == 1){ now_m = "0" + now_m };
         if (now_d.length == 1){ now_d = "0" + now_d };
         now_yyyymmdd = now_y+'-'+now_m+'-'+now_d;
+        tmz_suffix = $("#tmz_suffix").html();
 
         if(local_hour > 3 && local_hour < 17){
 
@@ -57,18 +58,16 @@
             }
             $(".daytime").hide();
             $(".ngttime").show();
-        }
+        };
+        A_day_key = $(".hidden_date"+period_of_day_class).html();
+        console.log(A_day_key);
+        is_it_today = Date.now() - new Date(A_day_key+tmz_suffix).getTime()
+        if (is_it_today < 86400000 && is_it_today > 0 ){
+            is_it_today = true;
+            $("#day1").css('background-color', 'rgba(0,0,0,0.73)')
+        };
     };
     greeting();
-    let min_idle = 0;
-    setInterval(()=>{
-        min_idle += 1;
-        console.log('min_idle is now', min_idle);
-        if (min_idle % 5 == 0){
-            console.log('min_idle is', min_idle, 'calling greeting()');
-            greeting()
-        }
-    },60000)   //1min
     
     // Customize note's opacity for better visuals
     $(".new_note").parent().css("opacity", "0.3");
@@ -100,7 +99,6 @@
         let checker = sanitizeTextInput(in_text);
         if(checker){
             let key_to_add;
-            let A_day_key = $(".hidden_date"+period_of_day_class).html();
             if (day_number == 1){ key_to_add = A_day_key }
             else                { key_to_add = $(".hidden_date"+period_of_day_class).last().html() };
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){ in_fut_date = true };
@@ -123,7 +121,6 @@
         let checker = sanitizeTextInput(in_text);
         if(checker){
             let key_to_edit;
-            let A_day_key = $(".hidden_date"+period_of_day_class).html();
             if (day_number == 1){ key_to_edit = A_day_key }
             else                { key_to_edit = $(".hidden_date"+period_of_day_class).last().html() };
             let string_to_submit;
@@ -149,7 +146,6 @@
     function submitEdittedRoutineNote(in_key, in_timestamp, in_new_text, in_old_text, in_class){
         let checker = sanitizeTextInput(in_new_text);
         if(checker){
-            let A_day_key = $(".hidden_date"+period_of_day_class).html();
             let string_to_submit;
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 string_to_submit = JSON.stringify([in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key])
@@ -172,7 +168,6 @@
     
     function removeNote(day_number, in_timestamp, in_fut_date = false){
         let key_to_remove_from;
-        let A_day_key = $(".hidden_date"+period_of_day_class).html();
         if (day_number == 1){ key_to_remove_from = A_day_key }
         else                { key_to_remove_from = $(".hidden_date"+period_of_day_class).last().html() };
         if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){ in_fut_date = true };
@@ -455,7 +450,7 @@
             arr_with_values.push('weekly');
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 arr_with_values.push(true);
-                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+                arr_with_values.push(A_day_key)
             } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
@@ -473,7 +468,7 @@
             arr_with_values.push('monthly');
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 arr_with_values.push(true);
-                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+                arr_with_values.push(A_day_key)
             } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
@@ -491,7 +486,7 @@
             arr_with_values.push('highlight');
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 arr_with_values.push(true);
-                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+                arr_with_values.push(A_day_key)
             } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
@@ -509,7 +504,7 @@
             arr_with_values.push('unweekly');
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 arr_with_values.push(true);
-                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+                arr_with_values.push(A_day_key)
             } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
@@ -527,7 +522,7 @@
             arr_with_values.push('unmonthly');
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 arr_with_values.push(true);
-                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+                arr_with_values.push(A_day_key)
             } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
@@ -545,7 +540,7 @@
             arr_with_values.push('unhighlight');
             if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
                 arr_with_values.push(true);
-                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+                arr_with_values.push(A_day_key)
             } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
@@ -1258,7 +1253,7 @@
     };
 
     setTimeout(() => {
-        if (($("#wtr_simple").html()) == "1" ){
+        if (($("#wtr_simple").html()) == "true" || ($("#wtr_simple").html()) == true){
             $(".hour_hour_weather").hide();
             $(".max_min_temp").hide();
             $("#show_simpl").hide();
