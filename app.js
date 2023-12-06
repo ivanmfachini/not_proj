@@ -137,8 +137,8 @@ async function updateTimeAndWeather(in_data_db, in_local_hour, in_UTC_hour, in_t
     const loc_data = (JSON.parse(in_data_db['loc_data']))['last'];
     const weather_str = await weatherModule(loc_data['lat'], loc_data['lon'], loc_data['tmz_iana'], in_local_hour, in_data_db['temp_celsius']);
     if(weather_str){
-        await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE username = ($5)",
-        [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_data_db['username']],
+        await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE user_id = ($5)",
+        [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_data_db['user_id']],
         (err, result) =>{
             if (err){
                 console.log('ERROR in db.query in updateTimeAndWeather:', err.message);
@@ -163,10 +163,10 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
         loc_data['last']['YYYY-MM-DD'] = in_time_place_obj['YYYY-MM-DD']
         const weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'], in_user_data['temp_celsius']);
         if(weather_str){
-            await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather, loc_data) = ($1,$2,$3,$4,$5) WHERE username = ($6)",
+            await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather, loc_data) = ($1,$2,$3,$4,$5) WHERE user_id = ($6)",
             [
                 in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str, JSON.stringify(loc_data),
-                in_user_data['username']
+                in_user_data['user_id']
             ],(err, result) =>{
                 if (err){ console.log('ERROR in db.query (A) in updateFromLogin:', err.message) }
                 else{ console.log('Successfully (A) updated time and weather forecast of', in_user_data['username']) }
@@ -175,10 +175,10 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
     } else {
         const weather_str = await weatherModule(loc_data['original']['lat'], loc_data['original']['lon'], loc_data['original']['tmz_iana'], in_time_place_obj['local_hour'], in_user_data['temp_celsius']);
         if(weather_str){
-            await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE username = ($5)",
+            await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE user_id = ($5)",
             [
                 in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str,
-                in_user_data['username']
+                in_user_data['user_id']
             ],(err, result) =>{
                 if (err){ console.log('ERROR in db.query (B) in updateFromLogin:', err.message) }
                 else{ console.log('Successfully (B) updated time and weather forecast of', in_user_data['username']) }
@@ -249,22 +249,22 @@ function checkMultipleReq(in_obj){
     return JSON.parse(in_obj);
 };
 
-async function updateFromCall(in_column , JSON_str, username){
-    if(!in_column || !JSON_str || !username){
-        console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, username)');
+async function updateFromCall(in_column , JSON_str, user_id){
+    if(!in_column || !JSON_str || !user_id){
+        console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, user_id)');
         return false
     } else{ return new Promise ((resolve, reject)=>{
-        if (JSON_str.length == 2){
-            db.query(`UPDATE work_data SET (${in_column[0]},${in_column[1]}) = ($1,$2) WHERE username = $3`,
-                [JSON_str[0], JSON_str[1], username], (err, result)=>{
+        if (in_column.length == 2){
+            db.query(`UPDATE work_data SET (${in_column[0]},${in_column[1]}) = ($1,$2) WHERE user_id = $3`,
+                [JSON_str[0], JSON_str[1], user_id], (err, result)=>{
                     if (err){ console.log('ERROR in updateFromCall:',err.message);
                         resolve(err.message)
                     } else { resolve(true) }
                 }
             )
         } else{
-            db.query(`UPDATE work_data SET ${in_column} = $1 WHERE username = $2`,
-                [JSON_str, username], (err, result)=>{
+            db.query(`UPDATE work_data SET ${in_column} = $1 WHERE user_id = $2`,
+                [JSON_str, user_id], (err, result)=>{
                     if (err){ console.log('ERROR in updateFromCall:',err.message);
                         resolve(err.message)
                     } else { resolve(true) }
@@ -510,8 +510,8 @@ function handleMonthly(monthly, now_timestamp, days_7, days_31, user_yyyymmdd, i
         if (key > 28){
             buf_day = key.toString();
             buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000");
-            if (in_local_hour < 17 && in_local_hour > 3){ margin = 259200000 }
-            else{ margin = 345600000 };
+            if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
+            else{ margin = 259200000 };
             if (buf_date.getTime() - now_timestamp < margin){
                 buf_timestamp = buf_date.getTime() + 2678400000;            // +31d
                 buf_date = new Date(buf_timestamp);
@@ -527,8 +527,8 @@ function handleMonthly(monthly, now_timestamp, days_7, days_31, user_yyyymmdd, i
             if (key < 10){ buf_day = "0" + key.toString() }
             else { buf_day = key.toString() };
             buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000");
-            if (in_local_hour < 17 && in_local_hour > 3){ margin = 259200000 }
-            else{ margin = 345600000 };
+            if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
+            else{ margin = 259200000 };
             if (buf_date.getTime() - now_timestamp < margin){
                 month_str = parseInt(month_str)+1;
                 if (month_str == 13){
@@ -608,9 +608,9 @@ function iterate31days(in_notes, in_timestamp, in_local_hour){
     Object.entries(in_notes).forEach(([key, value]) => {
         buf_date = new Date(key+"T00:00:00.000");
         day_notes = value['notes'];
-        if (in_local_hour < 17 && in_local_hour > 3){ margin = 259200000 }
-        else{ margin = 345600000 };
-        if (buf_date.getTime() < in_timestamp + margin){ console.log('discarded A') }                // in the past or today or tomorrow
+        if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
+        else{ margin = 259200000 };
+        if (buf_date.getTime() < in_timestamp + margin){}                   // in the past or today or tomorrow
         else if (buf_date.getTime() < in_timestamp + 2764800000){           // < 32
             date_str = buf_date.toUTCString().slice(0,16);
             if (buf_date.getTime() < in_timestamp + 691200000){             // < 8
@@ -622,6 +622,75 @@ function iterate31days(in_notes, in_timestamp, in_local_hour){
     });
     return[buf_7,buf_31]
 };
+
+function manageReturn(ft, in_key, user_hour, username){
+    if (ft == true){    // <-- leave it like that
+        if (user_hour < 17 && user_hour > 3){
+            return `/home/${username}?new_y=${in_key.slice(0,4)}&new_m=${parseInt(in_key.slice(5,7))-1}&new_d=${parseInt(in_key.slice(8,))}`
+        } else{
+            return `/home/${username}?new_y=${in_key.slice(0,4)}&new_m=${parseInt(in_key.slice(5,7))-1}&new_d=${parseInt(in_key.slice(8,))-1}`
+        }
+    } else { return `/home/${username}` }
+};
+
+async function handleWeatherChange(temp_letter, user_id){
+    let new_value = temp_letter[1];
+    return new Promise((resolve, reject)=>{
+        if (new_value == "o" || new_value == "s"){
+            if (new_value = "o")    { new_value = false }
+            else                    { new_value = true }
+            db.query("UPDATE work_data SET wtr_simple = $1 WHERE user_id = $2",
+            [new_value, user_id], (err,result)=>{
+                if (err){
+                    console.log('could not change temp unit:', err.message)
+                    resolve(false)
+                } else{resolve(true)}
+            })
+        } else{
+            if (new_value == 0 || new_value == "0") { new_value = false }
+            else                                    { new_value = true }
+            db.query("SELECT weather FROM work_data WHERE user_id = $1", [user_id], (err, result)=>{
+                if (err){
+                    console.log('could not fetch user:', err.message);
+                    resolve(false)
+                } else{
+                    let this_weather = JSON.parse((result.rows[0]['weather']));
+                    if (new_value){
+                        Object.entries(this_weather).forEach(([key, value]) => {
+                            let tmp_values = value['hr_tmp_code'];
+                            let this_temp;
+                            for (let i = 0; i < tmp_values.length; i++){
+                                this_temp = tmp_values[i][1];
+                                this_temp = Math.round((this_temp*1.8)+32);
+                                tmp_values[i][1] = this_temp
+                            };
+                            value['hr_tmp_code'] = tmp_values
+                        })
+                    } else{
+                        Object.entries(this_weather).forEach(([key, value]) => {
+                            let tmp_values = value['hr_tmp_code'];
+                            let this_temp;
+                            for (let i = 0; i < tmp_values.length; i++){
+                                this_temp = tmp_values[i][1];
+                                this_temp = Math.round((this_temp-32)*(0.55556));
+                                tmp_values[i][1] = this_temp
+                            };
+                            value['hr_tmp_code'] = tmp_values
+                        })
+                    };
+                    db.query("UPDATE work_data SET (weather, temp_celsius) = ($1,$2) WHERE user_id = $3",
+                    [JSON.stringify(this_weather), new_value, user_id], (err,result)=>{
+                        if (err){
+                            console.log('could not change temp unit:', err.message);
+                            resolve(false)
+                        } else{ resolve(true) }
+                    })
+                }
+            })
+        }
+    })
+};
+
 
 //////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////    ROUTES    //////////////////////////////////
@@ -758,8 +827,9 @@ app.post('/home', async function (req,res){
     };
 
     const username = req.user.username;
-    console.log('POST /home', username); console.log(req.body); //console.log(req.session); console.log(req.sessionID); console.log(req.user); 
-    const old_user_data = await queryWorkDataUsername(username); //console.log(old_user_data);
+    const user_id = req.user.id;
+    console.log('POST /home', username); console.log(req.body); console.log(req.user);  //console.log(req.session); console.log(req.sessionID);
+    const old_user_data = await queryWorkDataId(user_id); //console.log(old_user_data);
     let user_hour, upd_user_data, user_hour_timestamp;
     
     if (req.body.user_hour_timestamp){
@@ -794,19 +864,19 @@ app.post('/home', async function (req,res){
             console.log('AAAAAAAAAAA');
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
-            if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, upd_user_data), username ) }
-            else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), username ) }            
-            else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, upd_user_data), username ) }
-            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), username ) }
+            if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, upd_user_data), user_id ) }
+            else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), user_id ) }            
+            else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, upd_user_data), user_id ) }
+            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), user_id ) }
             return result_c
         } else {
             console.log('BBBBBBBBBBB');
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
-            if (in_task == 'add'){ result_c = await updateFromCall('notes', newNotesStrNew(in_notes_arr, old_user_data), username ) }
-            else if (in_task == 'edit'){ result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), username ) }            
-            else if (in_task == 'rm'){ result_c = await updateFromCall('notes', newNotesStrRm(in_notes_arr, old_user_data), username ) }
-            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, old_user_data), username ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
+            if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, old_user_data), user_id ) }
+            else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), user_id ) }            
+            else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, old_user_data), user_id ) }
+            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, old_user_data), user_id ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
             return result_c
         }
     };
@@ -824,11 +894,11 @@ app.post('/home', async function (req,res){
             }
         } else if(upd_user_data){
             if (in_itv_B) { clearInterval(interval_ID_obj['itv_HdlRtn']) };
-            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, upd_user_data), username )
+            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, upd_user_data), user_id )
             return result_c
         } else {
             if (in_itv_B) { clearInterval(interval_ID_obj['itv_HdlRtn']) };
-            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, old_user_data), username )
+            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, old_user_data), user_id )
             return result_c
         }
     };
@@ -837,65 +907,42 @@ app.post('/home', async function (req,res){
         const new_note_arr = checkMultipleReq(req.body.new_note_arr);
         const result = await handleNotes(new_note_arr, 0, 'add');
         console.log('Result from inserting a new note for', username, 'was:', result);
-        if (new_note_arr[2] == true){
-            const buf_key = new_note_arr[3];
-            if (user_hour < 17 && user_hour > 3){
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
-            } else{
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
-            }
-        } else { return res.redirect(`/home/${username}`) }
+        return res.redirect(manageReturn(new_note_arr[2], new_note_arr[3], user_hour, username))
     };
 
     if(req.body.edit_note_arr){
         const edit_note_arr = checkMultipleReq(req.body.edit_note_arr);
         const result = await handleNotes(edit_note_arr, 0, 'edit');
         console.log('Result from editing a note for', username, 'was:', result);
-        if (edit_note_arr[3] == true){
-            const buf_key = edit_note_arr[4];
-            if (user_hour < 17 && user_hour > 3){
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
-            } else{
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
-            }
-        } else { return res.redirect(`/home/${username}`) }
+        return res.redirect(manageReturn(edit_note_arr[3], edit_note_arr[4], user_hour, username))
     };
 
     if(req.body.remove_note_arr){
         const remove_note_arr = checkMultipleReq(req.body.remove_note_arr);
         const result = await handleNotes(remove_note_arr, 0, 'rm');
         console.log('Result from removing a note for', username, 'was:', result);
-        if (remove_note_arr[2] == true){
-            const buf_key = remove_note_arr[3];
-            if (user_hour < 17 && user_hour > 3){
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
-            } else{
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
-            }
-        } else { return res.redirect(`/home/${username}`) }
+        return res.redirect(manageReturn(remove_note_arr[2], remove_note_arr[3], user_hour, username))
     };
 
     if(req.body.routine_note_arr){
         const routine_note_arr = checkMultipleReq(req.body.routine_note_arr);
         const result = await handleRoutines(routine_note_arr, 0);
         console.log('Result from inserting a new routine for', username, 'was:', result);
-        return res.redirect(`/home/${username}`)
+        return res.redirect(manageReturn(routine_note_arr[4], routine_note_arr[5], user_hour, username))
     };
 
-    if(req.body.edit_routine_note){     //[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
+    if(req.body.edit_routine_note){
         const edit_routine_note = checkMultipleReq(req.body.edit_routine_note);
-        console.log(edit_routine_note);
         const result = await handleNotes(edit_routine_note, 0, 'editrtn');
         console.log('Result from editing a routine note for', username, 'was:', result);
-        if (edit_routine_note[5] == true){
-            const buf_key = edit_routine_note[6];
-            if (user_hour < 17 && user_hour > 3){
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))}`)
-            } else{
-                return res.redirect(`/home/${username}?new_y=${buf_key.slice(0,4)}&new_m=${parseInt(buf_key.slice(5,7))-1}&new_d=${parseInt(buf_key.slice(8,))-1}`)
-            }
-        } else { return res.redirect(`/home/${username}`) }
+        return res.redirect(manageReturn(edit_routine_note[5], edit_routine_note[6], user_hour, username))
     };
+
+    if(req.body.temp_letter){
+        const temp_letter = checkMultipleReq(req.body.temp_letter);
+        await handleWeatherChange(temp_letter, user_id);
+    }
+        
 
 })
 

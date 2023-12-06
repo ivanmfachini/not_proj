@@ -453,6 +453,10 @@
         $('#weekly_button, #weekly_icon').on('click', function(){
             if (blocker){ return };
             arr_with_values.push('weekly');
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                arr_with_values.push(true);
+                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+            } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
@@ -467,6 +471,10 @@
         $('#monthly_button, #monthly_icon').on('click', function(){
             if (blocker){ return };
             arr_with_values.push('monthly');
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                arr_with_values.push(true);
+                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+            } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
@@ -481,6 +489,10 @@
         $('#highlight_button, #highlight_icon').on('click', function(){
             if (blocker){ return };
             arr_with_values.push('highlight');
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                arr_with_values.push(true);
+                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+            } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
@@ -495,6 +507,10 @@
         $('#unweekly_button, #unweekly_icon').on('click', function(){
             if (blocker){ return };
             arr_with_values.push('unweekly');
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                arr_with_values.push(true);
+                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+            } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
@@ -509,6 +525,10 @@
         $('#unmonthly_button, #unmonthly_icon').on('click', function(){
             if (blocker){ return };
             arr_with_values.push('unmonthly');
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                arr_with_values.push(true);
+                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+            } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
@@ -523,6 +543,10 @@
         $('#unhighlight_button, #unhighlight_icon').on('click', function(){
             if (blocker){ return };
             arr_with_values.push('unhighlight');
+            if($(".hidden_date.day1.daytime").html() != now_yyyymmdd ){
+                arr_with_values.push(true);
+                arr_with_values.push($(".hidden_date"+period_of_day_class).html())
+            } else{ arr_with_values.push(false) };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='routine_note_arr' value='" + string_to_submit + "'/>";
             $("#form-routine").append(param);
@@ -953,9 +977,6 @@
             string_to_submit = JSON.stringify([local_hour, 0]);
             let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
             $("#form-weather").append(param);
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
-            let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
-            $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
         $('#show_c').on('click', function(){
@@ -965,9 +986,6 @@
             string_to_submit = JSON.stringify([local_hour, 1]);
             let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
             $("#form-weather").append(param);
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
-            let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
-            $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
         $('#show_simpl').on('click', function(){
@@ -977,9 +995,6 @@
             string_to_submit = JSON.stringify([local_hour, 's']);
             let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
             $("#form-weather").append(param);
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
-            let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
-            $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
         $('#show_compl').on('click', function(){
@@ -989,9 +1004,6 @@
             string_to_submit = JSON.stringify([local_hour, 'o']);
             let param = "<input hidden type='text' name='temp_letter' value='" + string_to_submit + "'/>";
             $("#form-weather").append(param);
-            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
-            let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
-            $("#form-weather").append(param_hour);
             document.getElementById("form-weather").submit();                
         });
     });

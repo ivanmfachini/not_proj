@@ -487,7 +487,7 @@ header {
 }
 
 .temp_box{
-    width: 32%;
+    width: 100px;
     margin-top: 5px;
     padding-bottom: 1px;
 }
@@ -506,13 +506,13 @@ header {
 }
 
 .square_receiver{
-    width: 18%;
+    width: calc(50% - 100px);
     display: flex;
     height: fit-content;
 }
 
 .transparent_squareA{
-    width: 85%;
+    width: 90%;
     margin-top: 3px;
     height: 19px;
     border-bottom: 1px solid rgba(240,240,206, 0.8);
