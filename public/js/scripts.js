@@ -3,9 +3,10 @@
     let blurred_id, period_of_day_class;                                                    // these variables will store values important to
     let recent_onclick = {"text": "" , "id": "", 'timestamp' : 0};                          // control the user's interaction with the page's
     let older_onclick = {"text": "" , "id": "", 'timestamp' : 0};                           // elements (especially clicks) and the time
-    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd, A_day_key, tmz_suffix, is_it_today;
+    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd, A_day_key, is_it_today;
     let context_menu_tasks_clicks = 0;
     let context_menu_project_clicks = 0;
+    const tmz_suffix = $("#tmz_suffix").html();
     
     // Greets the user depending on the time of the day ("Good morning/afternoon/evening/night"), by using the Date object and timestamps.
     function greeting() {
@@ -23,7 +24,6 @@
         if (now_m.length == 1){ now_m = "0" + now_m };
         if (now_d.length == 1){ now_d = "0" + now_d };
         now_yyyymmdd = now_y+'-'+now_m+'-'+now_d;
-        tmz_suffix = $("#tmz_suffix").html();
 
         if(local_hour > 3 && local_hour < 17){
 
@@ -59,12 +59,12 @@
             $(".daytime").hide();
             $(".ngttime").show();
         };
-        A_day_key = $(".hidden_date"+period_of_day_class).html();
+        A_day_key = $(".hidden_date.daytime").html();
         console.log(A_day_key);
         is_it_today = Date.now() - new Date(A_day_key+tmz_suffix).getTime()
         if (is_it_today < 86400000 && is_it_today > 0 ){
             is_it_today = true;
-            $("#day1").css('background-color', 'rgba(0,0,0,0.73)')
+            $("#day1").css('background-color', 'rgba(0,0,0,0.75)')
         };
     };
     greeting();
@@ -940,7 +940,6 @@
     });
 
     if ($("#celsius").html() == "true" || $("#celsius").html() == true){
-        console.log('AAAAA');
         $("#show_c").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
@@ -949,7 +948,6 @@
         };
 
     } else{
-        console.log('BBBBB');
         $("#show_f").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
@@ -1103,7 +1101,7 @@
         };
         for (let r = 0; r < specific_tasks.length; r++){
             let this_task = specific_tasks[r];
-            let this_task_mili = new Date($($(this_task).children('.task-deadline-YYYY-MM-DD')[0]).html() + TIMEZONE).getTime();
+            let this_task_mili = new Date($($(this_task).children('.task-deadline-YYYY-MM-DD')[0]).html() + tmz_suffix).getTime();
             if ( this_task_mili < new Date().getTime() && $(this_task).hasClass('todo') ){
                 $(this_task).css('background-color', 'rgb(10,10,10)');
                 $(this_task).css('border', '2px solid rgb(40,40,40)');

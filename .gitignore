@@ -2,8 +2,9 @@
 node_modules/
 public/img/
 package-lock.json
-TABLES_SCHEMA
+TABLES_SCHEMA.txt
 test_hash.js
 POST-login-req.txt
 POST-login-res.txt
 pendencies.txt
+project_example.txt

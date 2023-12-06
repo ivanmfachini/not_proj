@@ -374,9 +374,6 @@ function newRtnStr(in_rtn_arr, user_data){
 };
 
 function newNotesStrEditRtn(in_arr, user_data){
-    console.log('FUNCTION received in_arr and user_data:');
-    console.log(in_arr);
-    console.log(user_data);
     const new_key = in_arr[0];
     const new_text = in_arr[1];
     const edit_timestamp = in_arr[3];
@@ -414,9 +411,6 @@ function newNotesStrEditRtn(in_arr, user_data){
             }
         }
     };
-    console.log('WILL RETURN:');
-    console.log(notes);
-    console.log(routines);
     return [JSON.stringify(notes), JSON.stringify(routines)]
 };
 
@@ -642,7 +636,7 @@ async function handleWeatherChange(temp_letter, user_id){
             db.query("UPDATE work_data SET wtr_simple = $1 WHERE user_id = $2",
             [new_value, user_id], (err,result)=>{
                 if (err){
-                    console.log('could not change temp unit:', err.message)
+                    console.log('ERROR while UPDATE work_data SET wtr_simple:', err.message)
                     resolve(false)
                 } else{resolve(true)}
             })
@@ -651,7 +645,7 @@ async function handleWeatherChange(temp_letter, user_id){
             else                                    { new_value = true }
             db.query("SELECT weather FROM work_data WHERE user_id = $1", [user_id], (err, result)=>{
                 if (err){
-                    console.log('could not fetch user:', err.message);
+                    console.log('ERROR while SELECT weather FROM work_data:', err.message);
                     resolve(false)
                 } else{
                     let this_weather = JSON.parse((result.rows[0]['weather']));
@@ -681,7 +675,7 @@ async function handleWeatherChange(temp_letter, user_id){
                     db.query("UPDATE work_data SET (weather, temp_celsius) = ($1,$2) WHERE user_id = $3",
                     [JSON.stringify(this_weather), new_value, user_id], (err,result)=>{
                         if (err){
-                            console.log('could not change temp unit:', err.message);
+                            console.log('ERROR while UPDATE work_data SET (weather, temp_celsius):', err.message);
                             resolve(false)
                         } else{ resolve(true) }
                     })
@@ -757,7 +751,6 @@ app.get('/home/:username', async (req, res) => {
             buffer_arrays = iterate31days(notes, today_timestamp, user_data['last_local_hour']);
             let days_7 = buffer_arrays[0];
             let days_31 = buffer_arrays[1];
-            //console.log('days_7 and days_31 adding existing notes:'); console.log(days_7); console.log(days_31);
 
             if(weekly && weekly != {}){
                 buffer_arrays = handleWeekly(weekly, today_timestamp, days_7, days_31, user_data['last_local_hour']);
@@ -769,7 +762,6 @@ app.get('/home/:username', async (req, res) => {
                 days_7 = buffer_arrays[0];
                 days_31 = buffer_arrays[1];
             };
-            //console.log('days_7 and days_31 after adding routines:'); console.log(days_7); console.log(days_31);
             
             let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
             if(req.query.new_y){
@@ -828,7 +820,7 @@ app.post('/home', async function (req,res){
 
     const username = req.user.username;
     const user_id = req.user.id;
-    console.log('POST /home', username); console.log(req.body); console.log(req.user);  //console.log(req.session); console.log(req.sessionID);
+    console.log('POST /home', username); console.log(req.body); //console.log(req.user); console.log(req.session); console.log(req.sessionID);
     const old_user_data = await queryWorkDataId(user_id); //console.log(old_user_data);
     let user_hour, upd_user_data, user_hour_timestamp;
     
@@ -850,18 +842,17 @@ app.post('/home', async function (req,res){
     };
     async function handleNotes(in_notes_arr, in_itv_A, in_task){
         if (upd_user_data == undefined){
-            console.log('CCCCCCCCCCC:', in_itv_A);
+            console.log('handleNotes inverval called', in_itv_A, 'times now');
             if(in_itv_A > 100){
-                console.log('Something went wrong. Check function updateTimeAndWeather. Aborting.');
+                console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
                 clearInterval(interval_ID_obj['itv_HdlNot']);
                 return false
             } else {
-                interval_ID_obj['itv_HdlNot'] = setInterval(()=>{
+                interval_ID_obj['itv_HdlNot'] = setTimeout(()=>{
                     return handleNotes(in_notes_arr, in_itv_A+1, in_task)
                 },50)
             }
         } else if(upd_user_data){
-            console.log('AAAAAAAAAAA');
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
             if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, upd_user_data), user_id ) }
@@ -870,7 +861,6 @@ app.post('/home', async function (req,res){
             else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), user_id ) }
             return result_c
         } else {
-            console.log('BBBBBBBBBBB');
             if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
             let result_c;
             if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, old_user_data), user_id ) }
@@ -884,11 +874,11 @@ app.post('/home', async function (req,res){
     async function handleRoutines(in_rtn_arr, in_itv_B){
         if (upd_user_data == undefined){
             if(in_itv_B > 100){
-                console.log('Something went wrong. Check function updateTimeAndWeather. Aborting.');
+                console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
                 clearInterval(interval_ID_obj['itv_HdlRtn']);
                 return false
             } else {
-                interval_ID_obj['itv_HdlRtn'] = setInterval(()=>{
+                interval_ID_obj['itv_HdlRtn'] = setTimeout(()=>{
                     return handleRoutines(in_rtn_arr,in_itv_B+1)
                 },50)
             }
@@ -943,6 +933,39 @@ app.post('/home', async function (req,res){
         await handleWeatherChange(temp_letter, user_id);
         return res.redirect(`/home/${username}`)
     };
+
+    if (req.body.new_project_title){
+        let buf_proj = {
+            "title":req.body.new_project_title,
+            "final_deadline":req.body.new_project_deadline,
+            "tasks_todo":[],    
+            "tasks_done":[]
+        };
+        let task_str = "new_project_task";
+        let deadline_str = "new_task_deadline";
+        let last_added = 0;
+        for (let a = 0; a < 8; a++){
+            let new_task = task_str+(a.toString());
+            let new_deadline = deadline_str+(a.toString());
+            if (req.body[new_task]){
+                if (req.body[new_deadline]){
+                    buf_proj['tasks_todo'].push({"task":req.body[new_task],"obs":"","deadline":req.body[new_deadline]})
+                }else{
+                    buf_proj['tasks_todo'].push({"task":req.body[new_task],"obs":"","deadline":false})
+                };
+                last_added += 1
+            }
+        };
+        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
+        let projects = JSON.parse(projects_raw.rows[0].projects);
+        projects.push(buf_proj);
+        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+        [JSON.stringify(projects), user_id],(err, result)=>{
+            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        })
+        return res.redirect(`/home/${username}`)
+
+    }
         
 
 });
