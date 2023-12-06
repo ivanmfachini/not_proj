@@ -661,7 +661,7 @@ async function handleWeatherChange(temp_letter, user_id){
                             let this_temp;
                             for (let i = 0; i < tmp_values.length; i++){
                                 this_temp = tmp_values[i][1];
-                                this_temp = Math.round((this_temp*1.8)+32);
+                                this_temp = Math.round((this_temp-32)*(0.55556));
                                 tmp_values[i][1] = this_temp
                             };
                             value['hr_tmp_code'] = tmp_values
@@ -672,7 +672,7 @@ async function handleWeatherChange(temp_letter, user_id){
                             let this_temp;
                             for (let i = 0; i < tmp_values.length; i++){
                                 this_temp = tmp_values[i][1];
-                                this_temp = Math.round((this_temp-32)*(0.55556));
+                                this_temp = Math.round((this_temp*1.8)+32);
                                 tmp_values[i][1] = this_temp
                             };
                             value['hr_tmp_code'] = tmp_values
@@ -941,6 +941,7 @@ app.post('/home', async function (req,res){
     if(req.body.temp_letter){
         const temp_letter = checkMultipleReq(req.body.temp_letter);
         await handleWeatherChange(temp_letter, user_id);
+        return res.redirect(`/home/${username}`)
     }
         
 

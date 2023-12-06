@@ -944,7 +944,8 @@
         }
     });
 
-    if ($("#celsius").html()){
+    if ($("#celsius").html() == "true" || $("#celsius").html() == true){
+        console.log('AAAAA');
         $("#show_c").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
@@ -953,6 +954,7 @@
         };
 
     } else{
+        console.log('BBBBB');
         $("#show_f").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
