@@ -689,7 +689,7 @@
             <%let days_31 = JSON.parse(days_31_PH);%>
             <div class="col col-days" id="next_7_days">
               <div class="specific_next_event" id="next_events_title">
-                <h5>In 7 days:</h5>
+                <h5>In 2~7 days:</h5>
               </div>              
                 <%for (let d = 0; d < days_7.length; d++){%>
                   <%let buf_day = days_7[d];%>
@@ -705,7 +705,7 @@
             </div>
             <div class="col col-days" id="next_30_days">
               <div class="specific_next_event" id="next_events_title">
-                <h5>8~31 days:</h5>
+                <h5>In 8~31 days:</h5>
               </div>
               <%for (let e = 0; e < days_31.length; e++){%>
                 <%let buf_day = days_31[e];%>
@@ -747,7 +747,6 @@
                                     </div>
                                     <textarea name="obs_done<%=e%>" class="obs" id="obs_done<%=e%>" cols="30" rows="10"><%=done[e]["obs"]%></textarea>
                                   </div>
-                                  <div class="gray_rectangle"></div>
                                   <p class="task-text"><%=done[e]["task"]%></p>
                                     <%if (done[e]["deadline"].length == 10){%>
                                       <p class="task-deadline"><%=new Date(done[e]["deadline"]).toUTCString().slice(5,16)%></p>
@@ -772,7 +771,6 @@
                                   </div>
                                   <textarea name="obs_todo<%=n%>" class="obs" id="obs_todo<%=n%>" cols="30" rows="10"><%=todo[n]["obs"]%></textarea>
                                 </div>
-                                <div class="gray_rectangle"></div>
                                 <p class="task-text"><%=todo[n]["task"]%></p>
                                 <%if (todo[n]["deadline"]){%>
                                 <p class="task-deadline"><%=new Date(todo[n]["deadline"]).toUTCString().slice(5,16)%></p>

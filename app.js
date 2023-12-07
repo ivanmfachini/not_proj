@@ -820,7 +820,7 @@ app.post('/home', async function (req,res){
 
     const username = req.user.username;
     const user_id = req.user.id;
-    console.log('POST /home', username); console.log(req.body); //console.log(req.user); console.log(req.session); console.log(req.sessionID);
+    console.log('POST /home', username); console.log(req.body); // console.log(req.session); console.log(req.sessionID);
     const old_user_data = await queryWorkDataId(user_id); //console.log(old_user_data);
     let user_hour, upd_user_data, user_hour_timestamp;
     
@@ -842,8 +842,8 @@ app.post('/home', async function (req,res){
     };
     async function handleNotes(in_notes_arr, in_itv_A, in_task){
         if (upd_user_data == undefined){
-            console.log('handleNotes inverval called', in_itv_A, 'times now');
-            if(in_itv_A > 100){
+            console.log('handleNotes interval called', in_itv_A, 'times now');
+            if(in_itv_A > 51){
                 console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
                 clearInterval(interval_ID_obj['itv_HdlNot']);
                 return false
@@ -873,7 +873,8 @@ app.post('/home', async function (req,res){
 
     async function handleRoutines(in_rtn_arr, in_itv_B){
         if (upd_user_data == undefined){
-            if(in_itv_B > 100){
+            console.log('handleRoutines interval called', in_itv_B, 'times now');
+            if(in_itv_B > 51){
                 console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
                 clearInterval(interval_ID_obj['itv_HdlRtn']);
                 return false
@@ -962,11 +963,204 @@ app.post('/home', async function (req,res){
         await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
         [JSON.stringify(projects), user_id],(err, result)=>{
             if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
-        })
+        });
         return res.redirect(`/home/${username}`)
+    };
 
-    }
-        
+    if(req.body.project_task_arr){
+        const proj_arr = JSON.parse(req.body.project_task_arr);
+        const proj_index =  proj_arr[0];
+        const old_text =    proj_arr[1];
+        const status =      proj_arr[2];
+        const new_text =    proj_arr[3];
+        const task_before = proj_arr[4];
+        const task_after =  proj_arr[5];
+        const task_ddl =    proj_arr[6];
+        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
+        let projects = JSON.parse(projects_raw.rows[0].projects);
+        if (new_text.length){
+            let buf_tasks = projects[proj_index]["tasks_"+status];
+            for (let a = 0; a < buf_tasks.length; a++){
+                if (buf_tasks[a]["task"] == old_text){ buf_tasks[a]["task"] = new_text; break }
+            };
+            projects[proj_index]["tasks_"+status] = buf_tasks;
+        };
+        if (task_before.length){
+            let buf_tasks = projects[proj_index]["tasks_"+status];
+            for (let a = 0; a < buf_tasks.length; a++){
+                if (buf_tasks[a]["task"] == old_text){
+                    buf_tasks.splice(a,0,{"task":task_before,"obs":"","deadline":false});
+                    break
+                }
+            };
+            projects[proj_index]["tasks_"+status] = buf_tasks;
+        };
+        if (task_after.length){
+            let buf_tasks = projects[proj_index]["tasks_"+status];
+            for (let a = 0; a < buf_tasks.length; a++){
+                if (buf_tasks[a]["task"] == old_text){
+                    if(buf_tasks[a+1]){
+                        buf_tasks.splice(a+1,0,{"task":task_after,"obs":"","deadline":false})
+                    } else{
+                        buf_tasks.push({"task":task_after,"obs":"","deadline":false})
+                    };
+                    break
+                }
+            };
+            projects[proj_index]["tasks_"+status] = buf_tasks;
+        };
+        if (task_ddl.length){
+            let buf_tasks = projects[proj_index]["tasks_"+status];
+            let removed_task;
+            console.log('removed_task is:', removed_task);
+            for (let a = 0; a < buf_tasks.length; a++){
+                if (buf_tasks[a]["task"] == old_text){
+                    if (buf_tasks.length == 1){
+                        buf_tasks[a]["deadline"] = task_ddl;
+                        break
+                    } else{
+                        removed_task = buf_tasks[a];
+                        buf_tasks.splice(a,1);
+                        break
+                    }
+                }
+            };
+            console.log('removed_task is:', removed_task);
+            removed_task['deadline'] = task_ddl;
+            console.log('removed_task is:', removed_task);
+            if (removed_task){
+                for (let a = 0; a < buf_tasks.length; a++){
+                    console.log('comparing with:', buf_tasks[a]);
+                    if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
+                        buf_tasks.splice(a,0,removed_task);
+                        break
+                    } else if (!buf_tasks[a+1]){
+                        if (buf_tasks[a]["deadline"] == false || buf_tasks[a]["deadline"] == "false"){
+                            buf_tasks.splice(a,0,removed_task)
+                        } else{ buf_tasks.push(removed_task) }
+                        break
+                    }
+                    console.log('did not enter');
+                }
+            };
+            projects[proj_index]["tasks_"+status] = buf_tasks;
+        };
+        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+        [JSON.stringify(projects), user_id],(err, result)=>{
+            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        });
+        return res.redirect(`/home/${username}`)
+    };
+
+    if(req.body.mark_done_todo){
+        const proj_arr = JSON.parse(req.body.mark_done_todo);
+        const proj_index =  proj_arr[0];
+        const text =        proj_arr[1];
+        const status =      proj_arr[2];        
+        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
+        let projects = JSON.parse(projects_raw.rows[0].projects);
+        let buf_tasks = projects[proj_index]["tasks_"+status];
+        let removed_task;
+        for (let a = 0; a < buf_tasks.length; a++){
+            if (buf_tasks[a]["task"] == text){
+                removed_task = buf_tasks[a]
+                buf_tasks.splice(a,1);
+                break
+            }
+        };
+        projects[proj_index]["tasks_"+status] = buf_tasks;
+        if (status == "todo"){
+            projects[proj_index]["tasks_done"].push(removed_task)
+        } else{
+            if (removed_task["deadline"] == false || removed_task["deadline"] == "false" || !projects[proj_index]["tasks_todo"].length){
+                projects[proj_index]["tasks_todo"].push(removed_task)
+            } else{
+                buf_tasks = projects[proj_index]["tasks_todo"];
+                for (let a = 0; a < buf_tasks.length; a++){
+                    if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
+                        buf_tasks.splice(a,0,removed_task);
+                        break
+                    } else if (!buf_tasks[a+1]){
+                        if (buf_tasks[a]["deadline"] == false || buf_tasks[a]["deadline"] == "false"){
+                            buf_tasks.splice(a,0,removed_task)
+                        } else{ buf_tasks.push(removed_task) }
+                        break
+                    }
+                }
+                projects[proj_index]["tasks_todo"] = buf_tasks
+            }
+        };
+        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+        [JSON.stringify(projects), user_id],(err, result)=>{
+            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        });
+        return res.redirect(`/home/${username}`)
+    };
+
+    if(req.body.project_title_and_deadline_arr){
+        const proj_arr = JSON.parse(req.body.project_title_and_deadline_arr);
+        const proj_index =  proj_arr[0];
+        const new_ddl =     proj_arr[1];
+        const new_title =   proj_arr[2];
+        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
+        let projects = JSON.parse(projects_raw.rows[0].projects);
+        if (new_ddl.length){ projects[proj_index]["final_deadline"] = new_ddl };
+        if (new_title.length){ projects[proj_index]["title"] = new_title };
+        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+        [JSON.stringify(projects), user_id],(err, result)=>{
+            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        });
+        return res.redirect(`/home/${username}`)
+    };
+
+    if(req.body.edit_obs_arr){
+        const proj_arr = JSON.parse(req.body.edit_obs_arr);
+        const proj_index =  proj_arr[0];
+        const task_text =   proj_arr[1];
+        const status =      proj_arr[2];
+        const obs_text =    proj_arr[3];
+        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
+        let projects = JSON.parse(projects_raw.rows[0].projects);
+        let buf_tasks = projects[proj_index]["tasks_"+status];
+        for (let a = 0; a < buf_tasks.length; a++){
+            if (buf_tasks[a]["task"] == task_text){
+                buf_tasks[a]["obs"] = obs_text;
+                break
+            }
+        };
+        projects[proj_index]["tasks_"+status] = buf_tasks;
+        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+        [JSON.stringify(projects), user_id],(err, result)=>{
+            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        });
+        return res.redirect(`/home/${username}`)
+    };
+
+    if(req.body.remove_task_arr){
+        const proj_arr = JSON.parse(req.body.remove_task_arr);
+        const proj_index =  proj_arr[0];
+        const text =        proj_arr[1];
+        const status =      proj_arr[2];
+        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
+        let projects = JSON.parse(projects_raw.rows[0].projects);
+        let buf_tasks = projects[proj_index]["tasks_"+status];
+        for (let a = 0; a < buf_tasks.length; a++){
+            if (buf_tasks[a]["task"] == text){
+                buf_tasks.splice(a,1);
+                break
+            }
+        };
+        projects[proj_index]["tasks_"+status] = buf_tasks;
+        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+        [JSON.stringify(projects), user_id],(err, result)=>{
+            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        });
+        return res.redirect(`/home/${username}`)
+    };
+
+    setTimeout(()=>{
+        return res.redirect(`/home/${username}`)
+    },3500)        
 
 });
 

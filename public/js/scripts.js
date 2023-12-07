@@ -59,12 +59,12 @@
             $(".daytime").hide();
             $(".ngttime").show();
         };
-        A_day_key = $(".hidden_date.daytime").html();
+        A_day_key = $(".hidden_date"+period_of_day_class).html();
         console.log(A_day_key);
         is_it_today = Date.now() - new Date(A_day_key+tmz_suffix).getTime()
         if (is_it_today < 86400000 && is_it_today > 0 ){
             is_it_today = true;
-            $("#day1").css('background-color', 'rgba(0,0,0,0.75)')
+            $("#day1").css('background-color', 'rgba(0,0,0,0.73)')
         };
     };
     greeting();
@@ -634,22 +634,16 @@
     });
 
     function specificTaskContext(in_object, in_number) {
+        const received_number = in_number;
         let observations = $(in_object).children('.obs-box')[0];
         let observations_measures = observations.getBoundingClientRect();
         let this_measures = in_object.getBoundingClientRect();
-        let this_rectangle = $(in_object).children('.gray_rectangle')[0];
         let background_to_apply = $(in_object).css('background-color');
         let border_to_apply = $(in_object).css('border');
         $(observations).css('visibility', 'hidden');
         $('#context_task').css('visibility', 'hidden');
-        $(this_rectangle).css('visibility', 'hidden');
-        $(this_rectangle).css('background-color', background_to_apply);
-        $(this_rectangle).css('border-left', border_to_apply);
-        $(this_rectangle).css('border-right', border_to_apply);
         $(observations).css('background-color', background_to_apply);
         $(observations).css('border', border_to_apply);
-        $(this_rectangle).css('width',`${this_measures.width}px`);
-        $(this_rectangle).css('top',`${this_measures.top + window.scrollY -12}px`);
         $(observations).css('top',`${this_measures.top - observations_measures.height - 10 + window.scrollY}px`);
         $('#context_task').css('top',`${this_measures.bottom + window.scrollY}px`);
         $("#context_submit_task").css('left',151);
@@ -665,16 +659,11 @@
         } else{ $('#context_task').css('left', `${this_measures.left}px`) };
 
         if ($(in_object).hasClass('done')){
-            $(this_rectangle).css('background-color','rgb(10,60,0)');
-            $(this_rectangle).css('border-left','solid 2px rgb(30,200,10)');
-            $(this_rectangle).css('border-right','solid 2px rgb(30,200,10)');
             $(observations).css('background-color','rgb(10,60,0)');
             $(observations).css('border','solid 2px rgb(30,200,10)');
         };
         $(observations).css('visibility', 'visible');
         $('#context_task').css('visibility', 'visible');
-        $(this_rectangle).css('height', '20px');
-        $(this_rectangle).css('visibility', 'visible');
 
         if ( $(in_object).hasClass('done') ){
             $("#mark_done_button").hide();
@@ -692,7 +681,7 @@
         }
 
         $('#change_task_button').on('click', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             $("#context_submit_task").css('top', '0px');
             $(".context_task_text").css('visibility', 'hidden');
             $("#edit_task_text").css('visibility', 'visible');
@@ -700,7 +689,7 @@
             $("#context_submit_task").css('visibility', 'visible');
         });
         $('#add_task_before').on('click', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             $("#context_submit_task").css('top', '38px');
             $(".context_task_text").css('visibility', 'hidden');
             $("#new_task_before").css('top', '38px');
@@ -709,7 +698,7 @@
             $("#context_submit_task").css('visibility', 'visible');
         });
         $('#add_task_after').on('click', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             $("#context_submit_task").css('top', '76px');
             $(".context_task_text").css('visibility', 'hidden');
             $("#new_task_after").css('top', '76px');
@@ -718,7 +707,7 @@
             $("#context_submit_task").css('visibility', 'visible');
         });
         $('#set_deadline_button, #change_deadline_button').on('click', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             $("#context_submit_task").css('top', '152px');
             $(".context_task_text").css('visibility', 'hidden');
             $("#new_task_deadline").css('top', '152px');
@@ -729,25 +718,32 @@
         let projects_arr = $('.tasks');
         let project_index;
         for (let d = 0; d < projects_arr.length; d++){
+            if (received_number != context_menu_tasks_clicks){ return };
             if ( $(in_object).parents('.tasks')[0] == projects_arr[d] ){
                 project_index = d;
                 break
             }
         }
         let old_text = $($(in_object).children('.task-text')[0]).html();
-        let arr_with_values = [project_index, old_text];
         
+        let arr_with_values = [project_index, old_text];
         if ($(in_object).hasClass('todo')){
             arr_with_values.push('todo')
         } else if ($(in_object).hasClass('done')){
             arr_with_values.push('done')
-        }
+        };
         
         $('#context_submit_task').on('mousedown', function(){
-            if ( $($('#edit_task_text').val()).length < 36 && ($('#new_task_before').val()).length < 36 && $($('#new_task_after').val()).length < 36){
-                arr_with_values.push($('#edit_task_text').val());
-                arr_with_values.push($('#new_task_before').val());
-                arr_with_values.push($('#new_task_after').val());
+            if (received_number != context_menu_tasks_clicks){ return };
+            let edit_task_text = $('#edit_task_text').val();
+            let new_task_before = $('#new_task_before').val();
+            let new_task_after = $('#new_task_after').val();
+            if (    (edit_task_text == "" || $(edit_task_text).length < 41 && sanitizeTextInput(edit_task_text)) &&
+                    (new_task_before == "" || $(new_task_before).length < 41 && sanitizeTextInput(new_task_before)) &&
+                    (new_task_after == "" || $(new_task_after).length < 41 && sanitizeTextInput(new_task_after))){
+                arr_with_values.push(edit_task_text);
+                arr_with_values.push(new_task_before);
+                arr_with_values.push(new_task_after);
             } else{ alert('Sorry, project tasks are limited to 40 characters, but you can add observations to it') };
             arr_with_values.push($('#new_task_deadline').val());
             let string_to_submit = JSON.stringify(arr_with_values);
@@ -763,7 +759,7 @@
         });
         
         $('#mark_done_button, #mark_todo_button').on('mousedown', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='mark_done_todo' value='" + string_to_submit + "'/>";
             $("#form-project").append(param);
@@ -776,7 +772,7 @@
             document.getElementById("form-project").submit();                
         });
         $('#remove_task_button').on('mousedown', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='remove_task_arr' value='" + string_to_submit + "'/>";
             $("#form-project").append(param);
@@ -791,7 +787,7 @@
 
         let this_obs = $(in_object).find('.obs')[0];
         $($(in_object).find('.obs-save-button')).on('mousedown', function(){
-            if (in_number < context_menu_tasks_clicks){ return };
+            if (received_number != context_menu_tasks_clicks){ return };
             arr_with_values.push($(this_obs).val());
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='edit_obs_arr' value='" + string_to_submit + "'/>";
@@ -885,8 +881,8 @@
             let deadline_value = $('#context_project_deadline').val();
             let title_value = $('#context_project_title').val();
             if ( ( deadline_value || title_value ) && (deadline_value != '' || title_value != '')){
-                arr_with_values.push($('#context_project_deadline').val());
-                arr_with_values.push($('#context_project_title').val());
+                arr_with_values.push(deadline_value);
+                arr_with_values.push(title_value);
                 let string_to_submit = JSON.stringify(arr_with_values);
                 let param = "<input hidden type='text' name='project_title_and_deadline_arr' value='" + string_to_submit + "'/>";
                 $("#form-project").append(param);
@@ -1028,8 +1024,6 @@
                 $("#context_submit_project").css('visibility', 'hidden');
                 if (event_class.slice(0,3) != 'obs'){
                     $(".obs-box").css('visibility', 'hidden');
-                    $(".gray_rectangle").css('height', 0);
-                    $(".gray_rectangle").css('visibility', 'hidden');
                 }
             }
         } else if ($(event.target).is('input')) {
@@ -1039,8 +1033,6 @@
             $(".context_menu.wrapper").css('left', 0);
             $('.context_task_text').css('visibility', 'hidden');
             $(".obs-box").css('visibility', 'hidden');
-            $(".gray_rectangle").css('height', 0);
-            $(".gray_rectangle").css('visibility', 'hidden');
             $("#context_submit_task").css('visibility', 'hidden');
         }
     });
@@ -1049,35 +1041,36 @@
         $('#projects_section').css('background-color', 'transparent')
     }
 
-    function adjustProjectsLayout(){        
+    async function adjustProjectsLayout(){        
         let projects = $('.tasks');
         let specific_tasks = $('.specific_task');
         let tasks_with_lines = $('.task_with_lines');
-
+        let window_width = window.innerWidth;
         for (let m = 0; m < projects.length; m++){
-            function shrinkTasks(in_obj, in_number){
-                let lines_size = in_obj.getBoundingClientRect().width;
-                if (lines_size < 4){
-                    let pixels;
-                    if (in_number == 3)     { pixels = '80px' }
-                    else if (in_number == 2){ pixels = '90px' }
-                    else if (in_number == 1){ pixels = '100px' }
-                    else                    { pixels = '110px' }
-                    $(projects[m]).find('.specific_task').css('max-width', pixels);
-                    for (let a = 0; a < specific_tasks.length; a++){
-                        if ( $(specific_tasks[a]).width() < $($(specific_tasks[a]).children('.task-text')[0]).width() ){
-                            $(specific_tasks[a]).css('max-width', $($(specific_tasks[a]).children('.task-text')[0]).width()+8)
-                        }
-                    };
-                    if (in_number == 4){
-                        $(projects[m]).css('flex-wrap', 'wrap')
-                        return true
-                    };
-                    return shrinkTasks( $(projects[m]).find('.line')[0] , in_number+1 )
-                    
-                } else{ return false }
+            function shrinkTasks(in_obj){
+                if ($(in_obj).width() > window_width - 12){
+                    $(in_obj).css('flex-wrap', 'wrap');
+                    return(true)
+                };
+                let these_tasks = $(in_obj).find('.specific_task');
+                for (let a = 0; a < these_tasks.length; a++){
+                    console.log($(these_tasks[a]).height());
+                    console.log($(these_tasks[a]).width());
+                    if ($(these_tasks[a]).height() > $(these_tasks[a]).width()){
+                        $(in_obj).css('flex-wrap', 'wrap');
+                        return(true)
+                    }
+                };
+                for (let a = 0; a < these_tasks.length; a++){
+                    console.log($($(these_tasks[a]).siblings('.line')[0]).width());
+                    if ( $($(these_tasks[a]).siblings('.line')[0]).width() < 6 ){
+                        $(in_obj).css('flex-wrap', 'wrap');
+                        return(true)
+                    }
+                };
+                return(false)
             };
-            if ( shrinkTasks( $(projects[m]).find('.line')[0] , 0) ){
+            if (shrinkTasks(projects[m])){
                 setTimeout(function(){
                     for (let i = 1; i < tasks_with_lines.length; i++){
                         let element_before = tasks_with_lines[i-1];
@@ -1089,7 +1082,7 @@
                             $($(element_after).children('.line')[0]).css('border', 'none');
                         }
                     }
-                },10);
+                },12);
             }
         };
         for (let l = 0; l < projects.length; l++){      // changes width to 95% if there's no project deadline

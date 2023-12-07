@@ -296,8 +296,8 @@ p:hover{
 .specific_next_event{
     height: fit-content;
     align-self: flex-start;
-    background-color: rgba(240,240,206,0.15);
-    border-right: 6px solid rgba(240,240,206,0.3);
+    background-color: rgba(240,240,230,0.15);
+    border-right: 6px solid rgba(240,240,230,0.3);
     padding: 4px 8px;
     margin: 3px 0;
     width: 49%;
@@ -943,8 +943,8 @@ input {
     align-items: center;
     justify-content: center;
     min-width: 65px;
-    max-width: 258px;
-    min-height: 62px;
+    max-width: 120px;
+    min-height: 60px;
     margin: 3px 0;
     flex-grow: 1;
     flex-shrink: 1;
@@ -980,7 +980,7 @@ input {
 
 .task-text{
     flex-shrink: 1;
-    padding: 0 3px;
+    padding: 3px;
 }
 
 .auxiliar_note{
@@ -1047,18 +1047,6 @@ input {
     outline: none;    
     background-color: black;
     border-radius: 0;
-}
-
-.gray_rectangle{
-    position: absolute;
-    width: 0;
-    height: 0;
-    border: none;
-    visibility: hidden;
-    z-index: 7;
-    border-left: solid 2px rgb(200,200,170);
-    border-right: solid 2px rgb(200,200,170);
-    background-color: rgb(50,50,40);
 }
 
 .obs-header{
@@ -1165,6 +1153,10 @@ input {
 
     .final_deadline-box{
         writing-mode: vertical-lr;
+    }
+
+    .specific_task{
+        max-width: 200px;
     }
 
 }
