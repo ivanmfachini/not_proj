@@ -241,14 +241,6 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
     }
 };
 
-function checkMultipleReq(in_obj){
-    if (in_obj[0].length > 1){
-        console.log('WARNING! There were', in_obj.length,'objects in the last request! Will proceed only with the last.');
-        return (JSON.parse(in_obj[in_obj.length-1]))
-    };
-    return JSON.parse(in_obj);
-};
-
 async function updateFromCall(in_column , JSON_str, user_id){
     if(!in_column || !JSON_str || !user_id){
         console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, user_id)');
@@ -272,6 +264,24 @@ async function updateFromCall(in_column , JSON_str, user_id){
             )
         }
     })}
+};
+
+async function updateProjects(in_arr_str, user_id){
+    await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
+    [in_arr_str, user_id],(err, result)=>{
+        if (err){
+            console.log('ERROR while UPDATE work_data SET projects:', err.message);
+            return false
+        } else{ return true }
+    })
+};
+
+function checkMultipleReq(in_obj){
+    if (in_obj[0].length > 1){
+        console.log('WARNING! There were', in_obj.length,'objects in the last request! Will proceed only with the last.');
+        return (JSON.parse(in_obj[in_obj.length-1]))
+    };
+    return JSON.parse(in_obj);
 };
 
 function newNotesStrNew(new_note_arr, user_data){
@@ -414,7 +424,6 @@ function newNotesStrEditRtn(in_arr, user_data){
     return [JSON.stringify(notes), JSON.stringify(routines)]
 };
 
-
 function addToDaysArrFromRoutines(in_arr, value, buf_date, date_str){
     let buf_arr = in_arr;
     for (let v = 0; v < value.length; v++){
@@ -495,24 +504,25 @@ function handleMonthly(monthly, now_timestamp, days_7, days_31, user_yyyymmdd, i
     let buffer7 = days_7;
     let buffer31 = days_31;
 
-    let year_str = user_yyyymmdd.slice(0,4);    //0123-56-89
-    let month_str = user_yyyymmdd.slice(5,7);
-
+    
     Object.entries(monthly).forEach(([key, value]) => {
+        let year_str = user_yyyymmdd.slice(0,4);    //0123-56-89
+        let month_str = user_yyyymmdd.slice(5,7);
         let buf_day, buf_date, buf_timestamp, date_str, margin;
 
         if (key > 28){
-            buf_day = key.toString();
-            buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000");
+            console.log('bigger than 28');
+            buf_day = key.toString(); console.log(buf_day);
+            buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000"); console.log(buf_date);
             if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
             else{ margin = 259200000 };
             if (buf_date.getTime() - now_timestamp < margin){
                 buf_timestamp = buf_date.getTime() + 2678400000;            // +31d
-                buf_date = new Date(buf_timestamp);
+                buf_date = new Date(buf_timestamp); console.log('now buf_date is:', buf_date);
                 let current_day = buf_date.getUTCDate();
                 let k = 1
                 while(current_day < 6){
-                    buf_date = new Date(buf_timestamp - (k * 86400000));
+                    buf_date = new Date(buf_timestamp - (k * 86400000)); console.log('now buf_date is:', buf_date, 'and k is:', k);
                     current_day = buf_date.getUTCDate();
                     k += 1
                 }
@@ -533,7 +543,7 @@ function handleMonthly(monthly, now_timestamp, days_7, days_31, user_yyyymmdd, i
                 buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000")
             }
         };
-        date_str = buf_date.toUTCString().slice(0,16);
+        date_str = buf_date.toUTCString().slice(0,16); console.log('date_str is now:', date_str);
         buf_timestamp = buf_date.getTime();
         if (buf_timestamp < now_timestamp + 691200000){             // goes to days_7
             buffer7 = addToDaysArrFromRoutines(days_7, value, buf_date, date_str)
@@ -605,7 +615,7 @@ function iterate31days(in_notes, in_timestamp, in_local_hour){
         if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
         else{ margin = 259200000 };
         if (buf_date.getTime() < in_timestamp + margin){}                   // in the past or today or tomorrow
-        else if (buf_date.getTime() < in_timestamp + 2764800000){           // < 32
+        else if (buf_date.getTime() < in_timestamp + 2678400000){           // < 31
             date_str = buf_date.toUTCString().slice(0,16);
             if (buf_date.getTime() < in_timestamp + 691200000){             // < 8
                 buf_7 = addToDaysArrFromNotes(buf_7, day_notes, buf_date, date_str)
@@ -659,6 +669,8 @@ async function handleWeatherChange(temp_letter, user_id){
                                 tmp_values[i][1] = this_temp
                             };
                             value['hr_tmp_code'] = tmp_values
+                            value['max'][1] = Math.round((value['max'][1]-32)*(0.55556));
+                            value['min'][1] = Math.round((value['min'][1]-32)*(0.55556));
                         })
                     } else{
                         Object.entries(this_weather).forEach(([key, value]) => {
@@ -669,7 +681,9 @@ async function handleWeatherChange(temp_letter, user_id){
                                 this_temp = Math.round((this_temp*1.8)+32);
                                 tmp_values[i][1] = this_temp
                             };
-                            value['hr_tmp_code'] = tmp_values
+                            value['hr_tmp_code'] = tmp_values;
+                            value['max'][1] = Math.round((value['max'][1]*1.8)+32)
+                            value['min'][1] = Math.round((value['min'][1]*1.8)+32)
                         })
                     };
                     db.query("UPDATE work_data SET (weather, temp_celsius) = ($1,$2) WHERE user_id = $3",
@@ -685,297 +699,49 @@ async function handleWeatherChange(temp_letter, user_id){
     })
 };
 
-
-//////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////    ROUTES    //////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
-
-app.get('/', (req, res) => {
-    res.redirect('/login')
-});
-
-app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
-    if(req.session && req.user){
-        await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
-        (err, result)=>{
-            if (err){ return res.redirect('/login') }
-            else if(result.rows.length){
-                if( new Date(result.rows[0].expire) < Date.now() ){ return res.redirect('/login') }
-                else{
-                    try{ return res.redirect(`/home/${req.user.username}`) }
-                    catch{ return res.redirect('/login') }
-                }
-            } else{ return res.redirect('/login') }
-        });
-    } else { res.redirect('/login') }
-});
-
-app.get('/login', (req, res) => {
-    res.render('login', {})
-});
-
-app.get('/registration_successful', (req, res) => {
-    res.render('registration_successful')
-});
-
-app.get('/home/:username', async (req, res) => {
-    if (req.params.username == "undefined"){ return res.redirect('/login') }
-    await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
-        if (err){ console.log('ERROR in db.query in GET /home/:username:', err.message);
-            return res.redirect('/login')
-        } else if(result.rows.length){
-            const new_date_obj = new Date();
-            const now_timestamp = new_date_obj.getTime();
-            if (  ((result.rows[0].expire).getTime()) < now_timestamp ){
-                console.log('FAIL to login: cookie with sid', result.rows[0].sid, 'is expired!');
-                return res.redirect('/login')
-            };
-            const user_id = result.rows[0].sess.passport.user;
-            const user_data = await queryWorkDataId(user_id);
-            if (!user_data){ return res.redirect('/login') };
-            const username = user_data['username'];                      console.log('GET home/'+username);
-            if (req.params.username != username){ console.log('req.params.username is', req.params.username, 'but username from db is', username, '. At', Date.now(), 'Redirecting to /login');
-                return res.redirect('/login')
-            };
-            const notes =       JSON.parse(user_data['notes']);                     //console.log(notes);
-            const routines =    JSON.parse(user_data['high_wly_mly']);              //console.log(routines);
-            const projects =    user_data['projects'];                              //console.log(projects);
-            const weather =     user_data['weather'];                               //console.log(weather);
-            const loc_data =    (JSON.parse(user_data.loc_data))['last'];           //console.log(loc_data);
-            const weekly =      routines['weekly'];
-            const monthly =     routines['monthly'];
-            const user_yyyymmdd = loc_data['YYYY-MM-DD'];
-            const today_timestamp = new Date(user_yyyymmdd+"T00:00:00.000").getTime();
-            let buffer_arrays;
-
-            buffer_arrays = iterate31days(notes, today_timestamp, user_data['last_local_hour']);
-            let days_7 = buffer_arrays[0];
-            let days_31 = buffer_arrays[1];
-
-            if(weekly && weekly != {}){
-                buffer_arrays = handleWeekly(weekly, today_timestamp, days_7, days_31, user_data['last_local_hour']);
-                days_7 = buffer_arrays[0];
-                days_31 = buffer_arrays[1];
-            };
-            if(monthly && monthly != {}){
-                buffer_arrays = handleMonthly(monthly, today_timestamp, days_7, days_31, user_yyyymmdd, user_data['last_local_hour']);
-                days_7 = buffer_arrays[0];
-                days_31 = buffer_arrays[1];
-            };
-            
-            let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
-            if(req.query.new_y){
-                let q_m = (parseInt(req.query.new_m)+1).toString(); if (q_m.length == 1){ q_m = "0"+q_m };
-                let q_d = req.query.new_d; if (q_d.length == 1){ q_d = "0"+q_d };
-                const key_str = req.query.new_y + '-' + q_m + '-' + q_d;
-                if( loc_data['YYYY-MM-DD'] != key_str ){
-                    new_date_q = new Date(key_str + loc_data['tmz_suffix']);
-                    new_timestamp = new_date_q.getTime();
-                    mili_diff = new_timestamp - new_date_obj.getTime();
-                    dayA_obj = dayModule.dayA(loc_data['tmz_iana'], new_timestamp); dayA_key = dayA_obj['YYYY-MM-DD'];
-                    dayB_obj = dayModule.dayB(loc_data['tmz_iana'], new_timestamp); dayB_key = dayB_obj['YYYY-MM-DD'];
-                    dayC_obj = dayModule.dayC(loc_data['tmz_iana'], new_timestamp); dayC_key = dayC_obj['YYYY-MM-DD']
-                } else{
-                    dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
-                    dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
-                    dayC_obj = dayModule.dayC(loc_data['tmz_iana']); dayC_key = dayC_obj['YYYY-MM-DD'];
-                    mili_diff = 1
-                }
-            } else {
-                dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
-                dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
-                dayC_obj = dayModule.dayC(loc_data['tmz_iana']); dayC_key = dayC_obj['YYYY-MM-DD'];
-                mili_diff = 1
-            };
-            if(!new_timestamp){ new_timestamp = new_date_obj.getTime() };
-
-            const empty_arr_str = JSON.stringify([]);
-            try{ A_notes = JSON.stringify(notes[dayA_key]['notes']) }
-            catch{ A_notes = empty_arr_str };
-            try{ B_notes = JSON.stringify(notes[dayB_key]['notes']) }
-            catch{ B_notes = empty_arr_str };
-            try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
-            catch{ C_notes = empty_arr_str };
-
-            res.render('index', {
-                tmz_suffix_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
-                dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
-                dayB_PH: dayModule.dayB_pretty(new_timestamp), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
-                dayC_PH: dayModule.dayC_pretty(new_timestamp), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
-                routines_raw_PH_string: user_data['high_wly_mly'], first_name_PH: user_data['first_name'],
-                mili_diff_PH: mili_diff, projects_PH_str: user_data['projects'], username_PH: username,
-                days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31), weather_PH: weather,
-                wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius']
-            })
-        } else { console.log('NO COOKIE'); return res.redirect('/login') }
-    })
-});
-
-app.post('/home', async function (req,res){
-
-    if(req.body.logout){                                    // logout from home page
-        req.session.destroy();
-        return res.redirect('/login')
+async function newProjectTitle(req_body, user_id){
+    let buf_proj = {
+        "title":req_body.new_project_title,
+        "final_deadline":req_body.new_project_deadline,
+        "tasks_todo":[],    
+        "tasks_done":[]
     };
-
-    const username = req.user.username;
-    const user_id = req.user.id;
-    console.log('POST /home', username); console.log(req.body); // console.log(req.session); console.log(req.sessionID);
-    const old_user_data = await queryWorkDataId(user_id); //console.log(old_user_data);
-    let user_hour, upd_user_data, user_hour_timestamp;
-    
-    if (req.body.user_hour_timestamp){
-        user_hour_timestamp = checkMultipleReq(req.body.user_hour_timestamp);
-        user_hour = user_hour_timestamp[0];
-        const UTC_hour = user_hour_timestamp[1];
-        const user_timestamp = user_hour_timestamp[2];
-        if ((user_timestamp > (old_user_data['last_timestamp']+3600000)) ||
-            (user_hour != old_user_data['last_local_hour'])){
-            let buf_new_db = await updateTimeAndWeather(old_user_data, user_hour, UTC_hour, user_timestamp)
-            if (buf_new_db){ upd_user_data = buf_new_db }
-        } else { upd_user_data = false }
-    };
-
-    const interval_ID_obj = {
-        'itv_HdlNot' : undefined,
-        'itv_HdlRtn' : undefined
-    };
-    async function handleNotes(in_notes_arr, in_itv_A, in_task){
-        if (upd_user_data == undefined){
-            console.log('handleNotes interval called', in_itv_A, 'times now');
-            if(in_itv_A > 51){
-                console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
-                clearInterval(interval_ID_obj['itv_HdlNot']);
-                return false
-            } else {
-                interval_ID_obj['itv_HdlNot'] = setTimeout(()=>{
-                    return handleNotes(in_notes_arr, in_itv_A+1, in_task)
-                },50)
-            }
-        } else if(upd_user_data){
-            if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
-            let result_c;
-            if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, upd_user_data), user_id ) }
-            else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), user_id ) }            
-            else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, upd_user_data), user_id ) }
-            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), user_id ) }
-            return result_c
-        } else {
-            if (in_itv_A) { clearInterval(interval_ID_obj['itv_HdlNot']) };
-            let result_c;
-            if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, old_user_data), user_id ) }
-            else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), user_id ) }            
-            else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, old_user_data), user_id ) }
-            else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, old_user_data), user_id ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
-            return result_c
+    let task_str = "new_project_task";
+    let deadline_str = "new_task_deadline";
+    let last_added = 0;
+    for (let a = 0; a < 8; a++){
+        let new_task = task_str+(a.toString());
+        let new_deadline = deadline_str+(a.toString());
+        if (req_body[new_task]){
+            if (req_body[new_deadline]){
+                buf_proj['tasks_todo'].push({"task":req_body[new_task],"obs":"","deadline":req_body[new_deadline]})
+            }else{
+                buf_proj['tasks_todo'].push({"task":req_body[new_task],"obs":"","deadline":false})
+            };
+            last_added += 1
         }
     };
-
-    async function handleRoutines(in_rtn_arr, in_itv_B){
-        if (upd_user_data == undefined){
-            console.log('handleRoutines interval called', in_itv_B, 'times now');
-            if(in_itv_B > 51){
-                console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
-                clearInterval(interval_ID_obj['itv_HdlRtn']);
-                return false
-            } else {
-                interval_ID_obj['itv_HdlRtn'] = setTimeout(()=>{
-                    return handleRoutines(in_rtn_arr,in_itv_B+1)
-                },50)
-            }
-        } else if(upd_user_data){
-            if (in_itv_B) { clearInterval(interval_ID_obj['itv_HdlRtn']) };
-            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, upd_user_data), user_id )
-            return result_c
-        } else {
-            if (in_itv_B) { clearInterval(interval_ID_obj['itv_HdlRtn']) };
-            const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, old_user_data), user_id )
-            return result_c
-        }
-    };
-
-    if(req.body.new_note_arr){
-        const new_note_arr = checkMultipleReq(req.body.new_note_arr);
-        const result = await handleNotes(new_note_arr, 0, 'add');
-        console.log('Result from inserting a new note for', username, 'was:', result);
-        return res.redirect(manageReturn(new_note_arr[2], new_note_arr[3], user_hour, username))
-    };
-
-    if(req.body.edit_note_arr){
-        const edit_note_arr = checkMultipleReq(req.body.edit_note_arr);
-        const result = await handleNotes(edit_note_arr, 0, 'edit');
-        console.log('Result from editing a note for', username, 'was:', result);
-        return res.redirect(manageReturn(edit_note_arr[3], edit_note_arr[4], user_hour, username))
-    };
-
-    if(req.body.remove_note_arr){
-        const remove_note_arr = checkMultipleReq(req.body.remove_note_arr);
-        const result = await handleNotes(remove_note_arr, 0, 'rm');
-        console.log('Result from removing a note for', username, 'was:', result);
-        return res.redirect(manageReturn(remove_note_arr[2], remove_note_arr[3], user_hour, username))
-    };
-
-    if(req.body.routine_note_arr){
-        const routine_note_arr = checkMultipleReq(req.body.routine_note_arr);
-        const result = await handleRoutines(routine_note_arr, 0);
-        console.log('Result from inserting a new routine for', username, 'was:', result);
-        return res.redirect(manageReturn(routine_note_arr[4], routine_note_arr[5], user_hour, username))
-    };
-
-    if(req.body.edit_routine_note){
-        const edit_routine_note = checkMultipleReq(req.body.edit_routine_note);
-        const result = await handleNotes(edit_routine_note, 0, 'editrtn');
-        console.log('Result from editing a routine note for', username, 'was:', result);
-        return res.redirect(manageReturn(edit_routine_note[5], edit_routine_note[6], user_hour, username))
-    };
-
-    if(req.body.temp_letter){
-        const temp_letter = checkMultipleReq(req.body.temp_letter);
-        await handleWeatherChange(temp_letter, user_id);
-        return res.redirect(`/home/${username}`)
-    };
-
-    if (req.body.new_project_title){
-        let buf_proj = {
-            "title":req.body.new_project_title,
-            "final_deadline":req.body.new_project_deadline,
-            "tasks_todo":[],    
-            "tasks_done":[]
-        };
-        let task_str = "new_project_task";
-        let deadline_str = "new_task_deadline";
-        let last_added = 0;
-        for (let a = 0; a < 8; a++){
-            let new_task = task_str+(a.toString());
-            let new_deadline = deadline_str+(a.toString());
-            if (req.body[new_task]){
-                if (req.body[new_deadline]){
-                    buf_proj['tasks_todo'].push({"task":req.body[new_task],"obs":"","deadline":req.body[new_deadline]})
-                }else{
-                    buf_proj['tasks_todo'].push({"task":req.body[new_task],"obs":"","deadline":false})
-                };
-                last_added += 1
-            }
-        };
+    try{
         const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
         let projects = JSON.parse(projects_raw.rows[0].projects);
         projects.push(buf_proj);
-        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-        [JSON.stringify(projects), user_id],(err, result)=>{
-            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
-        });
-        return res.redirect(`/home/${username}`)
-    };
+        return JSON.stringify(projects)
+    } catch (err){
+        console.log('ERROR in newProjectTitle():', err.message);
+        return false
+    }
+};
 
-    if(req.body.project_task_arr){
-        const proj_arr = JSON.parse(req.body.project_task_arr);
-        const proj_index =  proj_arr[0];
-        const old_text =    proj_arr[1];
-        const status =      proj_arr[2];
-        const new_text =    proj_arr[3];
-        const task_before = proj_arr[4];
-        const task_after =  proj_arr[5];
-        const task_ddl =    proj_arr[6];
+async function projectTaskArr(req_body, user_id){
+    const proj_arr = JSON.parse(req_body.project_task_arr);
+    const proj_index =  proj_arr[0];
+    const old_text =    proj_arr[1];
+    const status =      proj_arr[2];
+    const new_text =    proj_arr[3];
+    const task_before = proj_arr[4];
+    const task_after =  proj_arr[5];
+    const task_ddl =    proj_arr[6];
+    try{
         const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
         let projects = JSON.parse(projects_raw.rows[0].projects);
         if (new_text.length){
@@ -1012,7 +778,6 @@ app.post('/home', async function (req,res){
         if (task_ddl.length){
             let buf_tasks = projects[proj_index]["tasks_"+status];
             let removed_task;
-            console.log('removed_task is:', removed_task);
             for (let a = 0; a < buf_tasks.length; a++){
                 if (buf_tasks[a]["task"] == old_text){
                     if (buf_tasks.length == 1){
@@ -1025,12 +790,9 @@ app.post('/home', async function (req,res){
                     }
                 }
             };
-            console.log('removed_task is:', removed_task);
             removed_task['deadline'] = task_ddl;
-            console.log('removed_task is:', removed_task);
             if (removed_task){
                 for (let a = 0; a < buf_tasks.length; a++){
-                    console.log('comparing with:', buf_tasks[a]);
                     if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
                         buf_tasks.splice(a,0,removed_task);
                         break
@@ -1040,23 +802,23 @@ app.post('/home', async function (req,res){
                         } else{ buf_tasks.push(removed_task) }
                         break
                     }
-                    console.log('did not enter');
                 }
             };
             projects[proj_index]["tasks_"+status] = buf_tasks;
         };
-        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-        [JSON.stringify(projects), user_id],(err, result)=>{
-            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
-        });
-        return res.redirect(`/home/${username}`)
-    };
+        return JSON.stringify(projects)
+    } catch(err){
+        console.log('ERROR in projectTaskArr():', err.message);
+        return false
+    }
+};
 
-    if(req.body.mark_done_todo){
-        const proj_arr = JSON.parse(req.body.mark_done_todo);
-        const proj_index =  proj_arr[0];
-        const text =        proj_arr[1];
-        const status =      proj_arr[2];        
+async function markDoneTodo(req_body, user_id){
+    const proj_arr = JSON.parse(req_body.mark_done_todo);
+    const proj_index =  proj_arr[0];
+    const text =        proj_arr[1];
+    const status =      proj_arr[2];
+    try{
         const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
         let projects = JSON.parse(projects_raw.rows[0].projects);
         let buf_tasks = projects[proj_index]["tasks_"+status];
@@ -1090,35 +852,37 @@ app.post('/home', async function (req,res){
                 projects[proj_index]["tasks_todo"] = buf_tasks
             }
         };
-        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-        [JSON.stringify(projects), user_id],(err, result)=>{
-            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
-        });
-        return res.redirect(`/home/${username}`)
-    };
+        return JSON.stringify(projects)
+    }catch(err){
+        console.log('ERROR in markDoneTodo():', err.message);
+        return false
+    }
+};
 
-    if(req.body.project_title_and_deadline_arr){
-        const proj_arr = JSON.parse(req.body.project_title_and_deadline_arr);
-        const proj_index =  proj_arr[0];
-        const new_ddl =     proj_arr[1];
-        const new_title =   proj_arr[2];
+async function projectTitleAndDeadlineArr(req_body, user_id){
+    const proj_arr = JSON.parse(req_body.project_title_and_deadline_arr);
+    const proj_index =  proj_arr[0];
+    const new_ddl =     proj_arr[1];
+    const new_title =   proj_arr[2];
+    try{
         const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
         let projects = JSON.parse(projects_raw.rows[0].projects);
         if (new_ddl.length){ projects[proj_index]["final_deadline"] = new_ddl };
         if (new_title.length){ projects[proj_index]["title"] = new_title };
-        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-        [JSON.stringify(projects), user_id],(err, result)=>{
-            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
-        });
-        return res.redirect(`/home/${username}`)
-    };
+        return JSON.stringify(projects);
+    }catch(err){
+        console.log('ERROR in projectTitleAndDeadlineArr():', err.message);
+        return false
+    }
+};
 
-    if(req.body.edit_obs_arr){
-        const proj_arr = JSON.parse(req.body.edit_obs_arr);
-        const proj_index =  proj_arr[0];
-        const task_text =   proj_arr[1];
-        const status =      proj_arr[2];
-        const obs_text =    proj_arr[3];
+async function editObsArr(req_body, user_id){
+    const proj_arr = JSON.parse(req_body.edit_obs_arr);
+    const proj_index =  proj_arr[0];
+    const task_text =   proj_arr[1];
+    const status =      proj_arr[2];
+    const obs_text =    proj_arr[3];
+    try{
         const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
         let projects = JSON.parse(projects_raw.rows[0].projects);
         let buf_tasks = projects[proj_index]["tasks_"+status];
@@ -1129,18 +893,19 @@ app.post('/home', async function (req,res){
             }
         };
         projects[proj_index]["tasks_"+status] = buf_tasks;
-        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-        [JSON.stringify(projects), user_id],(err, result)=>{
-            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
-        });
-        return res.redirect(`/home/${username}`)
-    };
+        return JSON.stringify(projects)
+    }catch(err){
+        console.log('ERROR in editObsArr():', err.message);
+        return false
+    }
+};
 
-    if(req.body.remove_task_arr){
-        const proj_arr = JSON.parse(req.body.remove_task_arr);
-        const proj_index =  proj_arr[0];
-        const text =        proj_arr[1];
-        const status =      proj_arr[2];
+async function removeTaskArr(req_body, user_id){
+    const proj_arr = JSON.parse(req_body.remove_task_arr);
+    const proj_index =  proj_arr[0];
+    const text =        proj_arr[1];
+    const status =      proj_arr[2];
+    try{
         const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
         let projects = JSON.parse(projects_raw.rows[0].projects);
         let buf_tasks = projects[proj_index]["tasks_"+status];
@@ -1150,18 +915,306 @@ app.post('/home', async function (req,res){
                 break
             }
         };
-        projects[proj_index]["tasks_"+status] = buf_tasks;
-        await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-        [JSON.stringify(projects), user_id],(err, result)=>{
-            if (err){ console.log('ERROR while UPDATE work_data SET projects:', err.message) }
+        projects[proj_index]["tasks_"+status] = buf_tasks;        
+        return JSON.stringify(projects)
+    }catch(err){
+        console.log('ERROR in removeTaskArr():', err.message);
+        return false
+    }
+};
+
+//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////    ROUTES    //////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////
+
+app.get('/', (req, res) => {
+    res.redirect('/login')
+});
+
+app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
+    if(req.session && req.user){
+        await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
+        (err, result)=>{
+            if (err){ return res.redirect('/login') }
+            else if(result.rows.length){
+                if( new Date(result.rows[0].expire) < Date.now() ){ return res.redirect('/login') }
+                else{
+                    try{ return res.redirect(`/home/${req.user.username}`) }
+                    catch{ return res.redirect('/login') }
+                }
+            } else{ return res.redirect('/login') }
         });
-        return res.redirect(`/home/${username}`)
-    };
+    } else { res.redirect('/login') }
+});
 
-    setTimeout(()=>{
-        return res.redirect(`/home/${username}`)
-    },3500)        
+app.get('/login', (req, res) => {
+    res.render('login', {})
+});
 
+app.get('/registration_successfull', (req, res) => {
+    console.log(req.session);
+    console.log(req.sessionID);
+    console.log(req.isAuthenticated());
+    console.log(req.isUnauthenticated());
+    //console.log(req.user) <-- undefined
+    res.render('reg_successfull')
+});
+
+app.get('/home/:username', async (req, res) => {
+    if (req.params.username == "undefined"){ return res.redirect('/login') }
+    if(req.isAuthenticated()){
+        await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
+            if (err){ console.log('ERROR in db.query in GET /home/:username:', err.message);
+                return res.redirect('/login')
+            } else if(result.rows.length){
+                const user_id = result.rows[0].sess.passport.user;
+                const user_data = await queryWorkDataId(user_id);
+                if (!user_data){ return res.redirect('/login') };
+                const username = user_data['username'];                      console.log('GET home/'+username);
+                if (req.params.username != username){ console.log('req.params.username is', req.params.username, 'but username from db is', username, '. At', Date.now(), 'Redirecting to /login');
+                    return res.redirect('/login')
+                };
+
+                const now_timestamp = Date.now();
+                const notes =       JSON.parse(user_data['notes']);                     //console.log(notes);
+                const routines =    JSON.parse(user_data['high_wly_mly']);              //console.log(routines);
+                const projects =    user_data['projects'];                              //console.log(projects);
+                const weather =     user_data['weather'];                               //console.log(weather);
+                const loc_data =    (JSON.parse(user_data.loc_data))['last'];           //console.log(loc_data);
+                const weekly =      routines['weekly'];
+                const monthly =     routines['monthly'];
+                const user_yyyymmdd = loc_data['YYYY-MM-DD'];
+                const today_timestamp = new Date(user_yyyymmdd+"T00:00:00.000").getTime();
+                let buffer_arrays;
+    
+                buffer_arrays = iterate31days(notes, today_timestamp, user_data['last_local_hour']);
+                let days_7 = buffer_arrays[0];
+                let days_31 = buffer_arrays[1];
+    
+                if(weekly && weekly != {}){
+                    buffer_arrays = handleWeekly(weekly, today_timestamp, days_7, days_31, user_data['last_local_hour']);
+                    days_7 = buffer_arrays[0];
+                    days_31 = buffer_arrays[1];
+                };
+                if(monthly && monthly != {}){
+                    buffer_arrays = handleMonthly(monthly, today_timestamp, days_7, days_31, user_yyyymmdd, user_data['last_local_hour']);
+                    days_7 = buffer_arrays[0];
+                    days_31 = buffer_arrays[1];
+                };
+                
+                let dayA_obj, dayA_key, dayB_obj, dayB_key, dayC_obj, dayC_key, A_notes, B_notes, C_notes, new_date_q, new_timestamp, mili_diff, dayA_wtr, dayB_wtr, dayC_wtr;
+                if(req.query.new_y){
+                    let q_m = (parseInt(req.query.new_m)+1).toString(); if (q_m.length == 1){ q_m = "0"+q_m };
+                    let q_d = req.query.new_d; if (q_d.length == 1){ q_d = "0"+q_d };
+                    const key_str = req.query.new_y + '-' + q_m + '-' + q_d;
+                    if( loc_data['YYYY-MM-DD'] != key_str ){
+                        new_date_q = new Date(key_str + loc_data['tmz_suffix']);
+                        new_timestamp = new_date_q.getTime();
+                        mili_diff = new_timestamp - now_timestamp;
+                        dayA_obj = dayModule.dayA(loc_data['tmz_iana'], new_timestamp); dayA_key = dayA_obj['YYYY-MM-DD'];
+                        dayB_obj = dayModule.dayB(loc_data['tmz_iana'], new_timestamp); dayB_key = dayB_obj['YYYY-MM-DD'];
+                        dayC_obj = dayModule.dayC(loc_data['tmz_iana'], new_timestamp); dayC_key = dayC_obj['YYYY-MM-DD']
+                    } else{
+                        dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
+                        dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
+                        dayC_obj = dayModule.dayC(loc_data['tmz_iana']); dayC_key = dayC_obj['YYYY-MM-DD'];
+                        mili_diff = 1
+                    }
+                } else {
+                    dayA_obj = dayModule.dayA(loc_data['tmz_iana']); dayA_key = dayA_obj['YYYY-MM-DD'];
+                    dayB_obj = dayModule.dayB(loc_data['tmz_iana']); dayB_key = dayB_obj['YYYY-MM-DD'];
+                    dayC_obj = dayModule.dayC(loc_data['tmz_iana']); dayC_key = dayC_obj['YYYY-MM-DD'];
+                    mili_diff = 1
+                };
+                if(!new_timestamp){ new_timestamp = now_timestamp };
+    
+                const empty_arr_str = JSON.stringify([]);
+                try{ A_notes = JSON.stringify(notes[dayA_key]['notes']) }
+                catch{ A_notes = empty_arr_str };
+                try{ B_notes = JSON.stringify(notes[dayB_key]['notes']) }
+                catch{ B_notes = empty_arr_str };
+                try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
+                catch{ C_notes = empty_arr_str };
+    
+                res.render('index', {
+                    tmz_suffix_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
+                    dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
+                    dayB_PH: dayModule.dayB_pretty(new_timestamp), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
+                    dayC_PH: dayModule.dayC_pretty(new_timestamp), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
+                    routines_raw_PH_string: user_data['high_wly_mly'], first_name_PH: user_data['first_name'],
+                    mili_diff_PH: mili_diff, projects_PH_str: user_data['projects'], username_PH: username,
+                    days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31), weather_PH: weather,
+                    wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius']
+                })
+            } else { console.log('NO COOKIE'); return res.redirect('/login') }
+        })
+    } else{ console.log('NOT AUTHENTICATED'); return res.redirect('/login') }
+});
+
+app.post('/home', async function (req,res){
+    if (req.isAuthenticated()){
+        if(req.body.logout){                                    // logout from home page
+            req.session.destroy();
+            return res.redirect('/login')
+        };
+    
+        const username = req.user.username;
+        const user_id = req.user.id;
+        console.log('POST /home', username); console.log(req.body); // console.log(req.session); console.log(req.sessionID);
+        const old_user_data = await queryWorkDataId(user_id); //console.log(old_user_data);
+        let user_hour, upd_user_data, user_hour_timestamp;
+
+        if (req.body.user_hour_timestamp){
+            user_hour_timestamp = checkMultipleReq(req.body.user_hour_timestamp);
+            user_hour = user_hour_timestamp[0];
+            const UTC_hour = user_hour_timestamp[1];
+            const user_timestamp = user_hour_timestamp[2];
+            if ((user_timestamp > (old_user_data['last_timestamp']+3600000)) ||
+                (user_hour != old_user_data['last_local_hour'])){
+                let buf_new_db = await updateTimeAndWeather(old_user_data, user_hour, UTC_hour, user_timestamp)
+                if (buf_new_db){ upd_user_data = buf_new_db }
+            } else { upd_user_data = false }
+        };
+    
+        const interval_ID_obj = {
+            'itv_HdlNot' : undefined,
+            'itv_HdlRtn' : undefined
+        };
+        async function handleNotes(in_notes_arr, in_itv_A, in_task, in_int_id = false){
+            if (upd_user_data == undefined){
+                console.log('handleNotes interval called', in_itv_A, 'times now');
+                if(in_itv_A > 51){
+                    console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
+                    clearInterval(in_int_id);
+                    return false
+                } else {
+                    interval_ID_obj['itv_HdlNot'] = setTimeout(()=>{
+                        return handleNotes(in_notes_arr, in_itv_A+1, in_task, interval_ID_obj['itv_HdlNot'])
+                    },50)
+                }
+            } else if(upd_user_data){
+                if (in_itv_A) { clearInterval(in_int_id) };
+                let result_c;
+                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, upd_user_data), user_id ) }
+                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), user_id ) }            
+                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, upd_user_data), user_id ) }
+                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), user_id ) }
+                return result_c
+            } else {
+                if (in_itv_A) { clearInterval(in_int_id) };
+                let result_c;
+                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, old_user_data), user_id ) }
+                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), user_id ) }            
+                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, old_user_data), user_id ) }
+                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, old_user_data), user_id ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
+                return result_c
+            }
+        };
+    
+        async function handleRoutines(in_rtn_arr, in_itv_B, in_id_int = false){
+            if (upd_user_data == undefined){
+                console.log('handleRoutines interval called', in_itv_B, 'times now');
+                if(in_itv_B > 51){
+                    console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
+                    clearInterval(in_id_int);
+                    return false
+                } else {
+                    interval_ID_obj['itv_HdlRtn'] = setTimeout(()=>{
+                        return handleRoutines(in_rtn_arr,in_itv_B+1, interval_ID_obj['itv_HdlRtn'])
+                    },50)
+                }
+            } else if(upd_user_data){
+                if (in_itv_B) { clearInterval(in_id_int) };
+                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, upd_user_data), user_id )
+                return result_c
+            } else {
+                if (in_itv_B) { clearInterval(in_id_int) };
+                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, old_user_data), user_id )
+                return result_c
+            }
+        };
+
+        if(req.body.new_note_arr){
+            const new_note_arr = checkMultipleReq(req.body.new_note_arr);
+            const result = await handleNotes(new_note_arr, 0, 'add');
+            console.log('Result from inserting a new note for', username, 'was:', result);
+            return res.redirect(manageReturn(new_note_arr[2], new_note_arr[3], user_hour, username))
+        };
+    
+        if(req.body.edit_note_arr){
+            const edit_note_arr = checkMultipleReq(req.body.edit_note_arr);
+            const result = await handleNotes(edit_note_arr, 0, 'edit');
+            console.log('Result from editing a note for', username, 'was:', result);
+            return res.redirect(manageReturn(edit_note_arr[3], edit_note_arr[4], user_hour, username))
+        };
+    
+        if(req.body.remove_note_arr){
+            const remove_note_arr = checkMultipleReq(req.body.remove_note_arr);
+            const result = await handleNotes(remove_note_arr, 0, 'rm');
+            console.log('Result from removing a note for', username, 'was:', result);
+            return res.redirect(manageReturn(remove_note_arr[2], remove_note_arr[3], user_hour, username))
+        };
+    
+        if(req.body.routine_note_arr){
+            const routine_note_arr = checkMultipleReq(req.body.routine_note_arr);
+            const result = await handleRoutines(routine_note_arr, 0);
+            console.log('Result from inserting a new routine for', username, 'was:', result);
+            return res.redirect(manageReturn(routine_note_arr[4], routine_note_arr[5], user_hour, username))
+        };
+    
+        if(req.body.edit_routine_note){
+            const edit_routine_note = checkMultipleReq(req.body.edit_routine_note);
+            const result = await handleNotes(edit_routine_note, 0, 'editrtn');
+            console.log('Result from editing a routine note for', username, 'was:', result);
+            return res.redirect(manageReturn(edit_routine_note[5], edit_routine_note[6], user_hour, username))
+        };
+    
+        if(req.body.temp_letter){
+            const temp_letter = checkMultipleReq(req.body.temp_letter);
+            await handleWeatherChange(temp_letter, user_id);
+            return res.redirect(`/home/${username}`)
+        };
+
+        if (req.body.new_project_title){
+            const result = await newProjectTitle(req.body, user_id);
+            if (result){ await updateProjects(result, user_id) }
+            return res.redirect(`/home/${username}`)
+        };
+    
+        if(req.body.project_task_arr){
+            const result = await projectTaskArr(req.body, user_id);
+            if (result){ await updateProjects(result, user_id) }
+            return res.redirect(`/home/${username}`)
+        };
+    
+        if(req.body.mark_done_todo){
+            const result = await markDoneTodo(req.body, user_id);
+            if (result){ await updateProjects(result, user_id) }
+            return res.redirect(`/home/${username}`)
+        };
+    
+        if(req.body.project_title_and_deadline_arr){
+            const result = await projectTitleAndDeadlineArr(req.body, user_id);
+            if (result){ await updateProjects(result, user_id) }
+            return res.redirect(`/home/${username}`)
+        };
+    
+        if(req.body.edit_obs_arr){
+            const result = await editObsArr(req.body, user_id);
+            if (result){ await updateProjects(result, user_id) }
+            return res.redirect(`/home/${username}`)
+        };
+    
+        if(req.body.remove_task_arr){
+            const result = await removeTaskArr(req.body, user_id);
+            if (result){ await updateProjects(result, user_id) }
+            return res.redirect(`/home/${username}`)
+        };
+
+        setTimeout(()=>{
+            return res.redirect(`/home/${username}`)
+        },3500)
+    }
 });
 
 app.post('/login',
@@ -1176,9 +1229,9 @@ app.post('/login',
             await updateFromLogin(user_data, time_place_obj);
             return res.redirect(`/home/${user_data_page.username}`)
         } else {
-            console.log('DID NOT fulfilled conditions to call updateFromLogin');
+            console.log('DID NOT fulfill conditions to call updateFromLogin');
             return res.redirect(`/home/${user_data_page.username}`)
-        }        
+        }
     }
 );
 
@@ -1193,7 +1246,7 @@ app.post('/register', (req, res) => {
         } else {
             try{
                 await registerUser( cred_arr[0], hash, first_name, time_place_obj );
-                res.redirect('registration_complete')
+                res.redirect('registration_successfull')
             } catch (err){
                 console.log('ERROR catched in registerUser() in POST/register:', err.message);
                 res.redirect('/registration_failed_B')

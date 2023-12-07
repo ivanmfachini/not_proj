@@ -1,6 +1,6 @@
 body {
     color: rgb(240,240,206);
-    background-color: rgb(40,5,60);
+    background-color: rgb(5,30,100);
 }
 
 /* Temani Afif's https://stackoverflow.com/a/66383730/21113444 */
@@ -1080,13 +1080,14 @@ input {
 
 /* >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
    >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
-   >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<< */
+   >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
+*/
 
 
 @media (min-width: 751px) {
 
     body {
-        background-color: rgb(25,8,41);
+        background-color: rgb(29,7,39);
     }
 
     #shine-div:before {
@@ -1126,6 +1127,10 @@ input {
         height: 300vh;
     }
 
+    .specific_task{
+        max-width: 200px;
+    }
+
 }
 
 @media (min-width: 975px) {
@@ -1153,10 +1158,6 @@ input {
 
     .final_deadline-box{
         writing-mode: vertical-lr;
-    }
-
-    .specific_task{
-        max-width: 200px;
     }
 
 }
