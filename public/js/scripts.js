@@ -738,6 +738,7 @@
             let edit_task_text = $('#edit_task_text').val();
             let new_task_before = $('#new_task_before').val();
             let new_task_after = $('#new_task_after').val();
+            console.log(new_task_after);
             if (    (edit_task_text == "" || $(edit_task_text).length < 41 && sanitizeTextInput(edit_task_text)) &&
                     (new_task_before == "" || $(new_task_before).length < 41 && sanitizeTextInput(new_task_before)) &&
                     (new_task_after == "" || $(new_task_after).length < 41 && sanitizeTextInput(new_task_after))){

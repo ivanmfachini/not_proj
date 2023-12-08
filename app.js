@@ -472,23 +472,26 @@ function addToDaysArrFromRoutines(in_arr, value, buf_date, date_str){
 function handleWeekly(weekly, now_timestamp, days_7, days_31, in_hour){
     let buffer7 = days_7;
     let buffer31 = days_31;
-    let buf_date, date_str, beginning, end;
+    let buf_date, date_str, beginning, end, buf_timestamp;
     if (in_hour < 17 && in_hour > 3){
         beginning = 2; end = 9
     } else{
         beginning = 3; end = 10
-    };    
+    };
     Object.entries(weekly).forEach(([key, value]) => {
         for (let d = beginning; d < end; d+= 1){
-            for (let k = 0; k < 5; k++){                            // iterate 1~4 weeks
+            for (let k = 0; k < 4; k++){                            // iterate 1~4 weeks
                 buf_date = new Date (now_timestamp + ((d*86400000)+(k*604800000)));
-                if (buf_date.getUTCDay() == key){
+                buf_timestamp = buf_date.getTime();
+                plus32 = now_timestamp + 2764800000;
+                plus2 = now_timestamp + 172800000;
+                if (buf_date.getUTCDay() == key && buf_timestamp < plus32 && buf_timestamp > plus2){
                     date_str = buf_date.toUTCString().slice(0,16);
                     if (d < 8){
                         if(!k){                                     // goes to days_7
-                            buffer7 = addToDaysArrFromRoutines(days_7, value, buf_date, date_str)
+                            buffer7 = addToDaysArrFromRoutines(buffer7, value, buf_date, date_str)
                         } else{       
-                            buffer31 = addToDaysArrFromRoutines(days_31, value, buf_date, date_str)
+                            buffer31 = addToDaysArrFromRoutines(buffer31, value, buf_date, date_str)
                         }                                    
                     } else{                                             // goes to days_31
                         buffer31 = addToDaysArrFromRoutines(days_31, value, buf_date, date_str)
@@ -500,55 +503,38 @@ function handleWeekly(weekly, now_timestamp, days_7, days_31, in_hour){
     return [buffer7, buffer31]
 };
 
-function handleMonthly(monthly, now_timestamp, days_7, days_31, user_yyyymmdd, in_local_hour){
+function handleMonthly(monthly, today_timestamp, days_7, days_31, user_yyyymmdd, in_hour){
     let buffer7 = days_7;
     let buffer31 = days_31;
-
-    
+    const orig_year_str = user_yyyymmdd.slice(0,4);    //0123-56-89
+    const orig_month_str = user_yyyymmdd.slice(5,7);
     Object.entries(monthly).forEach(([key, value]) => {
-        let year_str = user_yyyymmdd.slice(0,4);    //0123-56-89
-        let month_str = user_yyyymmdd.slice(5,7);
         let buf_day, buf_date, buf_timestamp, date_str, margin;
-
-        if (key > 28){
-            console.log('bigger than 28');
-            buf_day = key.toString(); console.log(buf_day);
-            buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000"); console.log(buf_date);
-            if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
-            else{ margin = 259200000 };
-            if (buf_date.getTime() - now_timestamp < margin){
-                buf_timestamp = buf_date.getTime() + 2678400000;            // +31d
-                buf_date = new Date(buf_timestamp); console.log('now buf_date is:', buf_date);
-                let current_day = buf_date.getUTCDate();
-                let k = 1
-                while(current_day < 6){
-                    buf_date = new Date(buf_timestamp - (k * 86400000)); console.log('now buf_date is:', buf_date, 'and k is:', k);
-                    current_day = buf_date.getUTCDate();
-                    k += 1
-                }
-            }
-        } else{
-            if (key < 10){ buf_day = "0" + key.toString() }
-            else { buf_day = key.toString() };
-            buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000");
-            if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
-            else{ margin = 259200000 };
-            if (buf_date.getTime() - now_timestamp < margin){
-                month_str = parseInt(month_str)+1;
-                if (month_str == 13){
-                    month_str = "01";
-                    year_str = (parseInt(year_str)+1).toString()
-                } else if (month_str < 10){ month_str = "0" + month_str.toString() }
-                else{ month_str = month_str.toString() };
-                buf_date = new Date(year_str+'-'+month_str+'-'+buf_day+"T00:00:00.000")
-            }
-        };
-        date_str = buf_date.toUTCString().slice(0,16); console.log('date_str is now:', date_str);
+        if (key < 10){ buf_day = "0"+key.toString() }
+        else{ buf_day = key.toString() };
+        buf_date = new Date(orig_year_str+'-'+orig_month_str+'-'+buf_day+"T00:00:00.000");
         buf_timestamp = buf_date.getTime();
-        if (buf_timestamp < now_timestamp + 691200000){             // goes to days_7
-            buffer7 = addToDaysArrFromRoutines(days_7, value, buf_date, date_str)
-        } else{                                                     // goes to days_31
-            buffer31 = addToDaysArrFromRoutines(days_31, value, buf_date, date_str)
+        if (in_hour < 17 && in_hour > 3){ margin = 172800000 }
+        else{ margin = 259200000 };
+        if (buf_timestamp <= today_timestamp + margin){
+            buf_timestamp = buf_date.getTime() + 2678400000;            // +31d
+            buf_date = new Date(buf_timestamp);
+            let current_day = buf_date.getUTCDate();
+            let k = 1;
+            while(current_day != key){
+                buf_date = new Date(buf_timestamp - (k * 86400000));
+                current_day = buf_date.getUTCDate();
+                k += 1
+            };
+            buf_timestamp = buf_date.getTime();
+        };
+        if (buf_timestamp <= today_timestamp + 2764800000){           // < 32 this is what we are looking for
+            date_str = buf_date.toUTCString().slice(0,16);
+            if (buf_timestamp < today_timestamp + 691200000){             // < 8
+                buffer7 = addToDaysArrFromRoutines(buffer7, value, buf_date, date_str)
+            } else{
+                buffer31 = addToDaysArrFromRoutines(buffer31, value, buf_date, date_str)
+            }
         }
     });
     return [buffer7, buffer31]
@@ -605,19 +591,19 @@ function addToDaysArrFromNotes(in_arr, day_notes, buf_date, date_str){
     return buf_arr
 };
 
-function iterate31days(in_notes, in_timestamp, in_local_hour){
+function iterate31days(in_notes, today_timestamp, in_hour){
     let buf_7 = [];
     let buf_31 = [];
     let buf_date, day_notes, date_str, margin;
     Object.entries(in_notes).forEach(([key, value]) => {
         buf_date = new Date(key+"T00:00:00.000");
         day_notes = value['notes'];
-        if (in_local_hour < 17 && in_local_hour > 3){ margin = 172800000 }
+        if (in_hour < 17 && in_hour > 3){ margin = 172800000 }
         else{ margin = 259200000 };
-        if (buf_date.getTime() < in_timestamp + margin){}                   // in the past or today or tomorrow
-        else if (buf_date.getTime() < in_timestamp + 2678400000){           // < 31
+        if (buf_date.getTime() <= today_timestamp + margin){}    // in the past or today or tomorrow
+        else if (buf_date.getTime() <= today_timestamp + 2764800000){           // < 32
             date_str = buf_date.toUTCString().slice(0,16);
-            if (buf_date.getTime() < in_timestamp + 691200000){             // < 8
+            if (buf_date.getTime() < today_timestamp + 691200000){             // < 8
                 buf_7 = addToDaysArrFromNotes(buf_7, day_notes, buf_date, date_str)
             } else{
                 buf_31 = addToDaysArrFromNotes(buf_31, day_notes, buf_date, date_str)
@@ -1061,27 +1047,25 @@ app.post('/home', async function (req,res){
         const username = req.user.username;
         const user_id = req.user.id;
         console.log('POST /home', username); console.log(req.body); // console.log(req.session); console.log(req.sessionID);
-        const old_user_data = await queryWorkDataId(user_id); //console.log(old_user_data);
-        let user_hour, upd_user_data, user_hour_timestamp;
+        const user_dbs = {'old': undefined, 'new': undefined};
+        user_dbs['old'] = await queryWorkDataId(user_id); //console.log(old_user_data);
+        let user_hour, user_hour_timestamp;
 
         if (req.body.user_hour_timestamp){
             user_hour_timestamp = checkMultipleReq(req.body.user_hour_timestamp);
             user_hour = user_hour_timestamp[0];
             const UTC_hour = user_hour_timestamp[1];
             const user_timestamp = user_hour_timestamp[2];
-            if ((user_timestamp > (old_user_data['last_timestamp']+3600000)) ||
-                (user_hour != old_user_data['last_local_hour'])){
+            if ((user_timestamp > (user_dbs['old']['last_timestamp']+3600000)) ||
+                (user_hour != user_dbs['old']['last_local_hour'])){
                 let buf_new_db = await updateTimeAndWeather(old_user_data, user_hour, UTC_hour, user_timestamp)
-                if (buf_new_db){ upd_user_data = buf_new_db }
-            } else { upd_user_data = false }
+                if (buf_new_db){ user_dbs['new'] = buf_new_db }
+            } else { user_dbs['new'] = false }
         };
     
-        const interval_ID_obj = {
-            'itv_HdlNot' : undefined,
-            'itv_HdlRtn' : undefined
-        };
+        const interval_ID_obj = { 'itv_HdlNot' : undefined, 'itv_HdlRtn' : undefined };
         async function handleNotes(in_notes_arr, in_itv_A, in_task, in_int_id = false){
-            if (upd_user_data == undefined){
+            if (user_dbs['new'] == undefined){
                 console.log('handleNotes interval called', in_itv_A, 'times now');
                 if(in_itv_A > 51){
                     console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
@@ -1092,27 +1076,27 @@ app.post('/home', async function (req,res){
                         return handleNotes(in_notes_arr, in_itv_A+1, in_task, interval_ID_obj['itv_HdlNot'])
                     },50)
                 }
-            } else if(upd_user_data){
+            } else if(user_dbs['new'] == false){
                 if (in_itv_A) { clearInterval(in_int_id) };
                 let result_c;
-                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, upd_user_data), user_id ) }
-                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, upd_user_data), user_id ) }            
-                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, upd_user_data), user_id ) }
-                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, upd_user_data), user_id ) }
+                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, user_dbs['old']), user_id ) }
+                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, user_dbs['old']), user_id ) }            
+                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, user_dbs['old']), user_id ) }
+                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, user_dbs['old']), user_id ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
                 return result_c
             } else {
                 if (in_itv_A) { clearInterval(in_int_id) };
                 let result_c;
-                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, old_user_data), user_id ) }
-                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, old_user_data), user_id ) }            
-                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, old_user_data), user_id ) }
-                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, old_user_data), user_id ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
+                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, user_dbs['new']), user_id ) }
+                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, user_dbs['new']), user_id ) }            
+                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, user_dbs['new']), user_id ) }
+                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, user_dbs['new']), user_id ) }
                 return result_c
             }
         };
     
         async function handleRoutines(in_rtn_arr, in_itv_B, in_id_int = false){
-            if (upd_user_data == undefined){
+            if (user_dbs['new'] == undefined){
                 console.log('handleRoutines interval called', in_itv_B, 'times now');
                 if(in_itv_B > 51){
                     console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
@@ -1123,13 +1107,13 @@ app.post('/home', async function (req,res){
                         return handleRoutines(in_rtn_arr,in_itv_B+1, interval_ID_obj['itv_HdlRtn'])
                     },50)
                 }
-            } else if(upd_user_data){
+            } else if(user_dbs['new'] == false){
                 if (in_itv_B) { clearInterval(in_id_int) };
-                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, upd_user_data), user_id )
+                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, user_dbs['old']), user_id )
                 return result_c
             } else {
                 if (in_itv_B) { clearInterval(in_id_int) };
-                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, old_user_data), user_id )
+                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, user_dbs['new']), user_id )
                 return result_c
             }
         };
