@@ -32,15 +32,14 @@
                 <button type="button" form="register-form" name="register" id="register">Register</button>
               </div>
               <div class="row-buttons">
-                <button type="submit" name="change_pw" id="change_pw" form="change_pw-form">Change Password</button>
+                <button type="button" name="change_pw" id="change_pw" form="change_pw-form">Lost Access</button>
                 <button type="button" class="btn-hover color-3" id="demo" form="demo-form">Demonstration</button>
               </div>
             </form>
-            <form action="/login" method="post" name="change_pw-form" id="change_pw-form" hidden></form>
+            <form action="/manage_account" method="post" name="change_pw-form" id="change_pw-form" hidden></form>
             <form action="/register" method="post" name="register-form" id="register-form" hidden></form>
             <form action="/login" method="post" name="demo-form" id="demo-form" hidden></form>
             <input type="number" name="guest" id="guest" value=1 form="demo-form" hidden>
-            <input type="number" name="change_pw" id="change_pw_val" value=1 form="change_pw-form" hidden>
           </div>
 
           <div class="login-box-2" id="why_location">

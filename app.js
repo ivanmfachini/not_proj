@@ -133,23 +133,16 @@ async function queryWorkDataUsername(in_username){
     })
 };
 
-async function updateTimeAndWeather(in_data_db, in_local_hour, in_UTC_hour, in_timestamp){
+async function getNewWeather(in_data_db, in_local_hour){
     const loc_data = (JSON.parse(in_data_db['loc_data']))['last'];
     const weather_str = await weatherModule(loc_data['lat'], loc_data['lon'], loc_data['tmz_iana'], in_local_hour, in_data_db['temp_celsius']);
     if(weather_str){
-        await db.query("UPDATE work_data SET (last_timestamp, last_local_hour, last_UTC_hour, weather) = ($1,$2,$3,$4) WHERE user_id = ($5)",
-        [in_timestamp, in_local_hour, in_UTC_hour, weather_str, in_data_db['user_id']],
-        (err, result) =>{
-            if (err){
-                console.log('ERROR in db.query in updateTimeAndWeather:', err.message);
-                return false
-            }
-            else{
-                console.log('Successfully updated time and weather forecast of', in_data_db['username']);
-                return(result.rows[0])
-            }
-        });
-    } else { return false }
+        console.log('FUNCTION getNewWeather OK! returned a valid new weather_str');
+        return weather_str
+    } else {
+        console.log('FUNCTION getNewWeather FAILED! returned false');
+        return false
+    }
 };
 
 async function updateFromLogin(in_user_data, in_time_place_obj){
@@ -189,11 +182,11 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
 
 async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj){
     let new_id = await db.query(
-        'INSERT INTO credential(username, password) VALUES ($1, $2) RETURNING id;', [in_username, in_hash]
+        'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
     );
     await db.query(
-        'INSERT INTO account(user_id, username, first_name, first_pw, creation) VALUES ($1, $2, $3, $4, $5);',
-        [((new_id.rows[0]).id), in_username, in_first_name, in_hash, in_time_place_obj['timestamp']],
+        'INSERT INTO account(user_id, username, first_pw, creation) VALUES ($1,$2,$3,$4);',
+        [((new_id.rows[0]).id), in_username, in_hash, in_time_place_obj['timestamp']],
         (err, result)=>{ if(err){ console.log('ERROR in db.query in registerUser:', err.message) } }
     );
     let weather_str;
@@ -204,19 +197,19 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
         weather_str = JSON.stringify([])
     } finally{
         await db.query(
-            'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
+            'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
             [
-                (new_id.rows[0]).id,                // user_id
-                in_username,                        // username
-                in_first_name,                      // first_name
-                JSON.stringify({}),                 // notes
-                JSON.stringify({}),                 // high_wly_mly
-                JSON.stringify([]),                 // projects
-                in_time_place_obj['timestamp'],     // last_timestamp
-                in_time_place_obj['local_hour'],    // last_local_hour
-                in_time_place_obj['UTC_hour'],      // last_UTC_hour
-                weather_str,                        // weather
-                JSON.stringify({                    // loc_data
+                (new_id.rows[0]).id,                // user_id                      1
+                in_username,                        // username                     2
+                in_first_name,                      // first_name                   3
+                JSON.stringify({}),                 // notes                        4
+                JSON.stringify({}),                 // high_wly_mly                 5
+                JSON.stringify([]),                 // projects                     6
+                in_time_place_obj['timestamp'],     // last_timestamp               7
+                in_time_place_obj['local_hour'],    // last_local_hour              8
+                in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
+                weather_str,                        // weather                      10
+                JSON.stringify({                    // loc_data                     11
                     'last':{
                         'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
                         'lat': in_time_place_obj['lat'],
@@ -234,14 +227,17 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
                         'tmz_suffix': in_time_place_obj['tmz_suffix']
                     }
                 }),
-                true,                               // temp_celsius
-                false                               // wtr_simple
+                true,                               // temp_celsius                 12
+                false,                              // wtr_simple                   13
+                "","","",                           // surname, email, phone        14, 15, 16
+                "eng"                               // lang                         17
             ]
         );
     }
 };
 
 async function updateFromCall(in_column , JSON_str, user_id){
+    console.log('FUNCTION updateFromCall(', in_column, JSON_str, user_id);
     if(!in_column || !JSON_str || !user_id){
         console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, user_id)');
         return false
@@ -490,7 +486,7 @@ function handleWeekly(weekly, now_timestamp, days_7, days_31, in_hour){
                     if (d < 8){
                         if(!k){                                     // goes to days_7
                             buffer7 = addToDaysArrFromRoutines(buffer7, value, buf_date, date_str)
-                        } else{       
+                        } else{                                     // goes to days_31
                             buffer31 = addToDaysArrFromRoutines(buffer31, value, buf_date, date_str)
                         }                                    
                     } else{                                             // goes to days_31
@@ -516,7 +512,7 @@ function handleMonthly(monthly, today_timestamp, days_7, days_31, user_yyyymmdd,
         buf_timestamp = buf_date.getTime();
         if (in_hour < 17 && in_hour > 3){ margin = 172800000 }
         else{ margin = 259200000 };
-        if (buf_timestamp <= today_timestamp + margin){
+        if (buf_timestamp < today_timestamp + margin){
             buf_timestamp = buf_date.getTime() + 2678400000;            // +31d
             buf_date = new Date(buf_timestamp);
             let current_day = buf_date.getUTCDate();
@@ -685,7 +681,7 @@ async function handleWeatherChange(temp_letter, user_id){
     })
 };
 
-async function newProjectTitle(req_body, user_id){
+async function newProjectTitle(req_body, projects){
     let buf_proj = {
         "title":req_body.new_project_title,
         "final_deadline":req_body.new_project_deadline,
@@ -707,18 +703,11 @@ async function newProjectTitle(req_body, user_id){
             last_added += 1
         }
     };
-    try{
-        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
-        let projects = JSON.parse(projects_raw.rows[0].projects);
-        projects.push(buf_proj);
-        return JSON.stringify(projects)
-    } catch (err){
-        console.log('ERROR in newProjectTitle():', err.message);
-        return false
-    }
+    projects.push(buf_proj);
+    return JSON.stringify(projects)
 };
 
-async function projectTaskArr(req_body, user_id){
+async function projectTaskArr(req_body, projects){
     const proj_arr = JSON.parse(req_body.project_task_arr);
     const proj_index =  proj_arr[0];
     const old_text =    proj_arr[1];
@@ -727,191 +716,246 @@ async function projectTaskArr(req_body, user_id){
     const task_before = proj_arr[4];
     const task_after =  proj_arr[5];
     const task_ddl =    proj_arr[6];
-    try{
-        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
-        let projects = JSON.parse(projects_raw.rows[0].projects);
-        if (new_text.length){
-            let buf_tasks = projects[proj_index]["tasks_"+status];
-            for (let a = 0; a < buf_tasks.length; a++){
-                if (buf_tasks[a]["task"] == old_text){ buf_tasks[a]["task"] = new_text; break }
-            };
-            projects[proj_index]["tasks_"+status] = buf_tasks;
-        };
-        if (task_before.length){
-            let buf_tasks = projects[proj_index]["tasks_"+status];
-            for (let a = 0; a < buf_tasks.length; a++){
-                if (buf_tasks[a]["task"] == old_text){
-                    buf_tasks.splice(a,0,{"task":task_before,"obs":"","deadline":false});
-                    break
-                }
-            };
-            projects[proj_index]["tasks_"+status] = buf_tasks;
-        };
-        if (task_after.length){
-            let buf_tasks = projects[proj_index]["tasks_"+status];
-            for (let a = 0; a < buf_tasks.length; a++){
-                if (buf_tasks[a]["task"] == old_text){
-                    if(buf_tasks[a+1]){
-                        buf_tasks.splice(a+1,0,{"task":task_after,"obs":"","deadline":false})
-                    } else{
-                        buf_tasks.push({"task":task_after,"obs":"","deadline":false})
-                    };
-                    break
-                }
-            };
-            projects[proj_index]["tasks_"+status] = buf_tasks;
-        };
-        if (task_ddl.length){
-            let buf_tasks = projects[proj_index]["tasks_"+status];
-            let removed_task;
-            for (let a = 0; a < buf_tasks.length; a++){
-                if (buf_tasks[a]["task"] == old_text){
-                    if (buf_tasks.length == 1){
-                        buf_tasks[a]["deadline"] = task_ddl;
-                        break
-                    } else{
-                        removed_task = buf_tasks[a];
-                        buf_tasks.splice(a,1);
-                        break
-                    }
-                }
-            };
-            removed_task['deadline'] = task_ddl;
-            if (removed_task){
-                for (let a = 0; a < buf_tasks.length; a++){
-                    if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
-                        buf_tasks.splice(a,0,removed_task);
-                        break
-                    } else if (!buf_tasks[a+1]){
-                        if (buf_tasks[a]["deadline"] == false || buf_tasks[a]["deadline"] == "false"){
-                            buf_tasks.splice(a,0,removed_task)
-                        } else{ buf_tasks.push(removed_task) }
-                        break
-                    }
-                }
-            };
-            projects[proj_index]["tasks_"+status] = buf_tasks;
-        };
-        return JSON.stringify(projects)
-    } catch(err){
-        console.log('ERROR in projectTaskArr():', err.message);
-        return false
-    }
-};
-
-async function markDoneTodo(req_body, user_id){
-    const proj_arr = JSON.parse(req_body.mark_done_todo);
-    const proj_index =  proj_arr[0];
-    const text =        proj_arr[1];
-    const status =      proj_arr[2];
-    try{
-        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
-        let projects = JSON.parse(projects_raw.rows[0].projects);
+    if (new_text.length){
         let buf_tasks = projects[proj_index]["tasks_"+status];
-        let removed_task;
         for (let a = 0; a < buf_tasks.length; a++){
-            if (buf_tasks[a]["task"] == text){
-                removed_task = buf_tasks[a]
-                buf_tasks.splice(a,1);
+            if (buf_tasks[a]["task"] == old_text){ buf_tasks[a]["task"] = new_text; break }
+        };
+        projects[proj_index]["tasks_"+status] = buf_tasks;
+    };
+    if (task_before.length){
+        let buf_tasks = projects[proj_index]["tasks_"+status];
+        for (let a = 0; a < buf_tasks.length; a++){
+            if (buf_tasks[a]["task"] == old_text){
+                buf_tasks.splice(a,0,{"task":task_before,"obs":"","deadline":false});
                 break
             }
         };
         projects[proj_index]["tasks_"+status] = buf_tasks;
-        if (status == "todo"){
-            projects[proj_index]["tasks_done"].push(removed_task)
-        } else{
-            if (removed_task["deadline"] == false || removed_task["deadline"] == "false" || !projects[proj_index]["tasks_todo"].length){
-                projects[proj_index]["tasks_todo"].push(removed_task)
-            } else{
-                buf_tasks = projects[proj_index]["tasks_todo"];
-                for (let a = 0; a < buf_tasks.length; a++){
-                    if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
-                        buf_tasks.splice(a,0,removed_task);
-                        break
-                    } else if (!buf_tasks[a+1]){
-                        if (buf_tasks[a]["deadline"] == false || buf_tasks[a]["deadline"] == "false"){
-                            buf_tasks.splice(a,0,removed_task)
-                        } else{ buf_tasks.push(removed_task) }
-                        break
-                    }
-                }
-                projects[proj_index]["tasks_todo"] = buf_tasks
+    };
+    if (task_after.length){
+        let buf_tasks = projects[proj_index]["tasks_"+status];
+        for (let a = 0; a < buf_tasks.length; a++){
+            if (buf_tasks[a]["task"] == old_text){
+                if(buf_tasks[a+1]){
+                    buf_tasks.splice(a+1,0,{"task":task_after,"obs":"","deadline":false})
+                } else{
+                    buf_tasks.push({"task":task_after,"obs":"","deadline":false})
+                };
+                break
             }
         };
-        return JSON.stringify(projects)
-    }catch(err){
-        console.log('ERROR in markDoneTodo():', err.message);
-        return false
-    }
+        projects[proj_index]["tasks_"+status] = buf_tasks;
+    };
+    if (task_ddl.length){
+        let buf_tasks = projects[proj_index]["tasks_"+status];
+        let removed_task;
+        for (let a = 0; a < buf_tasks.length; a++){
+            if (buf_tasks[a]["task"] == old_text){
+                if (buf_tasks.length == 1){
+                    buf_tasks[a]["deadline"] = task_ddl;
+                    break
+                } else{
+                    removed_task = buf_tasks[a];
+                    buf_tasks.splice(a,1);
+                    break
+                }
+            }
+        };
+        removed_task['deadline'] = task_ddl;
+        if (removed_task){
+            for (let a = 0; a < buf_tasks.length; a++){
+                if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
+                    buf_tasks.splice(a,0,removed_task);
+                    break
+                } else if (!buf_tasks[a+1]){
+                    if (buf_tasks[a]["deadline"] == false || buf_tasks[a]["deadline"] == "false"){
+                        buf_tasks.splice(a,0,removed_task)
+                    } else{ buf_tasks.push(removed_task) }
+                    break
+                }
+            }
+        };
+        projects[proj_index]["tasks_"+status] = buf_tasks;
+    };
+    return JSON.stringify(projects)
 };
 
-async function projectTitleAndDeadlineArr(req_body, user_id){
+async function markDoneTodo(req_body, projects){
+    const proj_arr = JSON.parse(req_body.mark_done_todo);
+    const proj_index =  proj_arr[0];
+    const text =        proj_arr[1];
+    const status =      proj_arr[2];
+    let buf_tasks = projects[proj_index]["tasks_"+status];
+    let removed_task;
+    for (let a = 0; a < buf_tasks.length; a++){
+        if (buf_tasks[a]["task"] == text){
+            removed_task = buf_tasks[a]
+            buf_tasks.splice(a,1);
+            break
+        }
+    };
+    projects[proj_index]["tasks_"+status] = buf_tasks;
+    if (status == "todo"){
+        projects[proj_index]["tasks_done"].push(removed_task)
+    } else{
+        if (removed_task["deadline"] == false || removed_task["deadline"] == "false" || !projects[proj_index]["tasks_todo"].length){
+            projects[proj_index]["tasks_todo"].push(removed_task)
+        } else{
+            buf_tasks = projects[proj_index]["tasks_todo"];
+            for (let a = 0; a < buf_tasks.length; a++){
+                if(new Date(buf_tasks[a]["deadline"]).getTime() > new Date(removed_task["deadline"]).getTime()){
+                    buf_tasks.splice(a,0,removed_task);
+                    break
+                } else if (!buf_tasks[a+1]){
+                    if (buf_tasks[a]["deadline"] == false || buf_tasks[a]["deadline"] == "false"){
+                        buf_tasks.splice(a,0,removed_task)
+                    } else{ buf_tasks.push(removed_task) }
+                    break
+                }
+            }
+            projects[proj_index]["tasks_todo"] = buf_tasks
+        }
+    };
+    return JSON.stringify(projects)
+};
+
+async function projectTitleAndDeadlineArr(req_body, projects){
     const proj_arr = JSON.parse(req_body.project_title_and_deadline_arr);
     const proj_index =  proj_arr[0];
     const new_ddl =     proj_arr[1];
     const new_title =   proj_arr[2];
-    try{
-        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
-        let projects = JSON.parse(projects_raw.rows[0].projects);
-        if (new_ddl.length){ projects[proj_index]["final_deadline"] = new_ddl };
-        if (new_title.length){ projects[proj_index]["title"] = new_title };
-        return JSON.stringify(projects);
-    }catch(err){
-        console.log('ERROR in projectTitleAndDeadlineArr():', err.message);
-        return false
-    }
+    if (new_ddl.length){ projects[proj_index]["final_deadline"] = new_ddl };
+    if (new_title.length){ projects[proj_index]["title"] = new_title };
+    return JSON.stringify(projects);
 };
 
-async function editObsArr(req_body, user_id){
+async function editObsArr(req_body, projects){
     const proj_arr = JSON.parse(req_body.edit_obs_arr);
     const proj_index =  proj_arr[0];
     const task_text =   proj_arr[1];
     const status =      proj_arr[2];
     const obs_text =    proj_arr[3];
-    try{
-        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
-        let projects = JSON.parse(projects_raw.rows[0].projects);
-        let buf_tasks = projects[proj_index]["tasks_"+status];
-        for (let a = 0; a < buf_tasks.length; a++){
-            if (buf_tasks[a]["task"] == task_text){
-                buf_tasks[a]["obs"] = obs_text;
-                break
-            }
-        };
-        projects[proj_index]["tasks_"+status] = buf_tasks;
-        return JSON.stringify(projects)
-    }catch(err){
-        console.log('ERROR in editObsArr():', err.message);
-        return false
-    }
+    let buf_tasks = projects[proj_index]["tasks_"+status];
+    for (let a = 0; a < buf_tasks.length; a++){
+        if (buf_tasks[a]["task"] == task_text){
+            buf_tasks[a]["obs"] = obs_text;
+            break
+        }
+    };
+    projects[proj_index]["tasks_"+status] = buf_tasks;
+    return JSON.stringify(projects)
 };
 
-async function removeTaskArr(req_body, user_id){
+async function removeTaskArr(req_body, projects){
     const proj_arr = JSON.parse(req_body.remove_task_arr);
     const proj_index =  proj_arr[0];
     const text =        proj_arr[1];
     const status =      proj_arr[2];
-    try{
-        const projects_raw = await db.query("SELECT projects FROM work_data WHERE user_id = $1", [user_id]);
-        let projects = JSON.parse(projects_raw.rows[0].projects);
-        let buf_tasks = projects[proj_index]["tasks_"+status];
-        for (let a = 0; a < buf_tasks.length; a++){
-            if (buf_tasks[a]["task"] == text){
-                buf_tasks.splice(a,1);
-                break
+    let buf_tasks = projects[proj_index]["tasks_"+status];
+    for (let a = 0; a < buf_tasks.length; a++){
+        if (buf_tasks[a]["task"] == text){
+            buf_tasks.splice(a,1);
+            break
+        }
+    };
+    projects[proj_index]["tasks_"+status] = buf_tasks;        
+    return JSON.stringify(projects)
+};
+
+async function callVerifyPassword(in_pw, user_id){
+    let this_user;
+    return new Promise((resolve, reject)=>{
+        checker = db.query('SELECT * FROM credential WHERE id = ($1)', [user_id], async function (err,user){
+            if (err) { console.log('ERROR in db.query in callVerifyPassword:', err.message);
+                resolve(false)
+            } else {
+                try{ this_user = user.rows[0] }
+                catch (err){ console.log('ERROR catched in callVerifyPassword: try{ user = user.rows[0]:', err.message);
+                    resolve(false)
+                };
+                if (!user) { console.log('callVerifyPassword: db.query returned no user');
+                    resolve(false)
+                };
+                let result = await verifyPassword( (in_pw + (process.env.PEP)), this_user['password'] );
+                if (result) { resolve(true) }
+                else{
+                    console.log('callVerifyPassword --> verifyPassword returned false, returning false');
+                    resolve(false)
+                }
             }
-        };
-        projects[proj_index]["tasks_"+status] = buf_tasks;        
-        return JSON.stringify(projects)
-    }catch(err){
-        console.log('ERROR in removeTaskArr():', err.message);
-        return false
+        });
+    })
+};
+
+async function changePersonalInfo(in_arr, user_id){
+    //[new_username, first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()]
+    console.log('changePersonalInfo received:');
+    console.log(in_arr);
+    if (in_arr[6].length){
+        let this_1;
+        await db.query("SELECT password FROM credential WHERE id = $1",[user_id],(err1, result)=>{
+            if (err1){
+                console.log('ERROR while SELECT password FROM credential in changePersonalInfo:', err1.message)
+                return false
+            } else{ this_1 = result.rows[0].password };
+            bcrypt.hash( ( (in_arr[6])+(process.env.PEP) ), saltRounds, async function(err2, hash) {
+                if(err2){
+                    console.log('ERROR in bcrypt.hash in changePersonalInfo:', err2.message);
+                    return false
+                } else {
+                    await db.query("UPDATE credential SET password = $1 WHERE id = $2",
+                    [hash, user_id], async (err3,result)=>{
+                        if (err3){
+                            console.log("ERROR while UPDATE credential SET password = $1 in changePersonalInfo():", err3.message)
+                            return false
+                        } else{
+                            if (in_arr[5].length){  //lang
+                                await db.query("UPDATE work_data SET (username, first_name, surname, email, phone, lang, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6,$7,$8) WHERE user_id = ($9)",
+                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], in_arr[5], Date.now(), this_1, user_id], (err4, result)=>{
+                                    if (err4){
+                                        console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                                        return false
+                                    } else{ return true }
+                                })
+                            } else{
+                                await db.query("UPDATE work_data SET (username, first_name, surname, email, phone, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6,$7) WHERE user_id = ($8)",
+                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], Date.now(), this_1, user_id], (err4, result)=>{
+                                    if (err4){
+                                        console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                                        return false
+                                    } else{ return true }
+                                })
+                            }
+                        }
+                    })                    
+                }
+            })
+        })
+    } else{
+        if (in_arr[5].length){  //lang
+            await db.query("UPDATE work_data SET (username, first_name, surname, email, phone, lang) = ($1,$2,$3,$4,$5,$6) WHERE user_id = ($7)",
+            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], in_arr[5], user_id], (err4, result)=>{
+                if (err4){
+                    console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                    return false
+                } else{ return true }
+            })
+        } else{
+            await db.query("UPDATE work_data SET (username, first_name, surname, email, phone) = ($1,$2,$3,$4,$5) WHERE user_id = ($6)",
+            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], user_id], (err4, result)=>{
+                if (err4){
+                    console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                    return false
+                } else{ return true }
+            })
+        }
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////    ROUTES    //////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////    ROUTES    //////////////////////////////////
+//////////////////////////////////    ROUTES    //////////////////////////////////
 
 app.get('/', (req, res) => {
     res.redirect('/login')
@@ -1030,7 +1074,9 @@ app.get('/home/:username', async (req, res) => {
                     routines_raw_PH_string: user_data['high_wly_mly'], first_name_PH: user_data['first_name'],
                     mili_diff_PH: mili_diff, projects_PH_str: user_data['projects'], username_PH: username,
                     days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31), weather_PH: weather,
-                    wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius']
+                    wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius'],
+                    surname_PH: user_data['surname'], useremail_PH: user_data['email'], userphone_PH: user_data['phone'],
+                    user_lang_PH: user_data['lang']
                 })
             } else { console.log('NO COOKIE'); return res.redirect('/login') }
         })
@@ -1047,110 +1093,62 @@ app.post('/home', async function (req,res){
         const username = req.user.username;
         const user_id = req.user.id;
         console.log('POST /home', username); console.log(req.body); // console.log(req.session); console.log(req.sessionID);
-        const user_dbs = {'old': undefined, 'new': undefined};
-        user_dbs['old'] = await queryWorkDataId(user_id); //console.log(old_user_data);
-        let user_hour, user_hour_timestamp;
+        const user_data = await queryWorkDataId(user_id);
+        let user_hour, user_hour_timestamp, new_weather;
 
         if (req.body.user_hour_timestamp){
             user_hour_timestamp = checkMultipleReq(req.body.user_hour_timestamp);
             user_hour = user_hour_timestamp[0];
             const UTC_hour = user_hour_timestamp[1];
             const user_timestamp = user_hour_timestamp[2];
-            if ((user_timestamp > (user_dbs['old']['last_timestamp']+3600000)) ||
-                (user_hour != user_dbs['old']['last_local_hour'])){
-                let buf_new_db = await updateTimeAndWeather(old_user_data, user_hour, UTC_hour, user_timestamp)
-                if (buf_new_db){ user_dbs['new'] = buf_new_db }
-            } else { user_dbs['new'] = false }
+            if ((user_timestamp > (user_data['last_timestamp']+3600000)) ||
+                (user_hour != user_data['last_local_hour'])){
+                new_weather = await getNewWeather(user_data, user_hour, UTC_hour, user_timestamp)
+            } else { new_weather = false }
         };
-    
-        const interval_ID_obj = { 'itv_HdlNot' : undefined, 'itv_HdlRtn' : undefined };
-        async function handleNotes(in_notes_arr, in_itv_A, in_task, in_int_id = false){
-            if (user_dbs['new'] == undefined){
-                console.log('handleNotes interval called', in_itv_A, 'times now');
-                if(in_itv_A > 51){
-                    console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
-                    clearInterval(in_int_id);
-                    return false
-                } else {
-                    interval_ID_obj['itv_HdlNot'] = setTimeout(()=>{
-                        return handleNotes(in_notes_arr, in_itv_A+1, in_task, interval_ID_obj['itv_HdlNot'])
-                    },50)
-                }
-            } else if(user_dbs['new'] == false){
-                if (in_itv_A) { clearInterval(in_int_id) };
-                let result_c;
-                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, user_dbs['old']), user_id ) }
-                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, user_dbs['old']), user_id ) }            
-                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, user_dbs['old']), user_id ) }
-                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'high_wly_mly'], newNotesStrEditRtn(in_notes_arr, user_dbs['old']), user_id ) }//[in_key, checker, in_old_text, in_timestamp, in_class, true, A_day_key]
-                return result_c
-            } else {
-                if (in_itv_A) { clearInterval(in_int_id) };
-                let result_c;
-                if (in_task == 'add'){          result_c = await updateFromCall('notes', newNotesStrNew (in_notes_arr, user_dbs['new']), user_id ) }
-                else if (in_task == 'edit'){    result_c = await updateFromCall('notes', newNotesStrEdit(in_notes_arr, user_dbs['new']), user_id ) }            
-                else if (in_task == 'rm'){      result_c = await updateFromCall('notes', newNotesStrRm  (in_notes_arr, user_dbs['new']), user_id ) }
-                else if (in_task == 'editrtn'){ result_c = await updateFromCall(['notes', 'routines'], newNotesStrEditRtn(in_notes_arr, user_dbs['new']), user_id ) }
-                return result_c
-            }
-        };
-    
-        async function handleRoutines(in_rtn_arr, in_itv_B, in_id_int = false){
-            if (user_dbs['new'] == undefined){
-                console.log('handleRoutines interval called', in_itv_B, 'times now');
-                if(in_itv_B > 51){
-                    console.log('Something went wrong. Check function updateTimeAndWeather. Took too long. Aborting.');
-                    clearInterval(in_id_int);
-                    return false
-                } else {
-                    interval_ID_obj['itv_HdlRtn'] = setTimeout(()=>{
-                        return handleRoutines(in_rtn_arr,in_itv_B+1, interval_ID_obj['itv_HdlRtn'])
-                    },50)
-                }
-            } else if(user_dbs['new'] == false){
-                if (in_itv_B) { clearInterval(in_id_int) };
-                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, user_dbs['old']), user_id )
-                return result_c
-            } else {
-                if (in_itv_B) { clearInterval(in_id_int) };
-                const result_c = await updateFromCall('high_wly_mly', newRtnStr(in_rtn_arr, user_dbs['new']), user_id )
-                return result_c
-            }
+        
+        async function waitForWeatherUpdate(in_itv, in_str, in_column){
+            console.log('FUNCTION waitForWeatherUpdate(), in_itv is:', in_itv);
+            if (new_weather == undefined){
+                if (in_itv && in_itv > 40){ return(await updateFromCall(in_column, in_str, user_id)) }
+                else{ setTimeout(() => { return waitForWeatherUpdate(in_itv+1, in_str, in_column) }, 50) }
+            } else if (new_weather){ return(await updateFromCall(['weather', in_column], [new_weather, in_str], user_id)) }
+            else{ return(await updateFromCall(in_column, in_str, user_id)) }
         };
 
         if(req.body.new_note_arr){
-            const new_note_arr = checkMultipleReq(req.body.new_note_arr);
-            const result = await handleNotes(new_note_arr, 0, 'add');
-            console.log('Result from inserting a new note for', username, 'was:', result);
-            return res.redirect(manageReturn(new_note_arr[2], new_note_arr[3], user_hour, username))
+            const this_arr = checkMultipleReq(req.body.new_note_arr);
+            const new_str = newNotesStrNew(this_arr, user_data);
+            await waitForWeatherUpdate(0, new_str, 'notes');
+            return res.redirect(manageReturn(this_arr[2], this_arr[3], user_hour, username))
         };
     
         if(req.body.edit_note_arr){
-            const edit_note_arr = checkMultipleReq(req.body.edit_note_arr);
-            const result = await handleNotes(edit_note_arr, 0, 'edit');
-            console.log('Result from editing a note for', username, 'was:', result);
-            return res.redirect(manageReturn(edit_note_arr[3], edit_note_arr[4], user_hour, username))
+            const this_arr = checkMultipleReq(req.body.edit_note_arr);
+            const new_str = newNotesStrEdit(this_arr, user_data);
+            await waitForWeatherUpdate(0, new_str, 'notes');
+            return res.redirect(manageReturn(this_arr[3], this_arr[4], user_hour, username))
         };
     
         if(req.body.remove_note_arr){
-            const remove_note_arr = checkMultipleReq(req.body.remove_note_arr);
-            const result = await handleNotes(remove_note_arr, 0, 'rm');
-            console.log('Result from removing a note for', username, 'was:', result);
-            return res.redirect(manageReturn(remove_note_arr[2], remove_note_arr[3], user_hour, username))
+            const this_arr = checkMultipleReq(req.body.remove_note_arr);
+            const new_str = newNotesStrRm(this_arr, user_data);
+            await waitForWeatherUpdate(0, new_str, 'notes');
+            return res.redirect(manageReturn(this_arr[2], this_arr[3], user_hour, username))
         };
     
         if(req.body.routine_note_arr){
-            const routine_note_arr = checkMultipleReq(req.body.routine_note_arr);
-            const result = await handleRoutines(routine_note_arr, 0);
-            console.log('Result from inserting a new routine for', username, 'was:', result);
-            return res.redirect(manageReturn(routine_note_arr[4], routine_note_arr[5], user_hour, username))
+            const this_arr = checkMultipleReq(req.body.routine_note_arr);
+            const new_str = newRtnStr(this_arr, user_data);
+            await waitForWeatherUpdate(0, new_str, 'high_wly_mly');
+            return res.redirect(manageReturn(this_arr[4], this_arr[5], user_hour, username))
         };
     
         if(req.body.edit_routine_note){
-            const edit_routine_note = checkMultipleReq(req.body.edit_routine_note);
-            const result = await handleNotes(edit_routine_note, 0, 'editrtn');
-            console.log('Result from editing a routine note for', username, 'was:', result);
-            return res.redirect(manageReturn(edit_routine_note[5], edit_routine_note[6], user_hour, username))
+            const this_arr = checkMultipleReq(req.body.edit_routine_note);
+            const new_str_arr = newNotesStrEditRtn(this_arr, user_data);
+            await waitForWeatherUpdate(0, new_str_arr, ['notes', 'high_wly_mly']);
+            return res.redirect(manageReturn(this_arr[5], this_arr[6], user_hour, username))
         };
     
         if(req.body.temp_letter){
@@ -1159,39 +1157,48 @@ app.post('/home', async function (req,res){
             return res.redirect(`/home/${username}`)
         };
 
+        //////////////////////////// PROJECTS
+
         if (req.body.new_project_title){
-            const result = await newProjectTitle(req.body, user_id);
-            if (result){ await updateProjects(result, user_id) }
+            const result = await newProjectTitle(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.project_task_arr){
-            const result = await projectTaskArr(req.body, user_id);
-            if (result){ await updateProjects(result, user_id) }
+            const result = await projectTaskArr(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.mark_done_todo){
-            const result = await markDoneTodo(req.body, user_id);
-            if (result){ await updateProjects(result, user_id) }
+            const result = await markDoneTodo(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.project_title_and_deadline_arr){
-            const result = await projectTitleAndDeadlineArr(req.body, user_id);
-            if (result){ await updateProjects(result, user_id) }
+            const result = await projectTitleAndDeadlineArr(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.edit_obs_arr){
-            const result = await editObsArr(req.body, user_id);
-            if (result){ await updateProjects(result, user_id) }
+            const result = await editObsArr(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.remove_task_arr){
-            const result = await removeTaskArr(req.body, user_id);
-            if (result){ await updateProjects(result, user_id) }
+            const result = await removeTaskArr(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
+            return res.redirect(`/home/${username}`)
+        };
+
+        if(req.body.acc_changes){
+            const this_arr = checkMultipleReq(req.body.acc_changes);
+            const result = await callVerifyPassword(this_arr[7], user_id);
+            if (result){ await changePersonalInfo(this_arr, user_id) };
             return res.redirect(`/home/${username}`)
         };
 
@@ -1203,6 +1210,7 @@ app.post('/home', async function (req,res){
 
 app.post('/login',
     passport.authenticate('local', { failureRedirect: '/fail' }), async function(req, res) {
+        console.log(req.body);
         const user_data_page = req.body;
         const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
         const user_data_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
@@ -1218,6 +1226,10 @@ app.post('/login',
         }
     }
 );
+
+app.post('/manage_acc', (req, res) => {
+    console.log(req)
+});
 
 app.post('/register', (req, res) => {
     const cred_arr = JSON.parse(req.body.cred_arr_str);

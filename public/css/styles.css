@@ -43,7 +43,7 @@ body {
     font-size: max(4.5vw, 34px);
 }
 
-h1 span{
+#period_of_day{
     font-weight: bold;
     background-size: cover;
     background-clip: text;
@@ -54,6 +54,12 @@ h1 span{
 
 h1:hover{
     cursor: default;
+}
+
+#span_username{
+    background-color: rgb(20,10,80);
+    padding: 3px 7px;
+    border-radius: 10px;
 }
 
 #logout-box{
@@ -544,7 +550,7 @@ header {
 }
 
 .context_menu{
-    width: 150px;
+    width: 160px;
 }
 
 ul{
@@ -708,7 +714,7 @@ p{
     max-width: 600px;
     height: fit-content;
     background-color: rgb(20,20,20);
-    border-radius: 15px;
+    border-radius: 5px;
     color: rgb(240,240,206);
     z-index: 7;
 }
@@ -837,6 +843,10 @@ input {
 }
 
 #submit_new_project:hover{
+    background-color: rgb(22,3,30);
+}
+
+#submit_acc:hover{
     background-color: rgb(22,3,30);
 }
 
@@ -1075,6 +1085,46 @@ input {
     margin: 0;
 }
 
+#manage_acc p{
+    background-color: rgb(5,5,5);
+    height: 45px;
+    text-align: center;
+    padding-top: 12px;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+}
+
+#acc_data td{
+    padding: 4px 10px 4px 15px;
+}
+
+#acc_data td input{
+    outline: none;
+    border: none;
+    margin: 2px;
+    color: rgb(200,150,240);
+    background: rgb(20,20,20);
+    width: 96%;
+}
+
+#acc_data td:first-child{
+    width: 26%;
+    min-width: 135px;
+    text-align: end;
+}
+
+#acc_data td:nth-child(2){
+    font-family: 'Courier New', Courier, monospace;
+    padding-left: 0;
+}
+
+#acc_data td input{
+    letter-spacing: -1px;
+}
+
+#acc_data td input:focus{
+    background-color: rgb(5,5,5);
+}
 
 
 
@@ -1092,6 +1142,10 @@ input {
 
     #shine-div:before {
         background: radial-gradient(farthest-corner at top, rgb(7,13,52)1%, rgb(29,7,39) 45%);
+    }
+
+    #span_username{
+        background-color: rgb(15,3,44);
     }
 
     .main-container{

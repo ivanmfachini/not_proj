@@ -87,7 +87,6 @@ function inputChecker(in_str){
     return false
 };
 
-
 function login(in_obj = false){
     $(in_obj).css('background-color', 'rgb(5,10,40)');
 
@@ -243,6 +242,64 @@ $("#register").on('click', function(){
     }
 });
 
+$("#change_pw").on('click', function(){
+    if ( usernameChecker($("#username").val()) ){
+        if ( inputChecker($("#password").val()) ){
+            new_date = new Date();
+            $("#change_pw-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
+                JSON.stringify({
+                    'YYYY-MM-DD' : YYYYMMDD(new_date),
+                    'local_hour': new_date.getHours(),
+                    'UTC_hour': new_date.getUTCHours(),
+                    'timestamp': new_date.getTime(),
+                    'lat':lat,
+                    'lon':lon,
+                    'tmz_iana': tmz_iana,
+                    'hour_offset': hour_offset,
+                    'tmz_suffix': tmz_suffix
+                })
+            ) + "'/>");
+            $("#change_pw-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
+                JSON.stringify([ $("#username").val(), $("#password").val() ])
+            ) + "'/>");
+            document.getElementById("change_pw-form").submit();
+        } else{
+            alert('Password not submitted')
+        }
+    } else{
+        alert('Username not submitted')
+    };
+});
+
+$("#demo").on('mousedown', () =>{
+    $(this).css('background-position','100% 0');
+    $(this).css('-o-transition','all .3s ease-in-out');
+    $(this).css('-webkit-transition','all .3s ease-in-out');
+    $(this).css('transition','all .3s ease-in-out');
+
+    new_date = new Date();
+    const time_place_obj_str = JSON.stringify({
+        'YYYY-MM-DD' : YYYYMMDD(new_date),
+        'local_hour': new_date.getHours(),
+        'UTC_hour': new_date.getUTCHours(),
+        'timestamp': new_date.getTime(),
+        'lat':lat,
+        'lon':lon,
+        'tmz_iana': tmz_iana,
+        'hour_offset': hour_offset,
+        'tmz_suffix': tmz_suffix
+    });
+    $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
+    string_to_submit = "";
+    document.getElementById("demo-form").submit();
+
+});
+
+
+
+
+///////////////////////////////////////////////////////////////
+
 $("#pw_change").on('click',function(){
     $(this).css('background-color', 'rgb(22,5,30)');
     let checker = 0;
@@ -305,27 +362,4 @@ $("#pw_change").on('click',function(){
     }
 });
 
-$("#demo").on('mousedown', () =>{
-    $(this).css('background-position','100% 0');
-    $(this).css('-o-transition','all .3s ease-in-out');
-    $(this).css('-webkit-transition','all .3s ease-in-out');
-    $(this).css('transition','all .3s ease-in-out');
-
-    new_date = new Date();
-    const time_place_obj_str = JSON.stringify({
-        'YYYY-MM-DD' : YYYYMMDD(new_date),
-        'local_hour': new_date.getHours(),
-        'UTC_hour': new_date.getUTCHours(),
-        'timestamp': new_date.getTime(),
-        'lat':lat,
-        'lon':lon,
-        'tmz_iana': tmz_iana,
-        'hour_offset': hour_offset,
-        'tmz_suffix': tmz_suffix
-    });
-    $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
-    string_to_submit = "";
-    document.getElementById("demo-form").submit();
-
-})
 });

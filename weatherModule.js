@@ -8,7 +8,7 @@ module.exports = async function (in_lat, in_lon, in_tmz_iana, in_hour, in_cel = 
         let string_to_axios = `https://api.open-meteo.com/v1/forecast?latitude=${in_lat}&longitude=${in_lon}&hourly=temperature_2m,weathercode&${in_cel}daily=sunrise,sunset&timezone=${in_tmz_iana}&forecast_days=3`
         console.log(string_to_axios);
         try{
-            let axios_response = await axios.get(string_to_axios, {timeout : 2500})
+            let axios_response = await axios.get(string_to_axios, {timeout : 2000})
             let hour_arr = axios_response.data.hourly.time;
             let tmp_arr = axios_response.data.hourly.temperature_2m;
             let cod_arr = axios_response.data.hourly.weathercode;

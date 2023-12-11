@@ -41,8 +41,8 @@
             } else if ($('#day1 h5').html() == tomorrowDay){
                 $("#day1 .new_note").attr('placeholder', 'new note for tomorrow');
             }
-            $(".ngttime").hide();
-            $(".daytime").show();
+            $(".ngttime").hide(60);
+            $(".daytime").show(60);
             
         } else{
             period_of_day_class = '.ngttime';
@@ -56,8 +56,8 @@
             if ($('#day1 .ngttime h5').html() == tomorrowDay){
                 $("#day1 .new_note").attr('placeholder', 'new note for tomorrow');
             }
-            $(".daytime").hide();
-            $(".ngttime").show();
+            $(".daytime").hide(60);
+            $(".ngttime").show(60);
         };
         A_day_key = $(".hidden_date"+period_of_day_class).html();
         console.log(A_day_key);
@@ -92,6 +92,41 @@
             }            
         };
         return out_str
+    };
+
+    function inputChecker(in_str, space_exception = false){
+        if (in_str.length > 1 && in_str.length < 40){
+            if (space_exception){
+                for (let i = 0; i < in_str.length; i++) {
+                    let code = in_str.charCodeAt(i);
+                    if ( code < 32 || code == 34 || code == 39 || code == 40 || code == 41 || code == 47 || code == 123 || code == 125 ) {
+                        return false;
+                    }
+                }
+                return true
+            } else{
+                for (let i = 0; i < in_str.length; i++) {
+                    let code = in_str.charCodeAt(i);
+                    if ( code < 33 || code == 34 || code == 39 || code == 40 || code == 41 || code == 47 || code == 123 || code == 125 ) {
+                        return false;
+                    }
+                }
+                return true
+            }
+        }
+        return false
+    };
+
+    function phoneChecker(in_str){
+        if (in_str.length > 4 && in_str.length < 21){
+            for (let i = 0; i < in_str.length; i++) {
+                let code = in_str.charCodeAt(i);
+                if ( (code > 47 && code < 58) || code == 43 || code == 40 || code == 41 || code == 45 || code == 32 ) {}
+                else return false
+            };
+            return true
+        };
+        return false
     };
 
     // Lyuben Todorov https://stackoverflow.com/a/15465612/21113444
@@ -403,26 +438,26 @@
         $("#context_note").css('visibility', 'visible');
 
         if ($($(this).siblings('.highlight')[0]).length > 0){
-            $("#highlight_button").hide();
-            $("#unhighlight_button").show();
+            $("#highlight_button").hide(60);
+            $("#unhighlight_button").show(60);
         } else{
-            $("#unhighlight_button").hide();
-            $("#highlight_button").show();
+            $("#unhighlight_button").hide(60);
+            $("#highlight_button").show(60);
         }
         if( $(this).hasClass('weekly') ){
-            $("#weekly_button").hide();
-            $("#unweekly_button").show();
+            $("#weekly_button").hide(60);
+            $("#unweekly_button").show(60);
         } else{
-            $("#unweekly_button").hide();
-            $("#weekly_button").show();
+            $("#unweekly_button").hide(60);
+            $("#weekly_button").show(60);
         }
 
         if( $(this).hasClass('monthly') ){
-            $("#monthly_button").hide();
-            $("#unmonthly_button").show();
+            $("#monthly_button").hide(60);
+            $("#unmonthly_button").show(60);
         } else{
-            $("#unmonthly_button").hide();
-            $("#monthly_button").show();
+            $("#unmonthly_button").hide(60);
+            $("#monthly_button").show(60);
         }
 
         let this_id = $(this).attr('id');
@@ -569,10 +604,10 @@
     $('#add_new_project').on('click', function(){
         $($('.shade_project_box')[0]).css('visibility', 'visible');
         $('#new_project_box').css({'top' : `${window.scrollY + (window.innerHeight/12)}px`});
-        $('.another_task').hide();
-        $('#more_tasks_can_be_added_later').hide();
-        $('.spacer').hide();
-        $('#another_task0').show();
+        $('.another_task').hide(60);
+        $('#more_tasks_can_be_added_later').hide(60);
+        $('.spacer').hide(60);
+        $('#another_task0').show(60);
         let add_ath_tsk_arr = $('.add_another_task');
         $(add_ath_tsk_arr[0]).html('+1');
         $('#new_project_box').css('visibility','visible');
@@ -581,7 +616,7 @@
                 for (let a = 0; a < 8; a++){
                     $(add_ath_tsk_arr[a]).html('remove');
                     if ($(add_ath_tsk_arr[a]).css('height') == '0px'){
-                        $($('.another_task')[a]).show();
+                        $($('.another_task')[a]).show(60);
                         let hidden = false;
                         for (let y = 6; y > a; y--){
                             if ($(add_ath_tsk_arr[y]).css('height') == '0px'){
@@ -596,8 +631,8 @@
                                         $(add_ath_tsk_arr[z]).html('+1')
                                     } else{
                                         $(add_ath_tsk_arr[z]).html('remove');
-                                        $('#more_tasks_can_be_added_later').show();
-                                        $('.spacer').show()
+                                        $('#more_tasks_can_be_added_later').show(60);
+                                        $('.spacer').show(60)
                                     }
                                     break
                                 } else{
@@ -610,9 +645,9 @@
                     }
                 }
             } else{    //remove
-                $($(this).parent()).hide();
-                $('#more_tasks_can_be_added_later').hide();
-                $('.spacer').hide();
+                $($(this).parent()).hide(60);
+                $('#more_tasks_can_be_added_later').hide(60);
+                $('.spacer').hide(60);
                 for (let a = 0; a < 7; a++){
                     $(add_ath_tsk_arr[a]).html('remove');
                 }
@@ -666,18 +701,18 @@
         $('#context_task').css('visibility', 'visible');
 
         if ( $(in_object).hasClass('done') ){
-            $("#mark_done_button").hide();
-            $("#mark_todo_button").show();
+            $("#mark_done_button").hide(60);
+            $("#mark_todo_button").show(60);
         } else{
-            $("#mark_todo_button").hide();
-            $("#mark_done_button").show();
+            $("#mark_todo_button").hide(60);
+            $("#mark_done_button").show(60);
         }
         if( $(in_object).children('.task-deadline')[0] ){
-            $("#set_deadline_button").hide();
-            $("#change_deadline_button").show();
+            $("#set_deadline_button").hide(60);
+            $("#change_deadline_button").show(60);
         } else{
-            $("#change_deadline_button").hide();
-            $("#set_deadline_button").show();
+            $("#change_deadline_button").hide(60);
+            $("#set_deadline_button").show(60);
         }
 
         $('#change_task_button').on('click', function(){
@@ -739,9 +774,9 @@
             let new_task_before = $('#new_task_before').val();
             let new_task_after = $('#new_task_after').val();
             console.log(new_task_after);
-            if (    (edit_task_text == "" || $(edit_task_text).length < 41 && sanitizeTextInput(edit_task_text)) &&
-                    (new_task_before == "" || $(new_task_before).length < 41 && sanitizeTextInput(new_task_before)) &&
-                    (new_task_after == "" || $(new_task_after).length < 41 && sanitizeTextInput(new_task_after))){
+            if (    (edit_task_text == ""   || $(edit_task_text).length < 41    && sanitizeTextInput(edit_task_text)) &&
+                    (new_task_before == ""  || $(new_task_before).length < 41   && sanitizeTextInput(new_task_before)) &&
+                    (new_task_after == ""   || $(new_task_after).length < 41    && sanitizeTextInput(new_task_after))){
                 arr_with_values.push(edit_task_text);
                 arr_with_values.push(new_task_before);
                 arr_with_values.push(new_task_after);
@@ -837,11 +872,11 @@
         $("#context_submit_project").css('visibility', 'hidden');
 
         if ( $($(in_object).children('.final_deadline-box')[0]).html() == 'false' ){
-            $("#set_project_deadline_button").show();
-            $("#change_project_deadline_button").hide();
+            $("#set_project_deadline_button").show(60);
+            $("#change_project_deadline_button").hide(60);
         } else{
-            $("#set_project_deadline_button").hide();
-            $("#change_project_deadline_button").show();
+            $("#set_project_deadline_button").hide(60);
+            $("#change_project_deadline_button").show(60);
         };
         $('#context_project-title').css('visibility', 'visible');
 
@@ -875,7 +910,7 @@
                 project_index = d;
                 break
             }
-        }
+        };
         let arr_with_values = [project_index];
         
         $('#context_submit_project').on('mousedown', function(){
@@ -937,7 +972,7 @@
     });
 
     if ($("#celsius").html() == "true" || $("#celsius").html() == true){
-        $("#show_c").hide();
+        $("#show_c").hide(60);
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
             let buf_temp = $(temps[t]).html();
@@ -945,7 +980,7 @@
         };
 
     } else{
-        $("#show_f").hide();
+        $("#show_f").hide(60);
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
             let buf_temp = $(temps[t]).html();
@@ -1023,6 +1058,9 @@
                 $('.context_task_text').css('visibility', 'hidden');
                 $("#context_submit_task").css('visibility', 'hidden');
                 $("#context_submit_project").css('visibility', 'hidden');
+                $("#span_username").css('background-color', 'rgb(20,10,80)');
+                $("#span_username").css('border-bottom-left-radius', '5px');
+                $("#span_username").css('border-bottom-right-radius', '5px');
                 if (event_class.slice(0,3) != 'obs'){
                     $(".obs-box").css('visibility', 'hidden');
                 }
@@ -1035,6 +1073,9 @@
             $('.context_task_text').css('visibility', 'hidden');
             $(".obs-box").css('visibility', 'hidden');
             $("#context_submit_task").css('visibility', 'hidden');
+            $("#span_username").css('background-color', 'rgb(20,10,80)');
+            $("#span_username").css('border-bottom-left-radius', '5px');
+            $("#span_username").css('border-bottom-right-radius', '5px');
         }
     });
 
@@ -1055,8 +1096,6 @@
                 };
                 let these_tasks = $(in_obj).find('.specific_task');
                 for (let a = 0; a < these_tasks.length; a++){
-                    console.log($(these_tasks[a]).height());
-                    console.log($(these_tasks[a]).width());
                     if ($(these_tasks[a]).height() > $(these_tasks[a]).width()){
                         $(in_obj).css('flex-wrap', 'wrap');
                         return(true)
@@ -1139,18 +1178,18 @@
             if ( this_id == 'new_project_title' || this_id == 'context_project_title' ){
                 $('#max_char_title').css('top', positioning.top + window.scrollY);
                 $('#max_char_title').css('left', `${positioning.right}px`);
-                $('#max_char_title').show();
-                $('#max_char_title').on('click', function(){ $('#max_char_title').hide() });
+                $('#max_char_title').show(60);
+                $('#max_char_title').on('click', function(){ $('#max_char_title').hide(60) });
                 setTimeout(() => {
-                    $('#max_char_title').hide()
+                    $('#max_char_title').hide(60)
                 }, 4000)
             } else{
                 $('#max_char_task').css('top', positioning.top + window.scrollY);
                 $('#max_char_task').css('left', positioning.right);
-                $('#max_char_task').show();
-                $('#max_char_task').on('click', function(){ $('#max_char_task').hide() });
+                $('#max_char_task').show(60);
+                $('#max_char_task').on('click', function(){ $('#max_char_task').hide(60) });
                 setTimeout(function(){
-                    $('#max_char_task').hide()
+                    $('#max_char_task').hide(60)
                 },7000)
             }
         }
@@ -1244,15 +1283,121 @@
         $($('#next_30_days').children('.specific_next_event')).css('margin-bottom', '14px')
     };
 
+    function userSettings(event){
+        //let pos_x = user_object.clientX, pos_y = event.clientY;
+        const this_object = event.target;
+        let acc_menu = $("#manage_acc");
+        $(this_object).css('background-color', 'rgb(5,5,5)');
+        $(this_object).css('border-bottom-left-radius', '0');
+        $(this_object).css('border-bottom-right-radius', '0');
+        const day1 = $("#day1")[0];
+        if (day1.offsetTop < $("#day2")[0].offsetTop){
+            acc_menu.css('top', `${this_object.offsetTop + this_object.offsetHeight -3}px`);
+            acc_menu.css('margin-left', `${day1.offsetLeft}px`);
+            acc_menu.css('width', `${day1.offsetWidth}px`);
+            $("#manage_acc .context_menu").css('width', '100%');
+            acc_menu.css('visibility', 'visible'); acc_menu.hide(60)
+        } else{
+            acc_menu.css('top', `${this_object.offsetTop + this_object.offsetHeight}px`);
+            acc_menu.css('left', `${this_object.offsetLeft-40}px`);
+            if (day1.offsetWidth > 400){
+                acc_menu.css('width', `${day1.offsetWidth}px`)
+            } else{
+                acc_menu.css('width', '400px')
+            };
+            $("#manage_acc .context_menu").css('width', '100%');
+            acc_menu.css('visibility', 'visible'); acc_menu.hide(60);
+        };
+        acc_menu.slideDown(100, 'linear');
+        if ($("#new_pw_conf").val() == ""){ $("#new_pw_conf_tr").hide(60) }
+    };
+    $("#new_pw").on('keydown', (e)=>{
+        setTimeout(() => {
+            if($(e.target).val().length){ $("#new_pw_conf_tr").slideDown(100) }
+            else{ $("#new_pw_conf_tr").slideUp(100) }
+        }, 10);
+    });
+    
+    $("#span_username").on('click', (e)=>{ userSettings(e) });
+    $("#span_username").on('contextmenu', (e)=>{ e.preventDefault(); userSettings(e) });
+
+    $("#submit_acc").on('click', ()=>{
+        let checker = 0;
+        let first_name = $("#acc_firstname").val();
+        let surname = $("#acc_surname").val();
+        let email = $("#acc_useremail").val();
+        let phone = $("#acc_userphone").val();
+        let lang = $("#acc_lang").val();
+        if (inputChecker(first_name, true) && first_name.length > 1 && first_name.length < 21){
+            checker += 1; console.log(checker)  //1
+        } else{ alert("Invalid first name"); return };
+        if (surname == "" || inputChecker(surname, true)){
+            checker += 1; console.log(checker)  //2
+        } else{ alert("Invalid surname"); return };
+        if (email == "" || (inputChecker(email) && email.length > 6 && email.length < 81)){
+            checker += 1; console.log(checker)  //3
+        } else{ alert("Invalid e-mail"); return };
+        if (phone == "" || (phoneChecker(phone) && phone.length > 5 && phone.length < 31)){
+            checker += 1; console.log(checker)  //4
+        } else{ alert("Invalid phone number"); return };
+        if (lang == "" || (inputChecker(lang) && lang.length == 3)){
+            checker += 1; console.log(checker)  //5
+        } else{ alert("Invalid language"); return };
+        if ($("#new_pw").val() == "" || (inputChecker($("#new_pw").val()) && $("#new_pw").val().length > 4 && $("#new_pw").val().length < 40)){
+            checker += 1; console.log(checker)  //6
+        } else{ alert("Invalid new password"); return };
+        if (($("#new_pw").val() == "" && $("#new_pw_conf").val() == "") || (inputChecker($("#new_pw_conf").val()) && $("#new_pw_conf").val().length > 4 && $("#new_pw_conf").val().length < 40)){
+            checker += 1; console.log(checker)  //7
+        } else{ alert("Invalid new password confirmation"); return };
+        if ($("#new_pw_conf").val() == $("#new_pw").val()){
+            checker += 1; console.log(checker)  //8
+        } else{ alert('The new password must be the same in both fields: "New password" and "again"'); return };
+        if ($("#acc_curr_pw").val().length){
+            checker += 1; console.log(checker)  //9
+        } else{
+            let top_pos = $("#submit_acc")[0].offsetTop;
+            let left_pos = $("#span_username")[0].offsetLeft;
+            console.log($("#submit_acc")[0]);
+            $("#curr_pw_required").css('top',`${top_pos+50}px`);
+            $("#curr_pw_required").css('left',`${left_pos+80}px`);
+            $("#curr_pw_required").show(60);
+            $("#acc_pw_label").css('color', 'red');
+            $("#acc_curr_pw").css('color', 'red');
+            setTimeout(() => {
+                $("#curr_pw_required").hide(60);
+            }, 3000);
+            return
+        };
+        if (inputChecker($("#acc_curr_pw").val())){
+            checker += 1; console.log(checker)  //10
+        } else{ alert("Invalid current password"); return };
+        if (checker == 10){
+            let arr_with_values = [new_username, first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()];
+            let string_to_submit = JSON.stringify(arr_with_values);
+            let param = "<input hidden type='text' name='acc_changes' value='" + string_to_submit + "'/>";
+            $("#form-acc_changes").append(param);
+            param = string_to_submit = arr_with_values = 0;
+            new_date = new Date();
+            local_hour = new_date.getHours();
+            UTC_hour = new_date.getUTCHours();
+            let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
+            let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
+            $("#form-acc_changes").append(param_hour);
+            document.getElementById("form-acc_changes").submit()
+        } else{ return }
+    });
+
+    if(window.innerWidth < 410){ $("#new_pw").css('letter-spacing', '-1.7px') };
+
     setTimeout(() => {
         if (($("#wtr_simple").html()) == "true" || ($("#wtr_simple").html()) == true){
-            $(".hour_hour_weather").hide();
-            $(".max_min_temp").hide();
-            $("#show_simpl").hide();
-            $("#next_6_hours").hide();
+            $(".hour_hour_weather").hide(60);
+            $(".max_min_temp").hide(60);
+            $("#show_simpl").hide(60);
+            $("#next_6_hours").hide(60);
             $(".hour_hour_weather").css('margin', '0 7px');
             $(".hourly_weather").css('margin-bottom', '5px')
-        } else{ $("#show_compl").hide() }
+        } else{ $("#show_compl").hide(60) }
     }, 13);
     
 });

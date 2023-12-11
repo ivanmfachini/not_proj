@@ -26,7 +26,7 @@
         <div class="container" id="hero-greeting">
           <div class="row">
             <div class="col" id="title-box">
-              <h1>Good <span id="period_of_day">day</span>, <%=first_name_PH%></h1>
+              <h1>Good <span id="period_of_day">day</span>, <span id="span_username"><%=first_name_PH%></span></h1>
               <div id="logout-box">&#8618;</div>
               <form hidden action="/home" method="post" name="logout-form" id="logout-form">
                 <input hidden type="number" name="logout" id="logout" value=1>
@@ -953,6 +953,52 @@
       </div>
     </div>
 
+    <div class="context_menu wrapper" id="manage_acc">
+      <div class="context_menu">
+        <p style="margin-bottom: 8px;">Your Account Data</p>
+          <table id="acc_data" style="width: 100%;">
+            <tr>
+              <td class="context_td">Username:</td><td class="context_td" style="padding-left: 4px;"><%=username_PH%></td>
+            </tr>
+            <tr>
+              <td class="context_td">First name:</td><td class="context_td"><input type="text" name="acc_firstname" id="acc_firstname" value="<%=first_name_PH%>"></td>
+            </tr>
+            <tr>
+              <td class="context_td">Surname:</td><td class="context_td"><input type="text" name="acc_surname" id="acc_surname" value="<%=surname_PH%>"></td>
+            </tr>
+            <tr>
+              <td class="context_td">e-mail:</td><td class="context_td"><input type="email" name="acc_useremail" id="acc_useremail" value="<%=useremail_PH%>"></td>
+            </tr>
+            <tr>
+              <td class="context_td">Phone:</td><td class="context_td"><input type="text" name="acc_userphone" id="acc_userphone" value="<%=userphone_PH%>"></td>
+            </tr>
+            <tr>
+              <td class="context_td">Language:</td><td class="context_td">
+                <select style="margin-left: 6px;" name="acc_lang" id="acc_lang" class="context_select_lang">
+                  <option selected value="">🇺🇸 / 🇧🇷</option>
+                  <option value="eng" class="context_lang_eng">🇺🇸 English</option>
+                  <option value="por" class="context_lang_por">🇧🇷 Português</option>
+                </select>
+              </td>
+            </tr> 
+            <tr>
+              <td class="context_td" style="color: lightcoral;">New password:</td><td class="context_td"><input type="password" name="new_pw" id="new_pw" placeholder="(only if you want to change)" style="color: lightcoral; letter-spacing: -1.4px;"></td>
+            </tr>
+            <tr id="new_pw_conf_tr">
+              <td class="context_td" style="color: lightcoral;">again:</td><td class="context_td"><input type="password" name="new_pw_conf" id="new_pw_conf" style="color: lightcoral;"></td>
+            </tr>            
+            <tr>
+              <td class="context_td" id="acc_pw_label">Password:</td><td class="context_td"><input type="password" name="acc_curr_pw" id="acc_curr_pw" placeholder="(the current one)" required></td>
+            </tr>
+          </table>
+          <div class="context center-container">
+            <button type="button" class="context project_buttons" form="form-acc_changes" id="submit_acc" style="width: 60%;">Confirm changes</button>
+            <form action="/home" method="post" name="form-acc_changes" id="form-acc_changes" hidden></form>
+          </div>
+        <form action="/home" method="post" id="acc_mng" name="acc_mng" hidden></form>
+      </div>
+    </div>
+
     <div class="auxiliar_note" id="max_char_task">
       <p>Tasks are limited to 40 characters, but you can add observations to them after the project is created</p>
     </div>
@@ -963,6 +1009,10 @@
 
     <div class="auxiliar_note" id="logout_note" style="min-width: 70px; width: 70px; text-align: center;">
       <p>Log out</p>
+    </div>
+
+    <div class="auxiliar_note" id="curr_pw_required">
+      <p>Current password is required</p>
     </div>
 
     
