@@ -1372,7 +1372,7 @@
             checker += 1; console.log(checker)  //10
         } else{ alert("Invalid current password"); return };
         if (checker == 10){
-            let arr_with_values = [new_username, first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()];
+            let arr_with_values = [first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()];
             let string_to_submit = JSON.stringify(arr_with_values);
             let param = "<input hidden type='text' name='acc_changes' value='" + string_to_submit + "'/>";
             $("#form-acc_changes").append(param);

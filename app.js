@@ -889,17 +889,17 @@ async function callVerifyPassword(in_pw, user_id){
 };
 
 async function changePersonalInfo(in_arr, user_id){
-    //[new_username, first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()]
+    //[first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()]
     console.log('changePersonalInfo received:');
     console.log(in_arr);
-    if (in_arr[6].length){
+    if (in_arr[5].length){
         let this_1;
         await db.query("SELECT password FROM credential WHERE id = $1",[user_id],(err1, result)=>{
             if (err1){
                 console.log('ERROR while SELECT password FROM credential in changePersonalInfo:', err1.message)
                 return false
             } else{ this_1 = result.rows[0].password };
-            bcrypt.hash( ( (in_arr[6])+(process.env.PEP) ), saltRounds, async function(err2, hash) {
+            bcrypt.hash( ( (in_arr[5])+(process.env.PEP) ), saltRounds, async function(err2, hash) {
                 if(err2){
                     console.log('ERROR in bcrypt.hash in changePersonalInfo:', err2.message);
                     return false
@@ -911,16 +911,16 @@ async function changePersonalInfo(in_arr, user_id){
                             return false
                         } else{
                             if (in_arr[5].length){  //lang
-                                await db.query("UPDATE work_data SET (username, first_name, surname, email, phone, lang, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6,$7,$8) WHERE user_id = ($9)",
-                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], in_arr[5], Date.now(), this_1, user_id], (err4, result)=>{
+                                await db.query("UPDATE work_data SET (first_name, surname, email, phone, lang, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6,$7) WHERE user_id = ($8)",
+                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], Date.now(), this_1, user_id], (err4, result)=>{
                                     if (err4){
                                         console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
                                         return false
                                     } else{ return true }
                                 })
                             } else{
-                                await db.query("UPDATE work_data SET (username, first_name, surname, email, phone, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6,$7) WHERE user_id = ($8)",
-                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], Date.now(), this_1, user_id], (err4, result)=>{
+                                await db.query("UPDATE work_data SET (first_name, surname, email, phone, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6) WHERE user_id = ($7)",
+                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], Date.now(), this_1, user_id], (err4, result)=>{
                                     if (err4){
                                         console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
                                         return false
@@ -934,16 +934,16 @@ async function changePersonalInfo(in_arr, user_id){
         })
     } else{
         if (in_arr[5].length){  //lang
-            await db.query("UPDATE work_data SET (username, first_name, surname, email, phone, lang) = ($1,$2,$3,$4,$5,$6) WHERE user_id = ($7)",
-            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], in_arr[5], user_id], (err4, result)=>{
+            await db.query("UPDATE work_data SET (first_name, surname, email, phone, lang) = ($1,$2,$3,$4,$5) WHERE user_id = ($6)",
+            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], user_id], (err4, result)=>{
                 if (err4){
                     console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
                     return false
                 } else{ return true }
             })
         } else{
-            await db.query("UPDATE work_data SET (username, first_name, surname, email, phone) = ($1,$2,$3,$4,$5) WHERE user_id = ($6)",
-            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], user_id], (err4, result)=>{
+            await db.query("UPDATE work_data SET (first_name, surname, email, phone) = ($1,$2,$3,$4) WHERE user_id = ($5)",
+            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], user_id], (err4, result)=>{
                 if (err4){
                     console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
                     return false
@@ -1197,7 +1197,7 @@ app.post('/home', async function (req,res){
 
         if(req.body.acc_changes){
             const this_arr = checkMultipleReq(req.body.acc_changes);
-            const result = await callVerifyPassword(this_arr[7], user_id);
+            const result = await callVerifyPassword(this_arr[6], user_id);
             if (result){ await changePersonalInfo(this_arr, user_id) };
             return res.redirect(`/home/${username}`)
         };
