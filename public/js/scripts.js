@@ -41,8 +41,8 @@
             } else if ($('#day1 h5').html() == tomorrowDay){
                 $("#day1 .new_note").attr('placeholder', 'new note for tomorrow');
             }
-            $(".ngttime").hide(60);
-            $(".daytime").show(60);
+            $(".ngttime").hide();
+            $(".daytime").show();
             
         } else{
             period_of_day_class = '.ngttime';
@@ -56,8 +56,8 @@
             if ($('#day1 .ngttime h5').html() == tomorrowDay){
                 $("#day1 .new_note").attr('placeholder', 'new note for tomorrow');
             }
-            $(".daytime").hide(60);
-            $(".ngttime").show(60);
+            $(".daytime").hide();
+            $(".ngttime").show();
         };
         A_day_key = $(".hidden_date"+period_of_day_class).html();
         console.log(A_day_key);
@@ -438,26 +438,26 @@
         $("#context_note").css('visibility', 'visible');
 
         if ($($(this).siblings('.highlight')[0]).length > 0){
-            $("#highlight_button").hide(60);
-            $("#unhighlight_button").show(60);
+            $("#highlight_button").hide();
+            $("#unhighlight_button").show();
         } else{
-            $("#unhighlight_button").hide(60);
-            $("#highlight_button").show(60);
+            $("#unhighlight_button").hide();
+            $("#highlight_button").show();
         }
         if( $(this).hasClass('weekly') ){
-            $("#weekly_button").hide(60);
-            $("#unweekly_button").show(60);
+            $("#weekly_button").hide();
+            $("#unweekly_button").show();
         } else{
-            $("#unweekly_button").hide(60);
-            $("#weekly_button").show(60);
+            $("#unweekly_button").hide();
+            $("#weekly_button").show();
         }
 
         if( $(this).hasClass('monthly') ){
-            $("#monthly_button").hide(60);
-            $("#unmonthly_button").show(60);
+            $("#monthly_button").hide();
+            $("#unmonthly_button").show();
         } else{
-            $("#unmonthly_button").hide(60);
-            $("#monthly_button").show(60);
+            $("#unmonthly_button").hide();
+            $("#monthly_button").show();
         }
 
         let this_id = $(this).attr('id');
@@ -604,10 +604,10 @@
     $('#add_new_project').on('click', function(){
         $($('.shade_project_box')[0]).css('visibility', 'visible');
         $('#new_project_box').css({'top' : `${window.scrollY + (window.innerHeight/12)}px`});
-        $('.another_task').hide(60);
-        $('#more_tasks_can_be_added_later').hide(60);
-        $('.spacer').hide(60);
-        $('#another_task0').show(60);
+        $('.another_task').hide();
+        $('#more_tasks_can_be_added_later').hide();
+        $('.spacer').hide();
+        $('#another_task0').show();
         let add_ath_tsk_arr = $('.add_another_task');
         $(add_ath_tsk_arr[0]).html('+1');
         $('#new_project_box').css('visibility','visible');
@@ -616,7 +616,7 @@
                 for (let a = 0; a < 8; a++){
                     $(add_ath_tsk_arr[a]).html('remove');
                     if ($(add_ath_tsk_arr[a]).css('height') == '0px'){
-                        $($('.another_task')[a]).show(60);
+                        $($('.another_task')[a]).show();
                         let hidden = false;
                         for (let y = 6; y > a; y--){
                             if ($(add_ath_tsk_arr[y]).css('height') == '0px'){
@@ -631,8 +631,8 @@
                                         $(add_ath_tsk_arr[z]).html('+1')
                                     } else{
                                         $(add_ath_tsk_arr[z]).html('remove');
-                                        $('#more_tasks_can_be_added_later').show(60);
-                                        $('.spacer').show(60)
+                                        $('#more_tasks_can_be_added_later').show();
+                                        $('.spacer').show()
                                     }
                                     break
                                 } else{
@@ -645,9 +645,9 @@
                     }
                 }
             } else{    //remove
-                $($(this).parent()).hide(60);
-                $('#more_tasks_can_be_added_later').hide(60);
-                $('.spacer').hide(60);
+                $($(this).parent()).hide();
+                $('#more_tasks_can_be_added_later').hide();
+                $('.spacer').hide();
                 for (let a = 0; a < 7; a++){
                     $(add_ath_tsk_arr[a]).html('remove');
                 }
@@ -701,18 +701,18 @@
         $('#context_task').css('visibility', 'visible');
 
         if ( $(in_object).hasClass('done') ){
-            $("#mark_done_button").hide(60);
-            $("#mark_todo_button").show(60);
+            $("#mark_done_button").hide();
+            $("#mark_todo_button").show();
         } else{
-            $("#mark_todo_button").hide(60);
-            $("#mark_done_button").show(60);
+            $("#mark_todo_button").hide();
+            $("#mark_done_button").show();
         }
         if( $(in_object).children('.task-deadline')[0] ){
-            $("#set_deadline_button").hide(60);
-            $("#change_deadline_button").show(60);
+            $("#set_deadline_button").hide();
+            $("#change_deadline_button").show();
         } else{
-            $("#change_deadline_button").hide(60);
-            $("#set_deadline_button").show(60);
+            $("#change_deadline_button").hide();
+            $("#set_deadline_button").show();
         }
 
         $('#change_task_button').on('click', function(){
@@ -872,11 +872,11 @@
         $("#context_submit_project").css('visibility', 'hidden');
 
         if ( $($(in_object).children('.final_deadline-box')[0]).html() == 'false' ){
-            $("#set_project_deadline_button").show(60);
-            $("#change_project_deadline_button").hide(60);
+            $("#set_project_deadline_button").show();
+            $("#change_project_deadline_button").hide();
         } else{
-            $("#set_project_deadline_button").hide(60);
-            $("#change_project_deadline_button").show(60);
+            $("#set_project_deadline_button").hide();
+            $("#change_project_deadline_button").show();
         };
         $('#context_project-title').css('visibility', 'visible');
 
@@ -972,7 +972,7 @@
     });
 
     if ($("#celsius").html() == "true" || $("#celsius").html() == true){
-        $("#show_c").hide(60);
+        $("#show_c").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
             let buf_temp = $(temps[t]).html();
@@ -980,7 +980,7 @@
         };
 
     } else{
-        $("#show_f").hide(60);
+        $("#show_f").hide();
         let temps = $(".weather_temperature");
         for (let t = 0; t < temps.length; t++){
             let buf_temp = $(temps[t]).html();
@@ -1178,18 +1178,18 @@
             if ( this_id == 'new_project_title' || this_id == 'context_project_title' ){
                 $('#max_char_title').css('top', positioning.top + window.scrollY);
                 $('#max_char_title').css('left', `${positioning.right}px`);
-                $('#max_char_title').show(60);
-                $('#max_char_title').on('click', function(){ $('#max_char_title').hide(60) });
+                $('#max_char_title').show();
+                $('#max_char_title').on('click', function(){ $('#max_char_title').hide() });
                 setTimeout(() => {
-                    $('#max_char_title').hide(60)
+                    $('#max_char_title').hide()
                 }, 4000)
             } else{
                 $('#max_char_task').css('top', positioning.top + window.scrollY);
                 $('#max_char_task').css('left', positioning.right);
-                $('#max_char_task').show(60);
-                $('#max_char_task').on('click', function(){ $('#max_char_task').hide(60) });
+                $('#max_char_task').show();
+                $('#max_char_task').on('click', function(){ $('#max_char_task').hide() });
                 setTimeout(function(){
-                    $('#max_char_task').hide(60)
+                    $('#max_char_task').hide()
                 },7000)
             }
         }
@@ -1296,7 +1296,7 @@
             acc_menu.css('margin-left', `${day1.offsetLeft}px`);
             acc_menu.css('width', `${day1.offsetWidth}px`);
             $("#manage_acc .context_menu").css('width', '100%');
-            acc_menu.css('visibility', 'visible'); acc_menu.hide(60)
+            acc_menu.css('visibility', 'visible'); acc_menu.hide()
         } else{
             acc_menu.css('top', `${this_object.offsetTop + this_object.offsetHeight}px`);
             acc_menu.css('left', `${this_object.offsetLeft-40}px`);
@@ -1306,10 +1306,10 @@
                 acc_menu.css('width', '400px')
             };
             $("#manage_acc .context_menu").css('width', '100%');
-            acc_menu.css('visibility', 'visible'); acc_menu.hide(60);
+            acc_menu.css('visibility', 'visible'); acc_menu.hide();
         };
         acc_menu.slideDown(100, 'linear');
-        if ($("#new_pw_conf").val() == ""){ $("#new_pw_conf_tr").hide(60) }
+        if ($("#new_pw_conf").val() == ""){ $("#new_pw_conf_tr").hide() }
     };
     $("#new_pw").on('keydown', (e)=>{
         setTimeout(() => {
@@ -1358,13 +1358,13 @@
             let top_pos = $("#submit_acc")[0].offsetTop;
             let left_pos = $("#span_username")[0].offsetLeft;
             console.log($("#submit_acc")[0]);
-            $("#curr_pw_required").css('top',`${top_pos+50}px`);
-            $("#curr_pw_required").css('left',`${left_pos+80}px`);
-            $("#curr_pw_required").show(60);
+            $("#curr_pw_required").css('top',`${top_pos+20}px`);
+            $("#curr_pw_required").css('left',`${window.innerWidth/2 - 100}px`);
+            $("#curr_pw_required").show();
             $("#acc_pw_label").css('color', 'red');
             $("#acc_curr_pw").css('color', 'red');
             setTimeout(() => {
-                $("#curr_pw_required").hide(60);
+                $("#curr_pw_required").hide();
             }, 3000);
             return
         };
@@ -1391,13 +1391,13 @@
 
     setTimeout(() => {
         if (($("#wtr_simple").html()) == "true" || ($("#wtr_simple").html()) == true){
-            $(".hour_hour_weather").hide(60);
-            $(".max_min_temp").hide(60);
-            $("#show_simpl").hide(60);
-            $("#next_6_hours").hide(60);
+            $(".hour_hour_weather").hide();
+            $(".max_min_temp").hide();
+            $("#show_simpl").hide();
+            $("#next_6_hours").hide();
             $(".hour_hour_weather").css('margin', '0 7px');
             $(".hourly_weather").css('margin-bottom', '5px')
-        } else{ $("#show_compl").hide(60) }
+        } else{ $("#show_compl").hide() }
     }, 13);
     
 });

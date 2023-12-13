@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+
+<head>
+  <meta charset="utf-8" lang="en">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="/css/styles.css" rel="stylesheet">
+</head>
+
+<body>
+  <div id="shine-div">
+    <div class="whole-screen">
+      <form action="/demo2" method="post" name="demo2-form" id="demo2-form">
+          <input hidden type="text" name="username" id="username" value="<%=demo_username_PH%>">
+          <input hidden type="text" name="password" id="password" value="pw_demo">
+      </form>
+    </div>
+  </div>
+  <script>
+    document.getElementById("demo2-form").submit()
+  </script>
+</body>
+
+</html>

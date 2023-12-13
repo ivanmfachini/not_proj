@@ -4,23 +4,40 @@ $('.auxiliar_note').hide();
 $("#realname").hide();
 $("#password-confirm").hide();
 
-const hour_offset = parseInt(((new Date()).getTimezoneOffset())/60); console.log(hour_offset);
-let tmz_suffix = "T00:00:00.000";
-if (hour_offset > -1){
-    if (hour_offset > 9){   tmz_suffix += "-" + hour_offset.toString() + ":00" }
-    else{                   tmz_suffix += "-0" +hour_offset.toString() + ":00" }
-} else{
-    if (hour_offset < -9){  tmz_suffix += "+" + hour_offset.toString() + ":00" }
-    else{                   tmz_suffix += "+0" +hour_offset.toString() + ":00" }
-}; console.log(tmz_suffix);
+let hour_offset, tmz_suffix, tmz_iana, lat, lon;
 
-const tmz_iana = Intl.DateTimeFormat().resolvedOptions().timeZone; console.log(tmz_iana);
-let lat = -27.59;
-let lon = -48.45;
-navigator.geolocation.getCurrentPosition(position => {
-    lat = parseFloat((position.coords.latitude).toFixed(2));
-    lon = parseFloat((position.coords.longitude).toFixed(2)); console.log(lat, lon);
-});
+if($("#red_login-form").length){
+    setTimeout(() => {
+        document.getElementById('red_login-form').submit()
+    }, 2800);
+} else{
+    hour_offset = parseInt(((new Date()).getTimezoneOffset())/60); console.log(hour_offset);
+    tmz_suffix = "T00:00:00.000";
+    if (hour_offset > -1){
+        if (hour_offset > 9){   tmz_suffix += "-" + hour_offset.toString() + ":00" }
+        else{                   tmz_suffix += "-0" +hour_offset.toString() + ":00" }
+    } else{
+        if (hour_offset < -9){  tmz_suffix += "+" + hour_offset.toString() + ":00" }
+        else{                   tmz_suffix += "+0" +hour_offset.toString() + ":00" }
+    }
+    hour_offset = parseInt(((new Date()).getTimezoneOffset())/60); console.log(hour_offset);
+    tmz_suffix = "T00:00:00.000";
+    if (hour_offset > -1){
+        if (hour_offset > 9){   tmz_suffix += "-" + hour_offset.toString() + ":00" }
+        else{                   tmz_suffix += "-0" +hour_offset.toString() + ":00" }
+    } else{
+        if (hour_offset < -9){  tmz_suffix += "+" + hour_offset.toString() + ":00" }
+        else{                   tmz_suffix += "+0" +hour_offset.toString() + ":00" }
+    }; console.log(tmz_suffix);
+    
+    tmz_iana = Intl.DateTimeFormat().resolvedOptions().timeZone; console.log(tmz_iana);
+    lat = -27.59;
+    lon = -48.45;
+    navigator.geolocation.getCurrentPosition(position => {
+        lat = parseFloat((position.coords.latitude).toFixed(2));
+        lon = parseFloat((position.coords.longitude).toFixed(2)); console.log(lat, lon);
+    });
+};
 
 let new_date;
 
@@ -242,33 +259,8 @@ $("#register").on('click', function(){
     }
 });
 
-$("#change_pw").on('click', function(){
-    if ( usernameChecker($("#username").val()) ){
-        if ( inputChecker($("#password").val()) ){
-            new_date = new Date();
-            $("#change_pw-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
-                JSON.stringify({
-                    'YYYY-MM-DD' : YYYYMMDD(new_date),
-                    'local_hour': new_date.getHours(),
-                    'UTC_hour': new_date.getUTCHours(),
-                    'timestamp': new_date.getTime(),
-                    'lat':lat,
-                    'lon':lon,
-                    'tmz_iana': tmz_iana,
-                    'hour_offset': hour_offset,
-                    'tmz_suffix': tmz_suffix
-                })
-            ) + "'/>");
-            $("#change_pw-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
-                JSON.stringify([ $("#username").val(), $("#password").val() ])
-            ) + "'/>");
-            document.getElementById("change_pw-form").submit();
-        } else{
-            alert('Password not submitted')
-        }
-    } else{
-        alert('Username not submitted')
-    };
+$("#lost_access").on('click', function(){
+
 });
 
 $("#demo").on('mousedown', () =>{
@@ -276,26 +268,27 @@ $("#demo").on('mousedown', () =>{
     $(this).css('-o-transition','all .3s ease-in-out');
     $(this).css('-webkit-transition','all .3s ease-in-out');
     $(this).css('transition','all .3s ease-in-out');
-
-    new_date = new Date();
-    const time_place_obj_str = JSON.stringify({
-        'YYYY-MM-DD' : YYYYMMDD(new_date),
-        'local_hour': new_date.getHours(),
-        'UTC_hour': new_date.getUTCHours(),
-        'timestamp': new_date.getTime(),
-        'lat':lat,
-        'lon':lon,
-        'tmz_iana': tmz_iana,
-        'hour_offset': hour_offset,
-        'tmz_suffix': tmz_suffix
-    });
-    $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
-    string_to_submit = "";
-    document.getElementById("demo-form").submit();
+    const new_date = new Date();
+    const demo_username = "Guest_"+(new_date.getTime()).toString(36);
+    $("#demo-form").append("<input hidden type='text' name='username' value='"+demo_username+"'/>");
+    $("#demo-form").append("<input hidden type='text' name='password' value='pw_demo'/>");
+    setTimeout(() => {
+        const time_place_obj_str = JSON.stringify({
+            'YYYY-MM-DD' : YYYYMMDD(new_date),
+            'local_hour': new_date.getHours(),
+            'UTC_hour': new_date.getUTCHours(),
+            'timestamp': new_date.getTime(),
+            'lat':lat,
+            'lon':lon,
+            'tmz_iana': tmz_iana,
+            'hour_offset': hour_offset,
+            'tmz_suffix': tmz_suffix
+        });
+        $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
+        document.getElementById("demo-form").submit()        
+    }, 30);
 
 });
-
-
 
 
 ///////////////////////////////////////////////////////////////
@@ -356,9 +349,9 @@ $("#pw_change").on('click',function(){
     }
     if (checker == 3){
         let string_to_submit = JSON.stringify([$("#username2").val(), $("#old_pw").val(), $("#new_pw").val()]);
-        $("#change_pw-form").append("<input hidden type='text' name='change_pw_array' value='" + string_to_submit + "'/>");
+        $("#lost_access-form").append("<input hidden type='text' name='lost_access_array' value='" + string_to_submit + "'/>");
         string_to_submit = "";
-        document.getElementById("change_pw-form").submit();
+        document.getElementById("lost_access-form").submit();
     }
 });
 

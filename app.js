@@ -92,6 +92,7 @@ passport.deserializeUser(async function(id, done) {
 
 const dayModule = require(__dirname + "/dayModule.js");
 const weatherModule = require(__dirname + "/weatherModule.js");
+var demo_username;
 
 /////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////    FUNCTIONS    //////////////////////////////////
@@ -180,7 +181,7 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
     }
 };
 
-async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj){
+async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj = false){
     let new_id = await db.query(
         'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
     );
@@ -196,43 +197,83 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
         console.log('weatherModule did not return a value for user', in_username + '. Will insert empty arr instead')
         weather_str = JSON.stringify([])
     } finally{
-        await db.query(
-            'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
-            [
-                (new_id.rows[0]).id,                // user_id                      1
-                in_username,                        // username                     2
-                in_first_name,                      // first_name                   3
-                JSON.stringify({}),                 // notes                        4
-                JSON.stringify({}),                 // high_wly_mly                 5
-                JSON.stringify([]),                 // projects                     6
-                in_time_place_obj['timestamp'],     // last_timestamp               7
-                in_time_place_obj['local_hour'],    // last_local_hour              8
-                in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
-                weather_str,                        // weather                      10
-                JSON.stringify({                    // loc_data                     11
-                    'last':{
-                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
-                        'lat': in_time_place_obj['lat'],
-                        'lon': in_time_place_obj['lon'],
-                        'tmz_iana': in_time_place_obj['tmz_iana'],
-                        'hour_offset': in_time_place_obj['hour_offset'],
-                        'tmz_suffix': in_time_place_obj['tmz_suffix']
-                    },
-                    'original':{
-                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
-                        'lat': in_time_place_obj['lat'],
-                        'lon': in_time_place_obj['lon'],
-                        'tmz_iana': in_time_place_obj['tmz_iana'],
-                        'hour_offset': in_time_place_obj['hour_offset'],
-                        'tmz_suffix': in_time_place_obj['tmz_suffix']
-                    }
-                }),
-                true,                               // temp_celsius                 12
-                false,                              // wtr_simple                   13
-                "","","",                           // surname, email, phone        14, 15, 16
-                "eng"                               // lang                         17
-            ]
-        );
+        if (!in_demo_obj){
+            await db.query(
+                'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
+                [
+                    (new_id.rows[0]).id,                // user_id                      1
+                    in_username,                        // username                     2
+                    in_first_name,                      // first_name                   3
+                    JSON.stringify({}),                 // notes                        4
+                    JSON.stringify({}),                 // high_wly_mly                 5
+                    JSON.stringify([]),                 // projects                     6
+                    in_time_place_obj['timestamp'],     // last_timestamp               7
+                    in_time_place_obj['local_hour'],    // last_local_hour              8
+                    in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
+                    weather_str,                        // weather                      10
+                    JSON.stringify({                    // loc_data                     11
+                        'last':{
+                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                            'lat': in_time_place_obj['lat'],
+                            'lon': in_time_place_obj['lon'],
+                            'tmz_iana': in_time_place_obj['tmz_iana'],
+                            'hour_offset': in_time_place_obj['hour_offset'],
+                            'tmz_suffix': in_time_place_obj['tmz_suffix']
+                        },
+                        'original':{
+                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                            'lat': in_time_place_obj['lat'],
+                            'lon': in_time_place_obj['lon'],
+                            'tmz_iana': in_time_place_obj['tmz_iana'],
+                            'hour_offset': in_time_place_obj['hour_offset'],
+                            'tmz_suffix': in_time_place_obj['tmz_suffix']
+                        }
+                    }),
+                    true,                               // temp_celsius                 12
+                    false,                              // wtr_simple                   13
+                    "","","",                           // surname, email, phone        14, 15, 16
+                    "eng"                               // lang                         17
+                ]
+            )
+        } else{
+            await db.query(
+                'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
+                [
+                    (new_id.rows[0]).id,                // user_id                      1
+                    in_username,                        // username                     2
+                    in_first_name,                      // first_name                   3
+                    in_demo_obj['demo_notes_str'],      // notes                        4
+                    in_demo_obj['demo_routines_str'],   // high_wly_mly                 5
+                    in_demo_obj['demo_projects_str'],   // projects                     6
+                    in_time_place_obj['timestamp'],     // last_timestamp               7
+                    in_time_place_obj['local_hour'],    // last_local_hour              8
+                    in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
+                    weather_str,                        // weather                      10
+                    JSON.stringify({                    // loc_data                     11
+                        'last':{
+                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                            'lat': in_time_place_obj['lat'],
+                            'lon': in_time_place_obj['lon'],
+                            'tmz_iana': in_time_place_obj['tmz_iana'],
+                            'hour_offset': in_time_place_obj['hour_offset'],
+                            'tmz_suffix': in_time_place_obj['tmz_suffix']
+                        },
+                        'original':{
+                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                            'lat': in_time_place_obj['lat'],
+                            'lon': in_time_place_obj['lon'],
+                            'tmz_iana': in_time_place_obj['tmz_iana'],
+                            'hour_offset': in_time_place_obj['hour_offset'],
+                            'tmz_suffix': in_time_place_obj['tmz_suffix']
+                        }
+                    }),
+                    true,                               // temp_celsius                 12
+                    false,                              // wtr_simple                   13
+                    "Some Surnames","optional@provider.com","+55 (48) 98765-43210",// surname, email, phone 14, 15, 16
+                    "eng"                               // lang                         17
+                ]
+            )
+        }
     }
 };
 
@@ -890,8 +931,6 @@ async function callVerifyPassword(in_pw, user_id){
 
 async function changePersonalInfo(in_arr, user_id){
     //[first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()]
-    console.log('changePersonalInfo received:');
-    console.log(in_arr);
     if (in_arr[5].length){
         let this_1;
         await db.query("SELECT password FROM credential WHERE id = $1",[user_id],(err1, result)=>{
@@ -981,17 +1020,8 @@ app.get('/login', (req, res) => {
     res.render('login', {})
 });
 
-app.get('/registration_successfull', (req, res) => {
-    console.log(req.session);
-    console.log(req.sessionID);
-    console.log(req.isAuthenticated());
-    console.log(req.isUnauthenticated());
-    //console.log(req.user) <-- undefined
-    res.render('reg_successfull')
-});
-
 app.get('/home/:username', async (req, res) => {
-    if (req.params.username == "undefined"){ return res.redirect('/login') }
+    if (req.params.username == "undefined"){ return res.redirect('/login') };
     if(req.isAuthenticated()){
         await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
             if (err){ console.log('ERROR in db.query in GET /home/:username:', err.message);
@@ -1081,6 +1111,15 @@ app.get('/home/:username', async (req, res) => {
             } else { console.log('NO COOKIE'); return res.redirect('/login') }
         })
     } else{ console.log('NOT AUTHENTICATED'); return res.redirect('/login') }
+});
+
+app.get('/demonstration', function (req,res){
+    res.render('demo2', { demo_username_PH: demo_username})
+});
+
+app.post('/demo2',
+passport.authenticate('local', { failureRedirect: '/registration_failed' }), async function(req, res) {
+    res.redirect(`/home/${demo_username}`)
 });
 
 app.post('/home', async function (req,res){
@@ -1209,8 +1248,8 @@ app.post('/home', async function (req,res){
 });
 
 app.post('/login',
-    passport.authenticate('local', { failureRedirect: '/fail' }), async function(req, res) {
-        console.log(req.body);
+    passport.authenticate('local', { failureRedirect: '/registration_failed' }), async function(req, res) {
+        console.log(req);
         const user_data_page = req.body;
         const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
         const user_data_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
@@ -1227,10 +1266,6 @@ app.post('/login',
     }
 );
 
-app.post('/manage_acc', (req, res) => {
-    console.log(req)
-});
-
 app.post('/register', (req, res) => {
     const cred_arr = JSON.parse(req.body.cred_arr_str);
     const time_place_obj = JSON.parse(req.body.time_place_obj_str);
@@ -1245,10 +1280,187 @@ app.post('/register', (req, res) => {
                 res.redirect('registration_successfull')
             } catch (err){
                 console.log('ERROR catched in registerUser() in POST/register:', err.message);
-                res.redirect('/registration_failed_B')
+                res.redirect('/user_unavailable')
             }
         }
     });
+});
+
+app.post('/demonstration', async (req, res)=>{
+    let time_place_obj = JSON.parse(req.body.time_place_obj_str);
+    const tmz_iana = time_place_obj['tmz_iana'];
+    const dayA_obj = dayModule.dayA(tmz_iana); const dayA_key = dayA_obj['YYYY-MM-DD'];
+    const dayB_obj = dayModule.dayB(tmz_iana); const dayB_key = dayB_obj['YYYY-MM-DD'];
+    const dayC_obj = dayModule.dayC(tmz_iana); const dayC_key = dayC_obj['YYYY-MM-DD'];
+    const user_h = time_place_obj['local_hour'];
+    const Date_now = Date.now();
+    const today_string = new Date(dayA_key).toUTCString().slice(0,16);
+    const tomorrow = new Date(dayB_key);
+    const tomorrow_string = tomorrow.toUTCString().slice(0,16);
+    const after_tomorrow = new Date(dayC_key);
+    const after_tomorrow_string = after_tomorrow.toUTCString().slice(0,16);
+    const notes_obj = {};
+    const routines = { 'weekly': {}, 'monthly': {}, 'highlight': {}};
+    if (3 < user_h && user_h < 17 ){
+        notes_obj[dayA_key] = {
+            "weekday":dayA_obj['weekday'],
+            "day": dayA_obj['day'],
+            "notes":[
+                ["Hi! *CLICK ME* These are the Notes, to remind you of important to-dos",Date_now+1,today_string],
+                ["Until 16:59, you will see notes for today and tomorrow",Date_now+2,today_string],
+                ["From 17:00 onwards, for tomorrow and after tomorrow",Date_now+3,today_string],
+                ['You can add a new note by clicking on "new note..." ↓',Date_now+4,today_string],
+                ["When you finish writing, click anywhere outside of it",Date_now+5,today_string],
+            ]
+        };
+        notes_obj[dayB_key] = {
+            "weekday":dayB_obj['weekday'],
+            "day": dayB_obj['day'],
+            "notes":[
+                ["Right-click to see options",Date_now+6,tomorrow_string],
+                ["...like highlighting!",Date_now+7,tomorrow_string],
+                ["Or making a note repeat, weekly...",Date_now+8,tomorrow_string],
+                ["or monthly, like this one! (at the same day of the month)",Date_now+9,tomorrow_string],
+                ["You should also be seeing the weather forecast for this day (from 06 to 21h)",Date_now+10,tomorrow_string]
+            ]
+        };
+        notes_obj[dayC_key] = {
+            "weekday":dayC_obj['weekday'],
+            "day": dayC_obj['day'],
+            "notes":[]
+        };
+        routines['monthly'][(dayB_obj['day'])] = ["or monthly, like this one! (at the same day of the month)"];
+        routines['highlight'][dayB_key] = [["...like highlighting!",Date_now+7]]
+    } else{
+        notes_obj[dayA_key] = {
+            "weekday":dayA_obj['weekday'],
+            "day": dayA_obj['day'],
+            "notes":[]
+        };
+        notes_obj[dayB_key] = {
+            "weekday":dayB_obj['weekday'],
+            "day": dayB_obj['day'],
+            "notes":[
+                ["Hi! *CLICK ME* These are the Notes, to remind you of important to-dos",Date_now+1,tomorrow_string],
+                ["Until 16:59, you will see notes for today and tomorrow",Date_now+2,tomorrow_string],
+                ["From 17:00 onwards, for tomorrow and after tomorrow",Date_now+3,tomorrow_string],
+                ['You can add a new note by clicking on "new note..." ↓',Date_now+4,tomorrow_string],
+                ["When you finish writing, click anywhere outside of it",Date_now+5,tomorrow_string],
+            ]
+        };
+        notes_obj[dayC_key] = {
+            "weekday":dayC_obj['weekday'],
+            "day": dayC_obj['day'],
+            "notes":[
+                ["Right-click to see options",Date_now+6,after_tomorrow_string],
+                ["...like highlighting!",Date_now+7,after_tomorrow_string],
+                ["Or making a note repeat, weekly...",Date_now+8,after_tomorrow_string],
+                ["or monthly, like this one! (at the same day of the month)",Date_now+9,after_tomorrow_string],
+                ["You should also be seeing the weather forecast for this day (from 06 to 21h)",Date_now+10,after_tomorrow_string]
+            ]
+        };
+        routines['monthly'][(dayC_obj['day'])] = ["or monthly, like this one! (at the same day of the month)"];
+        routines['highlight'][dayC_key] = [["...like highlighting!",Date_now+7]]
+    };
+    const dayD = dayModule.dayA(tmz_iana, Date_now+432000000);
+    let dayD_string = new Date(dayD['YYYY-MM-DD']).toUTCString().slice(0,16);
+    notes_obj[dayD['YYYY-MM-DD']] = {
+        "weekday":dayD['weekday'],
+        "day": dayD['day'],
+        "notes":[
+            ["These are some notes 5 days in the future",Date_now+46,dayD_string],
+            ["To interact with them, use the calendar...",Date_now+47,dayD_string],
+            ["... icon in the top-right corner",Date_now+48,dayD_string],
+        ]
+    };
+    const buf_long_date = dayModule.dayA(tmz_iana, Date_now+15778800000);
+    const dayE = dayModule.dayB(tmz_iana, Date_now+432000000);
+    const dayF = dayModule.dayA(tmz_iana, Date_now+864000000);
+    const dayG = dayModule.dayC(tmz_iana, Date_now+1900800000);
+    const buf_projects = [{
+        "title": "Project A",
+        "final_deadline": buf_long_date['YYYY-MM-DD'],
+        "tasks_todo":[
+            {           
+                "task": "A Project is a series of tasks, like this one",
+                "obs":"",
+                "deadline": false
+            },
+            {
+                "task": "Both the Project and its tasks can",
+                "obs":"",
+                "deadline": false
+            },
+            {
+                "task": "have their own deadlines, that you",
+                "obs":"",
+                "deadline": dayD['YYYY-MM-DD']
+            },
+            {
+                "task": "can edit by right-clicking. Try this one",
+                "obs":"Hi there! This is a task's observation. You see... since a project is something that takes one's considerable amount of time and possibly has a lot of tasks to complete, the tasks itselves are limited to 40 characters, so the screen doesn't get polluted by a loooooong task description. If you want to further detail a task, use this Observations field, since it's character limit is 2000",
+                "deadline": dayE['YYYY-MM-DD']
+            },
+            {
+                "task":"The title and deadline of the project...",
+                "obs":"... can also be right-clicked, so you will also get options of what to do with them, like deleting the whole Project. You can also make changes to the weather forecast by right-clicking it.",
+                "deadline": dayF['YYYY-MM-DD']
+            },
+            {
+                "task":"If there is no weather forecast...",
+                "obs":"... right below the notes up there, it is because the weather API failed to fetch data. The string used in AXIOS to get the weather forecast was: "+`https://api.open-meteo.com/v1/forecast?latitude=${time_place_obj['lat']}&longitude=${time_place_obj['lon']}&hourly=temperature_2m,weathercode&daily=sunrise,sunset&timezone=${tmz_iana}&forecast_days=3`,
+                "deadline": dayG['YYYY-MM-DD']
+            }
+        ],    
+        "tasks_done":[]
+    }];
+
+    const demo_obj = {
+        'demo_notes_str': JSON.stringify(notes_obj),
+        'demo_routines_str': JSON.stringify(routines),
+        'demo_projects_str': JSON.stringify(buf_projects)
+    };
+
+    demo_username = req.body.username;
+    bcrypt.hash( ( (req.body.password)+(process.env.PEP) ), saltRounds, async function(err, hash) {
+        if(err){
+            console.log('ERROR in bcrypt.hash in POST/register:', err.message);
+            res.redirect('/registration_failed_A')
+        } else {
+            try{
+                await registerUser( demo_username, hash, "guest", time_place_obj, demo_obj);
+                res.redirect('/demonstration')          
+            } catch (err){
+                console.log('ERROR catched in registerUser() in POST/register:', err.message);
+                res.redirect('/user_unavailable')
+            }
+        }
+    });
+});
+
+app.get('/registration_successfull', (req, res) => {
+    res.render('reg_successfull')
+});
+app.post('/registration_successfull', (req, res) => {
+    res.redirect('/login')
+});
+app.get('/user_unavailable', (req, res) => {
+    res.render('user_unavailable')
+});
+app.post('/user_unavailable', (req, res) => {
+    res.redirect('/login')
+});
+app.get('/registration_failed', (req, res) => {
+    res.render('reg_failed')
+});
+app.post('/registration_failed', (req, res) => {
+    res.redirect('/login')
+});
+app.get('/lost_access', (req, res) => {
+    res.render('lost_access')
+});
+app.post('/lost_access', (req, res) => {
+    res.redirect('/login')
 });
 
 app.listen(3000, function(){
