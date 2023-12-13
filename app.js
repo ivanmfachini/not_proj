@@ -16,7 +16,7 @@ const app = express();
 
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
-app.use(bodyParser.urlencoded( { extended: true } ));
+app.use(bodyParser.urlencoded({ extended: true } ));
 
 app.use(session({
     store: new pgSession({
@@ -26,8 +26,8 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        //secure: true,             <-- activate when deploying
-        maxAge: 28800000 }            // 50min
+        secure: true,
+        maxAge: 28800000 }
 }));
 
 app.use(passport.initialize());
@@ -1497,14 +1497,14 @@ app.post('/lost_access', (req, res) => {
     res.redirect('/login')
 });
 
-app.listen(3000, function(){
-    console.log("listening on port 3000");
+app.listen(5001, function(){
+    console.log("listening on port 5001");
 });
 
 process.on('uncaughtException', async (err) => {
     try{
-        await fsPromises.appendFile(path.join(__dirname, 'logs','uncaught_errors.txt'), ("\n"+err.message+','+new_date.getTime()+','+new_date.toUTCString()))
-    } catch (err2){
-        console.error(err2.message)
+        await fsPromises.appendFile(path.join(__dirname, 'logs','uncaught_errors.txt'), ("\n"+err.message+','+new Date().getTime()+','+new Date().toUTCString()))
+    } catch (err){
+        console.error(err.message)
     }
 })
