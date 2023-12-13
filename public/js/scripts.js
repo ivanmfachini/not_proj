@@ -316,11 +316,12 @@
         };
 
         if(routines_parsed['monthly']){
+            let monthly_rtn = routines_parsed['monthly'];
             let day_A = dayobj_A.getUTCDate();
             let day_B = dayobj_B.getUTCDate();
             let monthly_arr_A, monthly_arr_B;
-            if(routines_parsed['monthly'][day_A]){ monthly_arr_A = routines_parsed['monthly'][day_A] };
-            if(routines_parsed['monthly'][day_B]){ monthly_arr_B = routines_parsed['monthly'][day_B] };
+            if(monthly_rtn[day_A]){ monthly_arr_A = monthly_rtn[day_A] };
+            if(monthly_rtn[day_B]){ monthly_arr_B = monthly_rtn[day_B] };
             let create_new = true;
             if (monthly_arr_A){
                 for (let j = 0; j < monthly_arr_A.length; j++){
@@ -358,6 +359,65 @@
                     }
                     if (create_new && $("#mili_diff").html() > 0){
                         submitNewNote(2, monthly_arr_B[j], true)
+                    }
+                }
+            };
+            let big_routine_day = [];
+            let this_month;
+            let this_month_last_day = 0;
+            if (monthly_rtn['31'] && monthly_rtn['31'].length){ big_routine_day.push(31) };
+            if (monthly_rtn['30'] && monthly_rtn['30'].length){ big_routine_day.push(30) };
+            if (monthly_rtn['29'] && monthly_rtn['29'].length){ big_routine_day.push(29) };
+            if(big_routine_day.length){
+                if (day_B > 27){
+                    this_month = dayobj_B.getUTCMonth();
+                    this_month_last_day = day_B;
+                    let plus1 = new Date(dayobj_B.getTime()+86400000);
+                    let plus1_month = plus1.getUTCMonth();
+                    while (this_month == plus1_month){
+                        this_month_last_day = plus1.getUTCDate();
+                        plus1 = new Date(plus1.getTime()+86400000);
+                        plus1_month = plus1.getUTCMonth()
+                    }
+                } else if(day_B == 1){
+                    this_month = dayobj_A.getUTCMonth();
+                    this_month_last_day = day_A;
+                    let plus1 = new Date(dayobj_A.getTime()+86400000);
+                    let plus1_month = plus1.getUTCMonth();
+                    while (this_month == plus1_month){
+                        this_month_last_day = plus1.getUTCDate();
+                        plus1 = new Date(plus1.getTime()+86400000);
+                        plus1_month = plus1.getUTCMonth()
+                    }    
+                }
+            };
+            console.log(big_routine_day);
+            if(this_month_last_day){
+                for (let a = big_routine_day.length-1; a > -1; a--){
+                    let q = big_routine_day[a]
+                    if(big_routine_day[a] > this_month_last_day){
+                        for (let c = 0; c < monthly_rtn[q].length; c++){
+                            let already_added = false;
+                            for(let b = 0; b < added_note_arr.length; b++){
+                                if ($(added_note_arr[b]).html() == monthly_rtn[q][c]){
+                                    already_added = true;
+                                    if($(added_note_arr[b]).hasClass('monthly') || $(added_note_arr[b]).hasClass('bothstamps')){ break }
+                                    else if($(added_note_arr[b]).hasClass('weekly')){
+                                        $(added_note_arr[b]).addClass('bothstamps');
+                                        $($(added_note_arr[b]).parent()).addClass('bothstamps');
+                                        break
+                                    } else{
+                                        $(added_note_arr[b]).addClass('monthly');
+                                        $($(added_note_arr[b]).parent()).addClass('monthly');
+                                        break
+                                    }
+                                };
+                            };
+                            if (!already_added){
+                                if (day_B >= day_A){ submitNewNote(2, monthly_rtn[q][c], true) }
+                                else{ submitNewNote(1, monthly_rtn[q][c], true) }
+                            }
+                        }
                     }
                 }
             }
@@ -550,7 +610,7 @@
             let string_hour_lat_lon = JSON.stringify([local_hour, UTC_hour, new_date.getTime(), new_date.toString()]);
             let param_hour = "<input hidden type='text' name='user_hour_timestamp' value='" + string_hour_lat_lon + "'/>";
             $("#form-routine").append(param_hour);
-            document.getElementById("form-routine").submit();                
+            document.getElementById("form-routine").submit()
         });
         $('#unmonthly_button, #unmonthly_icon').on('click', function(){
             if (blocker){ return };
