@@ -269,7 +269,7 @@ $("#demo").on('mousedown', () =>{
     $(this).css('-webkit-transition','all .3s ease-in-out');
     $(this).css('transition','all .3s ease-in-out');
     const new_date = new Date();
-    const demo_username = "Guest_"+(new_date.getTime()).toString(36);
+    const demo_username = "Guest_"+(new_date.getTime()-1702000000000).toString(16);
     $("#demo-form").append("<input hidden type='text' name='username' value='"+demo_username+"'/>");
     $("#demo-form").append("<input hidden type='text' name='password' value='pw_demo'/>");
     setTimeout(() => {

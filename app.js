@@ -9,6 +9,8 @@ const bcrypt = require('bcrypt');
 const saltRounds = 3;
 const LocalStrategy = require('passport-local');
 const pgSession = require("connect-pg-simple")(session);
+const fsPromises = require("fs").promises;
+const path = require("path");
 
 const app = express();
 
@@ -25,7 +27,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: {
         //secure: true,             <-- activate when deploying
-        maxAge: 3000000 }            // 50min
+        maxAge: 28800000 }            // 50min
 }));
 
 app.use(passport.initialize());
@@ -40,10 +42,24 @@ const db = new pg.Client({
 });
 db.connect();
 
+async function writeLog(in_message, in_id, is_error = true){
+    const new_date = new Date();
+    if (is_error){
+        try{
+            await fsPromises.appendFile(path.join(__dirname, 'logs','error_logs.txt'), ("\n"+in_message+','+in_id+','+new_date.getTime()+','+new_date.toUTCString()))
+        } catch (err){ console.error(err) }
+    } else{
+        try{
+            await fsPromises.appendFile(path.join(__dirname, 'logs','non_error_logs.txt'), ("\n"+in_message+','+in_id+','+new_date.getTime()+','+new_date.toUTCString()))
+        } catch (err){ console.error(err) }
+    }
+};
+
 async function verifyPassword(in_password, in_hash){
     return new Promise((resolve, reject) =>{
         bcrypt.compare(in_password, in_hash, function(err, result) {
             if (err){ console.log('ERROR in bcrypt.compare in verifyPassword():', err.message);
+                writeLog('ERROR in bcrypt.compare in verifyPassword():'+err.message,0,true);
                 resolve(false)
             } else if (result){ console.log('FUNCTION verifypassword(): password is CORRECT');
                 resolve(true)
@@ -59,10 +75,12 @@ passport.use(new LocalStrategy(
         //User.findOne({ username: username }, function (err, user) {
         await db.query('SELECT * FROM credential WHERE username = ($1)', [username], async function (err,user){
             if (err) { console.log('ERROR in db.query in LocalStrategy:', err.message);
+                await writeLog('ERROR in db.query in LocalStrategy:'+err.message,username,true);
                 return done(err)
             } else {
                 try{ user = user.rows[0] }
                 catch (err){ console.log('ERROR catched in try{ user = user.rows[0]:', err.message);
+                    await writeLog('ERROR catched in try{ user = user.rows[0]:'+err.message,username,true);
                     return done(null,false)
                 };
                 if (!user) { console.log('LocalStrategy: db.query returned no user');
@@ -84,8 +102,10 @@ passport.serializeUser(function(user, done) {
 });
   
 passport.deserializeUser(async function(id, done) {
-    await db.query('SELECT * FROM credential WHERE id = ($1)', [id], function (err,user){
-        if (err){ console.log('ERROR in db.query in deserializeUser:', err.message) }
+    await db.query('SELECT * FROM credential WHERE id = ($1)', [id], async function (err,user){
+        if (err){ console.log('ERROR in db.query in deserializeUser:', err.message);
+            await writeLog('ERROR in db.query in deserializeUser: '+err.message,id,true);
+        };
         done(err, (user.rows[0]));
     });
 });
@@ -100,36 +120,44 @@ var demo_username;
 
 async function queryAccId(in_id){
     return new Promise((resolve, reject)=>{
-        db.query( "SELECT * FROM account WHERE id = ($1)", [in_id], (err, result)=>{
-            if (err){ console.log('ERROR in db.query in queryAccId:', err.message); resolve(false) }
-            resolve((result.rows)[0])
+        db.query( "SELECT * FROM account WHERE id = ($1)", [in_id], async (err, result)=>{
+            if (err){ console.log('ERROR in db.query in queryAccId:', err.message);
+                await writeLog('ERROR in db.query in queryAccId:'+err.message, in_id, true);
+                resolve(false)
+            } else{ resolve((result.rows)[0]) }
         })        
     })
 };
 
 async function queryAccUsername(in_username){
     return new Promise((resolve, reject)=>{
-        db.query( "SELECT * FROM account WHERE username = ($1)", [in_username], (err, result)=>{
-            if (err){ console.log('ERROR in db.query in queryAccUsername:', err.message); resolve(false) }
-            resolve((result.rows)[0])
+        db.query( "SELECT * FROM account WHERE username = ($1)", [in_username], async (err, result)=>{
+            if (err){ console.log('ERROR in db.query in queryAccUsername:', err.message);
+                await writeLog('ERROR in db.query in queryAccUsername:'+err.message, in_username, true);
+                resolve(false)
+            } else { resolve((result.rows)[0]) }
         })
     })
 };
 
 async function queryWorkDataId(in_id){
     return new Promise ((resolve, reject)=>{
-        db.query( "SELECT * FROM work_data WHERE user_id = ($1)", [in_id], (err, result)=>{
-            if (err){ console.log('ERROR in db.query in queryWorkDataId:', err.message); resolve(false) }
-            resolve((result.rows)[0])
+        db.query( "SELECT * FROM work_data WHERE user_id = ($1)", [in_id], async (err, result)=>{
+            if (err){ console.log('ERROR in db.query in queryWorkDataId:', err.message);
+                await writeLog('ERROR in db.query in queryWorkDataId:'+err.message, in_id, true);
+                resolve(false)
+            } else{ resolve((result.rows)[0]) }
         })
     })
 };
 
 async function queryWorkDataUsername(in_username){
     return new Promise((resolve, reject)=>{
-        db.query( "SELECT * FROM work_data WHERE username = ($1)", [in_username], (err, result)=>{
-            if (err){ console.log('ERROR in db.query in queryWorkDataUsername:', err.message); resolve(false) }
-            resolve((result.rows)[0])
+        db.query( "SELECT * FROM work_data WHERE username = ($1)", [in_username], async (err, result)=>{
+            if (err){ console.log('ERROR in db.query in queryWorkDataUsername:', err.message);
+                await writeLog('ERROR in db.query in queryWorkDataUsername:'+err.message, in_username, true);
+                resolve(false)
+            } else{ resolve((result.rows)[0]) }
         })
     })
 };
@@ -137,13 +165,8 @@ async function queryWorkDataUsername(in_username){
 async function getNewWeather(in_data_db, in_local_hour){
     const loc_data = (JSON.parse(in_data_db['loc_data']))['last'];
     const weather_str = await weatherModule(loc_data['lat'], loc_data['lon'], loc_data['tmz_iana'], in_local_hour, in_data_db['temp_celsius']);
-    if(weather_str){
-        console.log('FUNCTION getNewWeather OK! returned a valid new weather_str');
-        return weather_str
-    } else {
-        console.log('FUNCTION getNewWeather FAILED! returned false');
-        return false
-    }
+    if(weather_str){ return weather_str }
+    else { return false }
 };
 
 async function updateFromLogin(in_user_data, in_time_place_obj){
@@ -161,9 +184,10 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
             [
                 in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str, JSON.stringify(loc_data),
                 in_user_data['user_id']
-            ],(err, result) =>{
-                if (err){ console.log('ERROR in db.query (A) in updateFromLogin:', err.message) }
-                else{ console.log('Successfully (A) updated time and weather forecast of', in_user_data['username']) }
+            ],async (err, result) =>{
+                if (err){ console.log('ERROR in db.query (A) in updateFromLogin:', err.message)
+                    await writeLog('ERROR in db.query (A) in updateFromLogin:'+err.message, in_user_data['user_id'], true);
+                }
             });
         }
     } else {
@@ -173,9 +197,10 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
             [
                 in_time_place_obj['timestamp'], in_time_place_obj['local_hour'], in_time_place_obj['UTC_hour'], weather_str,
                 in_user_data['user_id']
-            ],(err, result) =>{
-                if (err){ console.log('ERROR in db.query (B) in updateFromLogin:', err.message) }
-                else{ console.log('Successfully (B) updated time and weather forecast of', in_user_data['username']) }
+            ], async (err, result) =>{
+                if (err){ console.log('ERROR in db.query (B) in updateFromLogin:', err.message)
+                    await writeLog('ERROR in db.query (B) in updateFromLogin:'+err.message, in_user_data['user_id'], true)
+                }
             });
         }
     }
@@ -188,13 +213,17 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
     await db.query(
         'INSERT INTO account(user_id, username, first_pw, creation) VALUES ($1,$2,$3,$4);',
         [((new_id.rows[0]).id), in_username, in_hash, in_time_place_obj['timestamp']],
-        (err, result)=>{ if(err){ console.log('ERROR in db.query in registerUser:', err.message) } }
+        async (err, result)=>{
+            if(err){ console.log('ERROR in db.query in registerUser:', err.message)
+                await writeLog('ERROR in db.query in registerUser:'+err.message,in_username,true)
+            }
+        }
     );
     let weather_str;
     try{
         weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'])
-    } catch{
-        console.log('weatherModule did not return a value for user', in_username + '. Will insert empty arr instead')
+    } catch (err){
+        await writeLog('weather did not came back', in_username, false);
         weather_str = JSON.stringify([])
     } finally{
         if (!in_demo_obj){
@@ -278,23 +307,25 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
 };
 
 async function updateFromCall(in_column , JSON_str, user_id){
-    console.log('FUNCTION updateFromCall(', in_column, JSON_str, user_id);
     if(!in_column || !JSON_str || !user_id){
         console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, user_id)');
+        writeLog('ERROR: updateFromCall requires three parameters (in_column JSON_str user_id)',0,true)
         return false
     } else{ return new Promise ((resolve, reject)=>{
         if (in_column.length == 2){
             db.query(`UPDATE work_data SET (${in_column[0]},${in_column[1]}) = ($1,$2) WHERE user_id = $3`,
                 [JSON_str[0], JSON_str[1], user_id], (err, result)=>{
                     if (err){ console.log('ERROR in updateFromCall:',err.message);
+                        writeLog('ERROR in updateFromCall:'+err.message, 0, true);
                         resolve(err.message)
                     } else { resolve(true) }
                 }
             )
         } else{
             db.query(`UPDATE work_data SET ${in_column} = $1 WHERE user_id = $2`,
-                [JSON_str, user_id], (err, result)=>{
+                [JSON_str, user_id], async (err, result)=>{
                     if (err){ console.log('ERROR in updateFromCall:',err.message);
+                        await writeLog('ERROR in updateFromCall:'+err.message, 0, true);
                         resolve(err.message)
                     } else { resolve(true) }
                 }
@@ -305,9 +336,10 @@ async function updateFromCall(in_column , JSON_str, user_id){
 
 async function updateProjects(in_arr_str, user_id){
     await db.query("UPDATE work_data SET projects = $1 WHERE user_id = $2",
-    [in_arr_str, user_id],(err, result)=>{
+    [in_arr_str, user_id], async (err, result)=>{
         if (err){
             console.log('ERROR while UPDATE work_data SET projects:', err.message);
+            await writeLog('ERROR while UPDATE work_data SET projects:'+err.message, user_id, true);
             return false
         } else{ return true }
     })
@@ -667,18 +699,20 @@ async function handleWeatherChange(temp_letter, user_id){
             if (new_value == "o")    { new_value = false }
             else                    { new_value = true }
             db.query("UPDATE work_data SET wtr_simple = $1 WHERE user_id = $2",
-            [new_value, user_id], (err,result)=>{
+            [new_value, user_id], async (err,result)=>{
                 if (err){
-                    console.log('ERROR while UPDATE work_data SET wtr_simple:', err.message)
+                    console.log('ERROR while UPDATE work_data SET wtr_simple:', err.message);
+                    await writeLog('ERROR while UPDATE work_data SET wtr_simple:'+err.message, user_id, true);
                     resolve(false)
                 } else{resolve(true)}
             })
         } else{
             if (new_value == 0 || new_value == "0") { new_value = false }
             else                                    { new_value = true }
-            db.query("SELECT weather FROM work_data WHERE user_id = $1", [user_id], (err, result)=>{
+            db.query("SELECT weather FROM work_data WHERE user_id = $1", [user_id], async (err, result)=>{
                 if (err){
                     console.log('ERROR while SELECT weather FROM work_data:', err.message);
+                    await writeLog('ERROR while SELECT weather FROM work_data:'+err.message, user_id, true);
                     resolve(false)
                 } else{
                     let this_weather = JSON.parse((result.rows[0]['weather']));
@@ -710,9 +744,10 @@ async function handleWeatherChange(temp_letter, user_id){
                         })
                     };
                     db.query("UPDATE work_data SET (weather, temp_celsius) = ($1,$2) WHERE user_id = $3",
-                    [JSON.stringify(this_weather), new_value, user_id], (err,result)=>{
+                    [JSON.stringify(this_weather), new_value, user_id], async (err,result)=>{
                         if (err){
                             console.log('ERROR while UPDATE work_data SET (weather, temp_celsius):', err.message);
+                            await writeLog('ERROR while UPDATE work_data SET (weather, temp_celsius):'+err.message, user_id, true);
                             resolve(false)
                         } else{ resolve(true) }
                     })
@@ -909,10 +944,12 @@ async function callVerifyPassword(in_pw, user_id){
     return new Promise((resolve, reject)=>{
         checker = db.query('SELECT * FROM credential WHERE id = ($1)', [user_id], async function (err,user){
             if (err) { console.log('ERROR in db.query in callVerifyPassword:', err.message);
+                await writeLog('ERROR in db.query in callVerifyPassword:'+err.message, user_id, true);
                 resolve(false)
             } else {
                 try{ this_user = user.rows[0] }
                 catch (err){ console.log('ERROR catched in callVerifyPassword: try{ user = user.rows[0]:', err.message);
+                    await writeLog('ERROR catched in callVerifyPassword: try{ user = user.rows[0]:'+err.message, user_id, true);
                     resolve(false)
                 };
                 if (!user) { console.log('callVerifyPassword: db.query returned no user');
@@ -933,35 +970,40 @@ async function changePersonalInfo(in_arr, user_id){
     //[first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()]
     if (in_arr[5].length){
         let this_1;
-        await db.query("SELECT password FROM credential WHERE id = $1",[user_id],(err1, result)=>{
+        await db.query("SELECT password FROM credential WHERE id = $1",[user_id], async (err1, result)=>{
             if (err1){
-                console.log('ERROR while SELECT password FROM credential in changePersonalInfo:', err1.message)
+                console.log('ERROR while SELECT password FROM credential in changePersonalInfo:', err1.message);
+                await writeLog('ERROR while SELECT password FROM credential in changePersonalInfo:'+err1.message, user_id, true);
                 return false
             } else{ this_1 = result.rows[0].password };
             bcrypt.hash( ( (in_arr[5])+(process.env.PEP) ), saltRounds, async function(err2, hash) {
                 if(err2){
                     console.log('ERROR in bcrypt.hash in changePersonalInfo:', err2.message);
+                    await writeLog('ERROR in bcrypt.hash in changePersonalInfo:'+err2.message, user_id, true);
                     return false
                 } else {
                     await db.query("UPDATE credential SET password = $1 WHERE id = $2",
                     [hash, user_id], async (err3,result)=>{
                         if (err3){
-                            console.log("ERROR while UPDATE credential SET password = $1 in changePersonalInfo():", err3.message)
+                            console.log("ERROR while UPDATE credential SET password = $1 in changePersonalInfo():", err3.message);
+                            await writeLog("ERROR while UPDATE credential SET password = $1 in changePersonalInfo():"+err3.message, user_id,true);
                             return false
                         } else{
                             if (in_arr[5].length){  //lang
                                 await db.query("UPDATE work_data SET (first_name, surname, email, phone, lang, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6,$7) WHERE user_id = ($8)",
-                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], Date.now(), this_1, user_id], (err4, result)=>{
+                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], Date.now(), this_1, user_id], async (err4, result)=>{
                                     if (err4){
                                         console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                                        await writeLog('ERROR while UPDATE account in changePersonalInfo:'+err4.message, user_id, true);
                                         return false
                                     } else{ return true }
                                 })
                             } else{
                                 await db.query("UPDATE work_data SET (first_name, surname, email, phone, pw_last_change, prev_pw) = ($1,$2,$3,$4,$5,$6) WHERE user_id = ($7)",
-                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], Date.now(), this_1, user_id], (err4, result)=>{
+                                [in_arr[0], in_arr[1], in_arr[2], in_arr[3], Date.now(), this_1, user_id], async (err4, result)=>{
                                     if (err4){
                                         console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                                        await writeLog('ERROR while UPDATE account in changePersonalInfo:'+err4.message, user_id, true);
                                         return false
                                     } else{ return true }
                                 })
@@ -974,17 +1016,19 @@ async function changePersonalInfo(in_arr, user_id){
     } else{
         if (in_arr[5].length){  //lang
             await db.query("UPDATE work_data SET (first_name, surname, email, phone, lang) = ($1,$2,$3,$4,$5) WHERE user_id = ($6)",
-            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], user_id], (err4, result)=>{
+            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], in_arr[4], user_id], async (err4, result)=>{
                 if (err4){
                     console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                    await writeLog('ERROR while UPDATE account in changePersonalInfo:'+err4.message, user_id, true);
                     return false
                 } else{ return true }
             })
         } else{
             await db.query("UPDATE work_data SET (first_name, surname, email, phone) = ($1,$2,$3,$4) WHERE user_id = ($5)",
-            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], user_id], (err4, result)=>{
+            [in_arr[0], in_arr[1], in_arr[2], in_arr[3], user_id], async (err4, result)=>{
                 if (err4){
                     console.log('ERROR while UPDATE account in changePersonalInfo:', err4.message);
+                    await writeLog('ERROR while UPDATE account in changePersonalInfo:'+err4.message, user_id, true);
                     return false
                 } else{ return true }
             })
@@ -1025,22 +1069,24 @@ app.get('/home/:username', async (req, res) => {
     if(req.isAuthenticated()){
         await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
             if (err){ console.log('ERROR in db.query in GET /home/:username:', err.message);
+                await writeLog('ERROR in db.query in GET /home/:username:'+err.message, req.params.username, true);
                 return res.redirect('/login')
             } else if(result.rows.length){
                 const user_id = result.rows[0].sess.passport.user;
                 const user_data = await queryWorkDataId(user_id);
                 if (!user_data){ return res.redirect('/login') };
-                const username = user_data['username'];                      console.log('GET home/'+username);
-                if (req.params.username != username){ console.log('req.params.username is', req.params.username, 'but username from db is', username, '. At', Date.now(), 'Redirecting to /login');
+                const username = user_data['username']; console.log('GET home/'+username);
+                if (req.params.username != username){
+                    writeLog('req.params.username is '+req.params.username+' but username from db is '+username, 0, false);
                     return res.redirect('/login')
                 };
 
                 const now_timestamp = Date.now();
-                const notes =       JSON.parse(user_data['notes']);                     //console.log(notes);
-                const routines =    JSON.parse(user_data['high_wly_mly']);              //console.log(routines);
-                const projects =    user_data['projects'];                              //console.log(projects);
-                const weather =     user_data['weather'];                               //console.log(weather);
-                const loc_data =    (JSON.parse(user_data.loc_data))['last'];           //console.log(loc_data);
+                const notes =       JSON.parse(user_data['notes']);
+                const routines =    JSON.parse(user_data['high_wly_mly']);
+                const projects =    user_data['projects'];
+                const weather =     user_data['weather'];
+                const loc_data =    (JSON.parse(user_data.loc_data))['last'];
                 const weekly =      routines['weekly'];
                 const monthly =     routines['monthly'];
                 const user_yyyymmdd = loc_data['YYYY-MM-DD'];
@@ -1131,7 +1177,7 @@ app.post('/home', async function (req,res){
     
         const username = req.user.username;
         const user_id = req.user.id;
-        console.log('POST /home', username); console.log(req.body); // console.log(req.session); console.log(req.sessionID);
+        console.log('POST /home', username);
         const user_data = await queryWorkDataId(user_id);
         let user_hour, user_hour_timestamp, new_weather;
 
@@ -1268,11 +1314,13 @@ app.post('/login',
 
 app.post('/register', (req, res) => {
     const cred_arr = JSON.parse(req.body.cred_arr_str);
+    if (cred_arr[0].length > 4 && cred_arr[0].slice(0,5).toLowerCase() == "guest"){ return res.redirect('/user_unavailable')}
     const time_place_obj = JSON.parse(req.body.time_place_obj_str);
     const first_name = req.body.first_name;
     bcrypt.hash( ( (cred_arr[1])+(process.env.PEP) ), saltRounds, async function(err, hash) {
         if(err){
             console.log('ERROR in bcrypt.hash in POST/register:', err.message);
+            await writeLog('ERROR in bcrypt.hash in POST/register:'+err.message, cred_arr[0], true);
             res.redirect('/registration_failed_A')
         } else {
             try{
@@ -1280,6 +1328,7 @@ app.post('/register', (req, res) => {
                 res.redirect('registration_successfull')
             } catch (err){
                 console.log('ERROR catched in registerUser() in POST/register:', err.message);
+                await writeLog('ERROR catched in registerUser() in POST/register:'+err.message, cred_arr[0], true);
                 res.redirect('/user_unavailable')
             }
         }
@@ -1424,14 +1473,16 @@ app.post('/demonstration', async (req, res)=>{
     demo_username = req.body.username;
     bcrypt.hash( ( (req.body.password)+(process.env.PEP) ), saltRounds, async function(err, hash) {
         if(err){
-            console.log('ERROR in bcrypt.hash in POST/register:', err.message);
+            console.log('ERROR in bcrypt.hash in POST/demonstration:', err.message);
+            await writeLog('ERROR in bcrypt.hash in POST/demonstration:'+err.message, req.body.username, true);
             res.redirect('/registration_failed_A')
         } else {
             try{
                 await registerUser( demo_username, hash, "guest", time_place_obj, demo_obj);
                 res.redirect('/demonstration')          
             } catch (err){
-                console.log('ERROR catched in registerUser() in POST/register:', err.message);
+                console.log('ERROR catched in registerUser() in POST/demonstration:', err.message);
+                await writeLog('ERROR catched in registerUser() in POST/demonstration:'+err.message, req.body.username, true);
                 res.redirect('/user_unavailable')
             }
         }
@@ -1466,3 +1517,11 @@ app.post('/lost_access', (req, res) => {
 app.listen(3000, function(){
     console.log("listening on port 3000");
 });
+
+process.on('uncaughtException', async (err) => {
+    try{
+        await fsPromises.appendFile(path.join(__dirname, 'logs','uncaught_errors.txt'), ("\n"+err.message+','+new_date.getTime()+','+new_date.toUTCString()))
+    } catch (err2){
+        console.error(err2.message)
+    }
+})
