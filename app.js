@@ -57,15 +57,12 @@ async function writeLog(in_message, in_id, is_error = true){
 
 async function verifyPassword(in_password, in_hash){
     return new Promise((resolve, reject) =>{
-        bcrypt.compare(in_password, in_hash, function(err, result) {
+        bcrypt.compare(in_password, in_hash, async function(err, result) {
             if (err){ console.log('ERROR in bcrypt.compare in verifyPassword():', err.message);
-                writeLog('ERROR in bcrypt.compare in verifyPassword():'+err.message,0,true);
+                await writeLog('ERROR in bcrypt.compare in verifyPassword():'+err.message,0,true);
                 resolve(false)
-            } else if (result){ console.log('FUNCTION verifypassword(): password is CORRECT');
-                resolve(true)
-            } else { console.log('FUNCTION verifypassword(): password is WRONG');
-                resolve(false)
-            }
+            } else if (result){ resolve(true) }
+            else { resolve(false) }
         });
     })
 };
@@ -83,15 +80,10 @@ passport.use(new LocalStrategy(
                     await writeLog('ERROR catched in try{ user = user.rows[0]:'+err.message,username,true);
                     return done(null,false)
                 };
-                if (!user) { console.log('LocalStrategy: db.query returned no user');
-                    return done(null, false)
-                };
+                if (!user) { return done(null, false) };
                 let result = await verifyPassword( (password + (process.env.PEP)), user['password'] );
                 if (result) { return done(null, user) }
-                else{
-                    console.log('LocalStrategy --> verifyPassword returned false, returning false');
-                    return done(null, false)
-                }
+                else{ return done(null, false) }
             }
         });
     }
@@ -309,7 +301,7 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
 async function updateFromCall(in_column , JSON_str, user_id){
     if(!in_column || !JSON_str || !user_id){
         console.log('ERROR: updateFromCall requires three parameters (in_column, JSON_str, user_id)');
-        writeLog('ERROR: updateFromCall requires three parameters (in_column JSON_str user_id)',0,true)
+        await writeLog('ERROR: updateFromCall requires three parameters (in_column JSON_str user_id)',0,true)
         return false
     } else{ return new Promise ((resolve, reject)=>{
         if (in_column.length == 2){
@@ -346,10 +338,7 @@ async function updateProjects(in_arr_str, user_id){
 };
 
 function checkMultipleReq(in_obj){
-    if (in_obj[0].length > 1){
-        console.log('WARNING! There were', in_obj.length,'objects in the last request! Will proceed only with the last.');
-        return (JSON.parse(in_obj[in_obj.length-1]))
-    };
+    if (in_obj[0].length > 1){ return (JSON.parse(in_obj[in_obj.length-1])) };
     return JSON.parse(in_obj);
 };
 
@@ -957,8 +946,7 @@ async function callVerifyPassword(in_pw, user_id){
                 };
                 let result = await verifyPassword( (in_pw + (process.env.PEP)), this_user['password'] );
                 if (result) { resolve(true) }
-                else{
-                    console.log('callVerifyPassword --> verifyPassword returned false, returning false');
+                else{ console.log('callVerifyPassword --> verifyPassword returned false, returning false');
                     resolve(false)
                 }
             }
@@ -1193,10 +1181,10 @@ app.post('/home', async function (req,res){
         };
         
         async function waitForWeatherUpdate(in_itv, in_str, in_column){
-            console.log('FUNCTION waitForWeatherUpdate(), in_itv is:', in_itv);
             if (new_weather == undefined){
-                if (in_itv && in_itv > 40){ return(await updateFromCall(in_column, in_str, user_id)) }
-                else{ setTimeout(() => { return waitForWeatherUpdate(in_itv+1, in_str, in_column) }, 50) }
+                if (in_itv && in_itv > 40){
+                    return(await updateFromCall(in_column, in_str, user_id))
+                } else{ setTimeout(() => { return waitForWeatherUpdate(in_itv+1, in_str, in_column) }, 50) }
             } else if (new_weather){ return(await updateFromCall(['weather', in_column], [new_weather, in_str], user_id)) }
             else{ return(await updateFromCall(in_column, in_str, user_id)) }
         };
@@ -1295,20 +1283,15 @@ app.post('/home', async function (req,res){
 
 app.post('/login',
     passport.authenticate('local', { failureRedirect: '/registration_failed' }), async function(req, res) {
-        console.log(req);
         const user_data_page = req.body;
         const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
         const user_data_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
         const user_data = user_data_raw.rows[0];
         if( time_place_obj['UTC_hour'] != parseInt(user_data['last_utc_hour']) ||
             time_place_obj['timestamp'] > (parseInt(user_data['last_timestamp'])+3600000) ){
-            console.log('Fulfilled conditions to call updateFromLogin');
             await updateFromLogin(user_data, time_place_obj);
             return res.redirect(`/home/${user_data_page.username}`)
-        } else {
-            console.log('DID NOT fulfill conditions to call updateFromLogin');
-            return res.redirect(`/home/${user_data_page.username}`)
-        }
+        } else { return res.redirect(`/home/${user_data_page.username}`) }
     }
 );
 
