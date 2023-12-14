@@ -1297,7 +1297,6 @@ app.post('/login',
 
 app.post('/register', (req, res) => {
     const cred_arr = JSON.parse(req.body.cred_arr_str);
-    if (cred_arr[0].length > 4 && cred_arr[0].slice(0,5).toLowerCase() == "guest" && cred_arr[1] != "pw_demo"){ return res.redirect('/user_unavailable')}
     const time_place_obj = JSON.parse(req.body.time_place_obj_str);
     const first_name = req.body.first_name;
     bcrypt.hash( ( (cred_arr[1])+(process.env.PEP) ), saltRounds, async function(err, hash) {
