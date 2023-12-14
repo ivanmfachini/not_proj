@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({ extended: true } ));
 
 app.use(session({
     store: new pgSession({
-        conString: `postgres://postgres:${process.env.PG_PW}@localhost/not_proj`
+        conString: `postgres://postgres:${process.env.PG_PW}@${process.env.HOSTNAME}/${process.env.PG_DB}`
     }),
     secret: process.env.SESSION_SEC,
     resave: false,
