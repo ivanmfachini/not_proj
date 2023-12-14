@@ -107,16 +107,31 @@ passport.use(new LocalStrategy(
     }
 ));
 
-passport.serializeUser(function(user, done) {
+/* passport.serializeUser(function(user, done) {
     done(null, user.id);
+}); */
+passport.serializeUser(function(user, cb) {
+    process.nextTick(function() {
+      return cb(null, {
+        id: user.id,
+        username: user.username,
+        password: user.password
+      });
+    });
 });
   
-passport.deserializeUser(async function(id, done) {
+/* passport.deserializeUser(async function(id, done) {
     await db.query('SELECT * FROM credential WHERE id = ($1)', [id], async function (err,user){
         if (err){ console.log('ERROR in db.query in deserializeUser:', err.message);
             await writeLog('ERROR in db.query in deserializeUser: '+err.message,id,true);
         };
         done(err, (user.rows[0]));
+    });
+}); */
+
+passport.deserializeUser(function(user, cb) {
+    process.nextTick(function() {
+      return cb(null, user);
     });
 });
 
@@ -1184,9 +1199,11 @@ app.get('/demonstration', function (req,res){
 });
 
 app.post('/demo2',
-passport.authenticate('local', { failureRedirect: '/registration_failed' }), async function(req, res) {
-    res.redirect(`/home/${demo_username}`)
-});
+    passport.authenticate('local', { failureRedirect: '/registration_failed' }),
+    function(req, res) {
+        res.redirect(`/home/${demo_username}`)
+    }
+);
 
 app.post('/home', async function (req,res){
     if (req.isAuthenticated()){
@@ -1314,7 +1331,8 @@ app.post('/home', async function (req,res){
 });
 
 app.post('/login',
-    passport.authenticate('local', { failureRedirect: '/registration_failed' }), async function(req, res) {
+    passport.authenticate('local', { failureRedirect: '/registration_failed' }),
+    async function(req, res) {
         const user_data_page = req.body;
         const time_place_obj = JSON.parse(user_data_page.time_place_obj_str);
         const user_data_raw = await db.query("SELECT * FROM work_data WHERE username = ($1)",[user_data_page.username]);
@@ -1322,8 +1340,8 @@ app.post('/login',
         if( time_place_obj['UTC_hour'] != parseInt(user_data['last_utc_hour']) ||
             time_place_obj['timestamp'] > (parseInt(user_data['last_timestamp'])+3600000) ){
             await updateFromLogin(user_data, time_place_obj);
-            return res.redirect(`/home/${user_data_page.username}`)
-        } else { return res.redirect(`/home/${user_data_page.username}`) }
+            res.redirect(`/home/${user_data_page.username}`)
+        } else { res.redirect(`/home/${user_data_page.username}`) }
     }
 );
 
