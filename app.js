@@ -1100,6 +1100,11 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/home/:username', async (req, res) => {
+    try{
+        console.log(req.session); console.log(req.sessionID); console.log(req.sessionStore); console.log(req.body); console.log(req.user)
+    } catch(err){
+        console.log(err.message)
+    };
     if (req.params.username == "undefined"){ return res.redirect('/login') };
     if(req.isAuthenticated()){
         await db.query('SELECT * FROM session WHERE sid = ($1)',[req.sessionID], async (err,result)=>{
