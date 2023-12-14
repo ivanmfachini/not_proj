@@ -101,10 +101,10 @@
 
             <div class="weather_day" id="weather_day1">
 
-              <%var current_hour=<%=local_hour_PH%>;%>
+              <%var current_hour=local_hour_PH;%>
               <%const weather=JSON.parse(weather_PH);%>
               <%var dayA_wtr, dayB_wtr, dayC_wtr;%>
-              <%if(3 < current_hour && current_hour < 17 && dayA_hidden_date_PH == <%=today_YYYYMMDD_PH%>){%>
+              <%if(3 < current_hour && current_hour < 17 && dayA_hidden_date_PH == today_YYYYMMDD_PH){%>
 
                 <%if(weather[dayA_hidden_date_PH]){%>
                   <%dayA_wtr=weather[dayA_hidden_date_PH];%>
