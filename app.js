@@ -107,10 +107,10 @@ passport.use(new LocalStrategy(
     }
 ));
 
-/* passport.serializeUser(function(user, done) {
+passport.serializeUser(function(user, done) {
     done(null, user.id);
-}); */
-passport.serializeUser(function(user, cb) {
+});
+/* passport.serializeUser(function(user, cb) {
     process.nextTick(function() {
       return cb(null, {
         id: user.id,
@@ -118,22 +118,22 @@ passport.serializeUser(function(user, cb) {
         password: user.password
       });
     });
-});
+}); */
   
-/* passport.deserializeUser(async function(id, done) {
+passport.deserializeUser(async function(id, done) {
     await db.query('SELECT * FROM credential WHERE id = ($1)', [id], async function (err,user){
         if (err){ console.log('ERROR in db.query in deserializeUser:', err.message);
             await writeLog('ERROR in db.query in deserializeUser: '+err.message,id,true);
         };
         done(err, (user.rows[0]));
     });
-}); */
+});
 
-passport.deserializeUser(function(user, cb) {
+/* passport.deserializeUser(function(user, cb) {
     process.nextTick(function() {
       return cb(null, user);
     });
-});
+}); */
 
 const dayModule = require(__dirname + "/dayModule.js");
 const weatherModule = require(__dirname + "/weatherModule.js");
