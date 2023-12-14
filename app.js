@@ -90,15 +90,18 @@ passport.use(new LocalStrategy(
                 await writeLog('ERROR in db.query in LocalStrategy:'+err.message,username,true);
                 return done(err)
             } else {
-                try{ user = user.rows[0] }
-                catch (err){ console.log('ERROR catched in try{ user = user.rows[0]:', err.message);
-                    await writeLog('ERROR catched in try{ user = user.rows[0]:'+err.message,username,true);
-                    return done(null,false)
-                };
-                if (!user) { return done(null, false) };
-                let result = await verifyPassword( (password + (process.env.PEP)), user['password'] );
-                if (result) { return done(null, user) }
-                else{ return done(null, false) }
+                if (!user) { console.log('no user found in localStrategy'); return done(null, false) };
+                let result_l;
+                let user_found = user.rows[0];
+                try{
+                    console.log(user_found);
+                    result_l = await verifyPassword( (password + (process.env.PEP)), user_found['password'] );
+                } catch(err2){
+                    console.log('ERROR while verifyPassword() in localStrategy:', err2.message)
+                }finally{
+                    if (result_l) { console.log('result_l was true'); return done(null, user_found) }
+                    else{ console.log('result_l was false'); return done(null, false) }
+                }
             }
         });
     }
