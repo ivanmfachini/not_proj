@@ -42,6 +42,11 @@ const db = new pg.Client({
 });
 db.connect();
 
+await db.query("CREATE TABLE credential(id SERIAL PRIMARY KEY, username VARCHAR(30) UNIQUE NOT NULL, password TEXT NOT NULL);");
+await db.query("CREATE TABLE account (user_id INTEGER, username VARCHAR(30), log_fail numeric(13,0), log_attempt smallint, log_ok numeric(13,0), log_forbid integer, pw_last_change numeric(13,0), prev_pw TEXT, first_pw TEXT NOT NULL, creation numeric(13,0) NOT NULL, other TEXT, CONSTRAINT account_pkey PRIMARY KEY (user_id), CONSTRAINT account_username_key UNIQUE (username), CONSTRAINT account_user_id_fkey FOREIGN KEY(user_id) REFERENCES credential(id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE, CONSTRAINT account_username_fkey FOREIGN KEY (username) REFERENCES credential(username) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE);");
+await db.query("CREATE TABLE work_data (user_id INTEGER, username VARCHAR(30), first_name VARCHAR(20), notes TEXT, high_wly_mly TEXT, projects TEXT, last_timestamp numeric(13,0), last_local_hour numeric(2,0), last_UTC_hour numeric(2,0), weather TEXT, loc_data TEXT, temp_celsius boolean NOT NULL DEFAULT true, wtr_simple boolean NOT NULL DEFAULT false, surname VARCHAR(80), email VARCHAR(80), phone VARCHAR(30), lang VARCHAR(3) DEFAULT 'eng', CONSTRAINT work_data_pkey PRIMARY KEY (user_id), CONSTRAINT work_data_username_key UNIQUE (username), CONSTRAINT work_data_user_id_fkey FOREIGN KEY (user_id) REFERENCES credential(id) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE, CONSTRAINT work_data_username_fkey FOREIGN KEY (username) REFERENCES credential(username) MATCH SIMPLE ON UPDATE CASCADE ON DELETE CASCADE);");
+await db.query('CREATE TABLE "session" ("sid" varchar NOT NULL COLLATE "default", "sess" json NOT NULL, "expire" timestamp(6) NOT NULL) WITH (OIDS=FALSE); ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE; CREATE INDEX "IDX_session_expire" ON "session" ("expire");');
+
 async function writeLog(in_message, in_id, is_error = true){
     const new_date = new Date();
     if (is_error){
@@ -1297,6 +1302,7 @@ app.post('/login',
 
 app.post('/register', (req, res) => {
     const cred_arr = JSON.parse(req.body.cred_arr_str);
+    if (cred_arr[0].length > 4 && cred_arr[0].slice(0,5).toLowerCase() == "guest" && cred_arr[1] != "pw_demo"){ return res.redirect('/user_unavailable')}
     const time_place_obj = JSON.parse(req.body.time_place_obj_str);
     const first_name = req.body.first_name;
     bcrypt.hash( ( (cred_arr[1])+(process.env.PEP) ), saltRounds, async function(err, hash) {
