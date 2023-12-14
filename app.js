@@ -1121,7 +1121,8 @@ app.get('/home/:username', async (req, res) => {
                     return res.redirect('/login')
                 };
 
-                const now_timestamp = Date.now();
+                const new_date =    new Date();
+                const now_timestamp = new_date.getTime();
                 const notes =       JSON.parse(user_data['notes']);
                 const routines =    JSON.parse(user_data['high_wly_mly']);
                 const projects =    user_data['projects'];
@@ -1181,9 +1182,18 @@ app.get('/home/:username', async (req, res) => {
                 catch{ B_notes = empty_arr_str };
                 try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
                 catch{ C_notes = empty_arr_str };
-    
+                
+                const local_hour = new_date.getUTCHours()+(parseInt(loc_data['hour_offset']))
+                const prot_date = new Date(now_timestamp + (parseInt(loc_data['hour_offset']) * 3600000));
+                const YYYY = prot_date.getUTCFullYear();
+                let MM = prot_date.getUTCMonth()+1;
+                let DD = prot_date.getUTCDate();
+                if (MM < 10){ MM = '0'+MM.toString() } else{ MM = MM.toString() };
+                if (DD < 10){ DD = '0'+DD.toString() } else{ DD = DD.toString() };
+                const local_YYYYMMDD = YYYY+'-'+MM+'-'+DD;
+
                 res.render('index', {
-                    tmz_suffix_PH : loc_data['tmz_suffix'], current_hour_PH : user_data['last_local_hour'],
+                    tmz_suffix_PH : loc_data['tmz_suffix'], local_hour_PH: local_hour, 
                     dayA_PH: dayModule.dayA_pretty(new_timestamp), notesDayA_PH_string: A_notes, dayA_hidden_date_PH : dayA_key,
                     dayB_PH: dayModule.dayB_pretty(new_timestamp), notesDayB_PH_string: B_notes, dayB_hidden_date_PH : dayB_key,
                     dayC_PH: dayModule.dayC_pretty(new_timestamp), notesDayC_PH_string: C_notes, dayC_hidden_date_PH : dayC_key,
@@ -1192,7 +1202,7 @@ app.get('/home/:username', async (req, res) => {
                     days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31), weather_PH: weather,
                     wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius'],
                     surname_PH: user_data['surname'], useremail_PH: user_data['email'], userphone_PH: user_data['phone'],
-                    user_lang_PH: user_data['lang']
+                    user_lang_PH: user_data['lang'], today_YYYYMMDD_PH: local_YYYYMMDD
                 })
             } else { console.log('NO COOKIE'); return res.redirect('/login') }
         })

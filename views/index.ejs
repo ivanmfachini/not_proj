@@ -100,17 +100,11 @@
             </div> <!-- class="col col-days ngttime">-->
 
             <div class="weather_day" id="weather_day1">
-              <%var new_date=new Date();%>
-              <%var new_y=new_date.getFullYear().toString();%>
-              <%var new_m=(new_date.getMonth()+1).toString();%>
-              <%var new_d=new_date.getDate().toString();%>
-              <%if(new_m.length == 1){new_m="0"+new_m};%>
-              <%if(new_d.length == 1){new_d="0"+new_d};%>
-              <%var new_yyyymmdd = new_y+"-"+new_m+"-"+new_d;%>
-              <%var current_hour=new_date.getHours();%>
+
+              <%var current_hour=<%=local_hour_PH%>;%>
               <%const weather=JSON.parse(weather_PH);%>
               <%var dayA_wtr, dayB_wtr, dayC_wtr;%>
-              <%if(3 < current_hour && current_hour < 17 && dayA_hidden_date_PH == new_yyyymmdd){%>
+              <%if(3 < current_hour && current_hour < 17 && dayA_hidden_date_PH == <%=today_YYYYMMDD_PH%>){%>
 
                 <%if(weather[dayA_hidden_date_PH]){%>
                   <%dayA_wtr=weather[dayA_hidden_date_PH];%>
