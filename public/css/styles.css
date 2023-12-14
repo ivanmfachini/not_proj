@@ -1,6 +1,6 @@
 body {
     color: rgb(240,240,206);
-    background-color: rgb(5,30,100);
+    background-color: black;
 }
 
 /* Temani Afif's https://stackoverflow.com/a/66383730/21113444 */
@@ -1154,9 +1154,6 @@ input {
 
 @media (min-width: 751px) {
 
-    body {
-        background-color: rgb(29,7,39);
-    }
 
     #shine-div:before {
         background: radial-gradient(farthest-corner at top, rgb(7,13,52)1%, rgb(29,7,39) 45%);
