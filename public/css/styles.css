@@ -203,20 +203,20 @@ p:hover{
 .row-buttons #login{
     width: 54%;
     margin-right: 5px;
-    background-color: rgb(6,20,80);
+    background-color: rgb(6,36,120);
 }
 
 #login:hover{
-    background-color: rgb(3,10,40);
+    background-color: rgb(3,18,60);
 }
 
 .row-buttons #register{
     width: 46%;
     margin-left: 5px;
-    background-color: rgb(44,6,60);
+    background-color: rgb(60,6,100);
 }
 #register:hover{
-    background-color: rgb(22,3,30);
+    background-color: rgb(30,3,50);
 }
 
 .row-buttons #lost_access{
@@ -224,11 +224,11 @@ p:hover{
     margin-right: 5px;
     margin-top: 5px;
     background-color: transparent;
-    border: 1px solid rgb(6,20,80)
+    border: 1px solid rgb(6,36,120)
 }
 #lost_access:hover{
-    background-color: rgb(3,10,40);
-    border: 1px solid rgb(3,10,40);
+    background-color: rgb(3,18,60);
+    border: 1px solid rgb(3,18,60);
 }
 
 .row-buttons #demo{
@@ -828,7 +828,7 @@ input {
 
 .add_another_task{
     width: 17%;
-    background-color: rgb(6,20,80);
+    background-color: rgb(6,36,120);
     border: none;
     color: rgb(240,240,206);
 }
@@ -848,16 +848,16 @@ input {
     padding: 4px 0 6px;
     color: rgb(240,240,206);
     margin: 15px 10px 10px;
-    background-color: rgb(44,6,60);
+    background-color: rgb(60,6,100);
 }
 
 #cancel_new_project{
     width: 20%;
-    background-color: rgb(80,5,5);
+    background-color: rgb(100,5,5);
 }
 
 #cancel_new_project:hover{
-    background-color: rgb(50,5,5);
+    background-color: rgb(80,5,5);
 }
 
 #submit_new_project:hover{
@@ -870,7 +870,7 @@ input {
 
 #cancel_deletion_button{
     width: 20%;
-    background-color: rgb(80,5,5);
+    background-color: rgb(100,5,5);
 }
 
 #cancel_deletion_button:hover{
@@ -952,7 +952,7 @@ input {
 }
 
 .done{
-    background-color: rgb(10,60,0);
+    background-color: rgb(20,100,0);
     border: solid 2px rgb(30,200,10);
     border-radius: 10px;
     color: rgb(225,255,225);
