@@ -3,7 +3,7 @@
     let blurred_id, period_of_day_class;                                                    // these variables will store values important to
     let recent_onclick = {"text": "" , "id": "", 'timestamp' : 0};                          // control the user's interaction with the page's
     let older_onclick = {"text": "" , "id": "", 'timestamp' : 0};                           // elements (especially clicks) and the time
-    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd, A_day_key, is_it_today;
+    let recent_task, older_task, recent_project, older_project, dayObj_today, new_date, local_hour, UTC_hour, now_y, now_m, now_d, now_yyyymmdd, A_day_key, is_it_today, added_note_arr;
     let context_menu_tasks_clicks = 0;
     let context_menu_project_clicks = 0;
     const tmz_suffix = $("#tmz_suffix").html();
@@ -68,6 +68,7 @@
         };
     };
     greeting();
+    added_note_arr = $('.added_note'+period_of_day_class);
     
     // Customize note's opacity for better visuals
     $(".new_note").parent().css("opacity", "0.3");
@@ -239,7 +240,6 @@
         const routines_parsed = JSON.parse(routines_raw);     // <-- originally, it was JSON.parse(JSON.parse(routines_raw))
         const dayA_key = $($(".hidden_date"+period_of_day_class)[0]).html();
         const dayB_key = $($(".hidden_date"+period_of_day_class).last()).html();
-        const added_note_arr = $('.added_note'+period_of_day_class);
         const dayobj_A = new Date(dayA_key);
         const dayobj_B = new Date(dayB_key);
 
@@ -467,7 +467,8 @@
         $(this).parent().css("opacity", "0.3");
     });
 
-    $('.added_note').on('click', function() {
+    $('.added_note').on('click', function(e) {
+        e.preventDefault();
         if(recent_onclick.text == ""){
             recent_onclick.text = this.innerHTML;
             recent_onclick.id = this.id;
@@ -656,7 +657,10 @@
     function touchTimeCounter(in_obj, in_event){
         console.log('entered touchTimeCounter');
         let sender = true;
-        in_obj.addEventListener('pointerup',(ev)=>{sender = false});
+        in_obj.addEventListener('pointerup',(ev)=>{
+            sender = false;
+            $(in_obj).focus()
+        });
         setTimeout(() => {
             console.log('calling contextMenuAddedNote from touchTimeCounter');
             if (sender){contextMenuAddedNote(in_event, in_obj)}
