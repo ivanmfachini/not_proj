@@ -657,7 +657,7 @@
         console.log('entered touchTimeCounter');
         let keeper = true;
         while (keeper){
-            in_obj.addEventListener('touchend',(this, ev)=>{keeper=false});
+            in_obj.addEventListener('touchend',(ev)=>{keeper=false});
             setTimeout(() => {
                 console.log('calling contextMenuAddedNote from touchTimeCounter');
                 contextMenuAddedNote(in_event)
@@ -666,7 +666,7 @@
     };
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){
-        added_notes_arr[0].addEventListener('touchstart', (this,ev)=>{ touchTimeCounter(this, ev) })
+        added_notes_arr[0].addEventListener('touchstart', (ev)=>{ touchTimeCounter(added_notes_arr[0], ev) })
     };
 
     $( '.weekly.monthly' ).addClass('bothstamps');
