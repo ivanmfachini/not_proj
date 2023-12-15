@@ -1183,7 +1183,7 @@ app.get('/home/:username', async (req, res) => {
                 try{ C_notes = JSON.stringify(notes[dayC_key]['notes']) }
                 catch{ C_notes = empty_arr_str };
                 
-                const local_hour = new_date.getUTCHours()+(parseInt(loc_data['hour_offset']))
+                const local_hour = new_date.getUTCHours()-(parseInt(loc_data['hour_offset']))
                 const prot_date = new Date(now_timestamp + (parseInt(loc_data['hour_offset']) * 3600000));
                 const YYYY = prot_date.getUTCFullYear();
                 let MM = prot_date.getUTCMonth()+1;
@@ -1202,7 +1202,7 @@ app.get('/home/:username', async (req, res) => {
                     days_7_PH : JSON.stringify(days_7) , days_31_PH : JSON.stringify(days_31), weather_PH: weather,
                     wtr_simple_PH: user_data['wtr_simple'], celsius_PH: user_data['temp_celsius'],
                     surname_PH: user_data['surname'], useremail_PH: user_data['email'], userphone_PH: user_data['phone'],
-                    user_lang_PH: user_data['lang'], today_YYYYMMDD_PH: local_YYYYMMDD
+                    user_lang_PH: user_data['lang'], today_YYYYMMDD_PH: local_YYYYMMDD, hour_offset_PH: loc_data['hour_offset']
                 })
             } else { console.log('NO COOKIE'); return res.redirect('/login') }
         })

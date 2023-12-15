@@ -1458,6 +1458,9 @@
             $(".hour_hour_weather").css('margin', '0 7px');
             $(".hourly_weather").css('margin-bottom', '5px')
         } else{ $("#show_compl").hide() }
+        console.log($("#mili_diff").html());
+        console.log($("#tmz_suffix").html());
+        console.log($("#hour_offset").html())
     }, 13);
     
 });
