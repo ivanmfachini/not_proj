@@ -653,7 +653,7 @@
         event.preventDefault();
         contextMenuAddedNote(event)
     });
-/*     function touchTimeCounter(in_obj, in_event){
+    function touchTimeCounter(in_obj, in_event){
         console.log('entered touchTimeCounter');
         let keeper = true;
         while (keeper){
@@ -661,13 +661,13 @@
             setTimeout(() => {
                 console.log('calling contextMenuAddedNote from touchTimeCounter');
                 contextMenuAddedNote(in_event)
-            }, 500)
+            }, 800)
         } return
-    }; */
+    };
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){
-        //added_notes_arr[0].addEventListener('touchstart', (ev)=>{ touchTimeCounter(added_notes_arr[0], ev) })
-        added_notes_arr[0].addEventListener('touchstart', (ev)=>{ contextMenuAddedNote(ev) })
+        added_notes_arr[i].addEventListener('touchstart', (ev)=>{ touchTimeCounter(added_notes_arr[i], ev) })
+        //added_notes_arr[i].addEventListener('touchstart', (ev)=>{ contextMenuAddedNote(ev) })
     };
 
     $( '.weekly.monthly' ).addClass('bothstamps');
