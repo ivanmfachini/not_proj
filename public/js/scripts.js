@@ -657,7 +657,7 @@
         console.log('entered touchTimeCounter');
         let keeper = true;
         while (keeper){
-            in_obj.addEventListener('touchend',()=>{keeper=false});
+            in_obj.addEventListener('touchend',(this, ev)=>{keeper=false});
             setTimeout(() => {
                 console.log('calling contextMenuAddedNote from touchTimeCounter');
                 contextMenuAddedNote(in_event)
