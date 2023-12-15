@@ -653,7 +653,7 @@
         event.preventDefault();
         contextMenuAddedNote(event)
     });
-    function touchTimeCounter(in_obj, in_event){
+/*     function touchTimeCounter(in_obj, in_event){
         console.log('entered touchTimeCounter');
         let keeper = true;
         while (keeper){
@@ -663,10 +663,11 @@
                 contextMenuAddedNote(in_event)
             }, 500)
         } return
-    };
+    }; */
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){
-        added_notes_arr[0].addEventListener('touchstart', (ev)=>{ touchTimeCounter(added_notes_arr[0], ev) })
+        //added_notes_arr[0].addEventListener('touchstart', (ev)=>{ touchTimeCounter(added_notes_arr[0], ev) })
+        added_notes_arr[0].addEventListener('touchstart', (ev)=>{ contextMenuAddedNote(ev) })
     };
 
     $( '.weekly.monthly' ).addClass('bothstamps');
@@ -1028,7 +1029,7 @@
         });
     };
 
-    $('.project_title, .final_deadline-box').on('contextmenu', function(event){
+    $('.project_title, .final_deadline-box').on('click', function(event){
         event.preventDefault();
         let click_x = event.clientX, click_y = event.clientY + window.scrollY;
         if (!older_project){
@@ -1067,7 +1068,7 @@
         }
     };
 
-    $('.weather_day').on('contextmenu', function(event){
+    $('.weather_day').on('click', function(event){
         event.preventDefault();
         let pos_x = event.clientX, pos_y = event.clientY + window.scrollY;
         let window_width = window.innerWidth;
