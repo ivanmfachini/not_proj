@@ -656,7 +656,9 @@
     });
     function touchTimeCounter(in_obj, in_event){
         let sender = true;
-        in_obj.addEventListener('pointerup',(ev)=>{ sender = false });
+        in_obj.addEventListener('touchend',(ev)=>{ sender = false });
+        in_obj.addEventListener('touchmove',(ev)=>{ sender = false });
+        in_obj.addEventListener('touchcancel',(ev)=>{ sender = false });
         setTimeout(() => {
             if (sender){ contextMenuAddedNote(in_event, in_obj) }
         }, 800)
@@ -664,7 +666,10 @@
     };
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){
-        added_notes_arr[i].addEventListener('pointerdown', (ev)=>{ touchTimeCounter(added_notes_arr[i], ev) })
+        added_notes_arr[i].addEventListener('touchstart', (ev)=>{
+            ev.preventDefault();
+            touchTimeCounter(added_notes_arr[i], ev)
+        })
         //added_notes_arr[i].addEventListener('touchstart', (ev)=>{ contextMenuAddedNote(ev) })
     };
 
