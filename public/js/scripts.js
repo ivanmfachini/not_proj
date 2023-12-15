@@ -655,18 +655,17 @@
     });
     function touchTimeCounter(in_obj, in_event){
         console.log('entered touchTimeCounter');
-        let keeper = true;
-        while (keeper){
-            in_obj.addEventListener('touchend',(ev)=>{keeper=false});
-            setTimeout(() => {
-                console.log('calling contextMenuAddedNote from touchTimeCounter');
-                contextMenuAddedNote(in_event)
-            }, 800)
-        } return
+        let sender = true;
+        in_obj.addEventListener('pointerup',(ev)=>{sender = false});
+        setTimeout(() => {
+            console.log('calling contextMenuAddedNote from touchTimeCounter');
+            if (sender){contextMenuAddedNote(in_event)}
+        }, 800)
+
     };
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){
-        added_notes_arr[i].addEventListener('touchstart', (ev)=>{ touchTimeCounter(added_notes_arr[i], ev) })
+        added_notes_arr[i].addEventListener('pointerdown', (ev)=>{ touchTimeCounter(added_notes_arr[i], ev) })
         //added_notes_arr[i].addEventListener('touchstart', (ev)=>{ contextMenuAddedNote(ev) })
     };
 
