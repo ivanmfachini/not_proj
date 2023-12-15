@@ -17,6 +17,7 @@
         let currentDay = dayObj_today.toLocaleDateString('en-US', options);
         let tomorrowDay = dayObj_tomorrow.toLocaleDateString('en-US', options);
         local_hour = parseInt(dayObj_today.toString().slice(16,18));                      // <-- assigns the hour of the day (local time)
+        console.log('local_hour is:', local_hour);
 
         now_y = dayObj_today.getFullYear().toString();
         now_m = (dayObj_today.getMonth()+1).toString();
@@ -60,7 +61,6 @@
             $(".ngttime").show();
         };
         A_day_key = $(".hidden_date"+period_of_day_class).html();
-        console.log(A_day_key);
         is_it_today = Date.now() - new Date(A_day_key+tmz_suffix).getTime()
         if (is_it_today < 86400000 && is_it_today > 0 ){
             is_it_today = true;
@@ -391,7 +391,6 @@
                     }    
                 }
             };
-            console.log(big_routine_day);
             if(this_month_last_day){
                 for (let a = big_routine_day.length-1; a > -1; a--){
                     let q = big_routine_day[a]
@@ -468,7 +467,6 @@
     });
 
     $('.added_note').on('click', function(e) {
-        e.preventDefault();
         if(recent_onclick.text == ""){
             recent_onclick.text = this.innerHTML;
             recent_onclick.id = this.id;
@@ -487,7 +485,8 @@
     });
 
     function contextMenuAddedNote(in_event, in_obj){
-        let pos_x = in_event.clientX, pos_y = in_event.clientY + window.scrollY;
+        $(in_obj).blur();
+        let pos_x = in_obj.offsetTop+in_obj.offsetHeight, pos_y = in_obj.offsetLeft;
         let window_width = window.innerWidth;
         let context_menu_width = $(".context_menu.wrapper").width();
         if(pos_x > window_width - context_menu_width){
@@ -655,15 +654,10 @@
         contextMenuAddedNote(event, event.target)
     });
     function touchTimeCounter(in_obj, in_event){
-        console.log('entered touchTimeCounter');
         let sender = true;
-        in_obj.addEventListener('pointerup',(ev)=>{
-            sender = false;
-            $(in_obj).focus()
-        });
+        in_obj.addEventListener('pointerup',(ev)=>{ sender = false });
         setTimeout(() => {
-            console.log('calling contextMenuAddedNote from touchTimeCounter');
-            if (sender){contextMenuAddedNote(in_event, in_obj)}
+            if (sender){ contextMenuAddedNote(in_event, in_obj) }
         }, 800)
 
     };
@@ -856,7 +850,6 @@
             let edit_task_text = $('#edit_task_text').val();
             let new_task_before = $('#new_task_before').val();
             let new_task_after = $('#new_task_after').val();
-            console.log(new_task_after);
             if (    (edit_task_text == ""   || $(edit_task_text).length < 41    && sanitizeTextInput(edit_task_text)) &&
                     (new_task_before == ""  || $(new_task_before).length < 41   && sanitizeTextInput(new_task_before)) &&
                     (new_task_after == ""   || $(new_task_after).length < 41    && sanitizeTextInput(new_task_after))){
@@ -1185,7 +1178,6 @@
                     }
                 };
                 for (let a = 0; a < these_tasks.length; a++){
-                    console.log($($(these_tasks[a]).siblings('.line')[0]).width());
                     if ( $($(these_tasks[a]).siblings('.line')[0]).width() < 6 ){
                         $(in_obj).css('flex-wrap', 'wrap');
                         return(true)
@@ -1412,35 +1404,34 @@
         let phone = $("#acc_userphone").val();
         let lang = $("#acc_lang").val();
         if (inputChecker(first_name, true) && first_name.length > 1 && first_name.length < 21){
-            checker += 1; console.log(checker)  //1
+            checker += 1;       //1
         } else{ alert("Invalid first name"); return };
         if (surname == "" || inputChecker(surname, true)){
-            checker += 1; console.log(checker)  //2
+            checker += 1;       //2
         } else{ alert("Invalid surname"); return };
         if (email == "" || (inputChecker(email) && email.length > 6 && email.length < 81)){
-            checker += 1; console.log(checker)  //3
+            checker += 1;       //3
         } else{ alert("Invalid e-mail"); return };
         if (phone == "" || (phoneChecker(phone) && phone.length > 5 && phone.length < 31)){
-            checker += 1; console.log(checker)  //4
+            checker += 1;       //4
         } else{ alert("Invalid phone number"); return };
         if (lang == "" || (inputChecker(lang) && lang.length == 3)){
-            checker += 1; console.log(checker)  //5
+            checker += 1;       //5
         } else{ alert("Invalid language"); return };
         if ($("#new_pw").val() == "" || (inputChecker($("#new_pw").val()) && $("#new_pw").val().length > 4 && $("#new_pw").val().length < 40)){
-            checker += 1; console.log(checker)  //6
+            checker += 1;       //6
         } else{ alert("Invalid new password"); return };
         if (($("#new_pw").val() == "" && $("#new_pw_conf").val() == "") || (inputChecker($("#new_pw_conf").val()) && $("#new_pw_conf").val().length > 4 && $("#new_pw_conf").val().length < 40)){
-            checker += 1; console.log(checker)  //7
+            checker += 1;       //7
         } else{ alert("Invalid new password confirmation"); return };
         if ($("#new_pw_conf").val() == $("#new_pw").val()){
-            checker += 1; console.log(checker)  //8
+            checker += 1;       //8
         } else{ alert('The new password must be the same in both fields: "New password" and "again"'); return };
         if ($("#acc_curr_pw").val().length){
-            checker += 1; console.log(checker)  //9
+            checker += 1;       //9
         } else{
             let top_pos = $("#submit_acc")[0].offsetTop;
             let left_pos = $("#span_username")[0].offsetLeft;
-            console.log($("#submit_acc")[0]);
             $("#curr_pw_required").css('top',`${top_pos+20}px`);
             $("#curr_pw_required").css('left',`${window.innerWidth/2 - 100}px`);
             $("#curr_pw_required").show();
@@ -1452,7 +1443,7 @@
             return
         };
         if (inputChecker($("#acc_curr_pw").val())){
-            checker += 1; console.log(checker)  //10
+            checker += 1;       //10
         } else{ alert("Invalid current password"); return };
         if (checker == 10){
             let arr_with_values = [first_name, surname, email, phone, lang, $("#new_pw").val(), $("#acc_curr_pw").val()];
@@ -1481,9 +1472,8 @@
             $(".hour_hour_weather").css('margin', '0 7px');
             $(".hourly_weather").css('margin-bottom', '5px')
         } else{ $("#show_compl").hide() }
-        console.log($("#hour_offset").html());
-        console.log($("#mili_diff").html());
-        console.log($("#tmz_suffix").html());
+        console.log('hour offset is:', $("#hour_offset").html());
+        console.log('tmz suffix is:', $("#tmz_suffix").html())
     }, 13);
     
 });
