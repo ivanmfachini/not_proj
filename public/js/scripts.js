@@ -656,9 +656,9 @@
     });
     function touchTimeCounter(in_obj, in_event){
         let sender = true;
-        in_obj.addEventListener('touchend',(ev)=>{ sender = false });
-        in_obj.addEventListener('touchmove',(ev)=>{ sender = false });
-        in_obj.addEventListener('touchcancel',(ev)=>{ sender = false });
+        in_obj.addEventListener('touchend',(ev)=>{ sender = false; $(in_obj).focus() });
+        in_obj.addEventListener('touchmove',(ev)=>{ sender = false; $(in_obj).focus() });
+        in_obj.addEventListener('touchcancel',(ev)=>{ sender = false; $(in_obj).focus() });
         setTimeout(() => {
             if (sender){ contextMenuAddedNote(in_event, in_obj) }
         }, 800)

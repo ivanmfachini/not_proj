@@ -559,7 +559,7 @@ header {
     position: absolute;
     top: 0;
     visibility: hidden;
-    background-color: rgb(20,20,20);
+    background-color: rgb(50,50,50);
     border-radius: 5px;
     margin: 0;
     padding: 0;
@@ -1154,7 +1154,6 @@ input {
 
 @media (min-width: 751px) {
 
-
     #shine-div:before {
         background: radial-gradient(farthest-corner at top, rgb(7,13,52)1%, rgb(29,7,39) 45%);
     }
@@ -1198,6 +1197,10 @@ input {
 
     .specific_task{
         max-width: 200px;
+    }
+
+    .context_menu.wrapper{
+        background-color: rgb(20,20,20);
     }
 
 }
