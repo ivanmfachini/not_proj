@@ -22,7 +22,7 @@ body {
     left:0;
     width:400%;
     height:200%;
-    background: radial-gradient(farthest-corner at top, rgb(5,30,100)1%, rgb(60,5,80) 45%);
+    background: radial-gradient(farthest-corner at top, rgb(5,36,140)1%, rgb(70,5,100) 45%);
     animation: colorChange 20s infinite alternate linear;
     overflow: hidden;
 }
