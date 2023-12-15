@@ -484,10 +484,9 @@
             recent_onclick.timestamp = Date.now()
         }
     });
-    
-    $('.added_note').on('contextmenu', function (event) {
-        event.preventDefault();
-        let pos_x = event.clientX, pos_y = event.clientY + window.scrollY;
+
+    function contextMenuAddedNote(in_event){
+        let pos_x = in_event.clientX, pos_y = in_event.clientY + window.scrollY;
         let window_width = window.innerWidth;
         let context_menu_width = $(".context_menu.wrapper").width();
         if(pos_x > window_width - context_menu_width){
@@ -648,7 +647,23 @@
             $("#form-routine").append(param_hour);
             document.getElementById("form-routine").submit();                
         });
+    };
+    
+    $('.added_note').on('contextmenu', function (event) {
+        event.preventDefault();
+        contextMenuAddedNote(event)
     });
+    function touchTimeCounter(in_event){
+        console.log('entered touchTimeCounter');
+        setTimeout(() => {
+            console.log('calling contextMenuAddedNote from touchTimeCounter');
+            contextMenuAddedNote(in_event)
+        }, 500);
+    };
+    let added_notes_arr = document.getElementsByClassName('added_note');
+    for (let i = 0; i < added_notes_arr.length; i++){
+        added_notes_arr[0].addEventListener('touchstart', touchTimeCounter(e))
+    };
 
     $( '.weekly.monthly' ).addClass('bothstamps');
     $( '.monthly.weekly' ).addClass('bothstamps');
@@ -898,7 +913,7 @@
         });
     };
 
-    $('.specific_task').on('contextmenu', function(event){
+    $('.specific_task').on('click', function(event){
         event.preventDefault();
         if (!older_task){
             if (!recent_task){
@@ -1458,9 +1473,9 @@
             $(".hour_hour_weather").css('margin', '0 7px');
             $(".hourly_weather").css('margin-bottom', '5px')
         } else{ $("#show_compl").hide() }
-        console.log($("#hour_offset").hmtl());
-        console.log($("#mili_diff").hmtl());
-        console.log($("#tmz_suffix").hmtl());
+        console.log($("#hour_offset").html());
+        console.log($("#mili_diff").html());
+        console.log($("#tmz_suffix").html());
     }, 13);
     
 });
