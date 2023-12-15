@@ -486,7 +486,8 @@
 
     function contextMenuAddedNote(in_event, in_obj){
         $(in_obj).blur();
-        let pos_x = in_obj.offsetLeft, pos_y = in_obj.offsetTop+in_obj.offsetHeight;
+        let pos = in_obj.getBoundingClientRect()
+        let pos_x = pos.left, pos_y = pos.bottom;
         let window_width = window.innerWidth;
         let context_menu_width = $(".context_menu.wrapper").width();
         if(pos_x > window_width - context_menu_width){
