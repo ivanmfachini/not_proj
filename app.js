@@ -1100,8 +1100,9 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/home/:username', async (req, res) => {
+    console.log('GET /home/:username');
     try{
-        console.log(req.session); console.log(req.sessionID); console.log(req.sessionStore); console.log(req.body); console.log(req.user)
+        console.log(req.session); console.log(req.sessionID); console.log(req.user); console.log(req.body);
     } catch(err){
         console.log(err.message)
     };
@@ -1115,7 +1116,7 @@ app.get('/home/:username', async (req, res) => {
                 const user_id = result.rows[0].sess.passport.user;
                 const user_data = await queryWorkDataId(user_id);
                 if (!user_data){ return res.redirect('/login') };
-                const username = user_data['username']; console.log('GET home/'+username);
+                const username = user_data['username'];
                 if (req.params.username != username){
                     writeLog('req.params.username is '+req.params.username+' but username from db is '+username, 0, false);
                     return res.redirect('/login')
@@ -1221,6 +1222,8 @@ app.post('/demo2',
 );
 
 app.post('/home', async function (req,res){
+    console.log('POST /home/:username');
+    console.log(req.body);
     if (req.isAuthenticated()){
         if(req.body.logout){                                    // logout from home page
             req.session.destroy();
@@ -1229,7 +1232,6 @@ app.post('/home', async function (req,res){
     
         const username = req.user.username;
         const user_id = req.user.id;
-        console.log('POST /home', username);
         const user_data = await queryWorkDataId(user_id);
         let user_hour, user_hour_timestamp, new_weather;
 
@@ -1260,9 +1262,11 @@ app.post('/home', async function (req,res){
             return res.redirect(manageReturn(this_arr[2], this_arr[3], user_hour, username))
         };
     
-        if(req.body.edit_note_arr){
+        if(req.body.edit_note_arr){ console.log('entered edit_note route');
             const this_arr = checkMultipleReq(req.body.edit_note_arr);
+            console.log('this_arr is:', this_arr);
             const new_str = newNotesStrEdit(this_arr, user_data);
+            console.log('new_str is:', new_str);
             await waitForWeatherUpdate(0, new_str, 'notes');
             return res.redirect(manageReturn(this_arr[3], this_arr[4], user_hour, username))
         };
@@ -1342,6 +1346,9 @@ app.post('/home', async function (req,res){
         setTimeout(()=>{
             return res.redirect(`/home/${username}`)
         },3500)
+    } else{
+        if(req.session){req.session.destroy()}
+        return res.redirect('/login')
     }
 });
 
