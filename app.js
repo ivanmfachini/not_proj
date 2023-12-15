@@ -1076,7 +1076,7 @@ async function changePersonalInfo(in_arr, user_id){
 //////////////////////////////////    ROUTES    //////////////////////////////////
 
 app.get('/', (req, res) => {
-    res.redirect('/login')
+    res.redirect('/home')
 });
 
 app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
