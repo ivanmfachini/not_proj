@@ -35,7 +35,7 @@ body {
     left:0;
     width:400%;
     height:200%;
-    background: radial-gradient(farthest-corner at top, rgb(40,40,40)1%, rgb(150,10,5) 45%);
+    background: radial-gradient(farthest-corner at top, rgb(120,80,5)1%, rgb(150,10,5) 45%);
     animation: colorChange 20s infinite alternate linear;
     overflow: hidden;
 }
@@ -559,7 +559,7 @@ header {
     position: absolute;
     top: 0;
     visibility: hidden;
-    background-color: rgb(50,50,50);
+    background-color: rgb(40,40,40);
     border-radius: 5px;
     margin: 0;
     padding: 0;
@@ -731,7 +731,7 @@ p{
     min-width: 350px;
     max-width: 600px;
     height: fit-content;
-    background-color: rgb(20,20,20);
+    background-color: rgb(40,40,40);
     border-radius: 5px;
     color: rgb(240,240,206);
     z-index: 7;
@@ -745,7 +745,7 @@ p{
     min-width: 350px;
     max-width: 600px;
     height: fit-content;
-    background-color: rgb(20,20,20);
+    background-color: rgb(40,40,40);
     border-radius: 15px;
     color: rgb(240,240,206);
     z-index: 7;
@@ -814,7 +814,7 @@ p{
 
 .new_project_deadline{
     width: 32%;
-    background-color: rgb(20,20,20);
+    background-color: rgb(40,40,40);
     border: none;
     color: rgb(240,240,206);
     text-align: center;
@@ -1121,7 +1121,7 @@ input {
     border: none;
     margin: 2px;
     color: rgb(200,150,240);
-    background: rgb(20,20,20);
+    background: rgb(40,40,40);
     width: 96%;
 }
 
@@ -1200,6 +1200,22 @@ input {
     }
 
     .context_menu.wrapper{
+        background-color: rgb(20,20,20);
+    }
+
+    #new_project_box{    
+        background-color: rgb(20,20,20);
+    }
+    
+    #confirm_project_deletion{    
+        background-color: rgb(20,20,20);
+    }
+
+    .new_project_deadline{
+        background-color: rgb(20,20,20);
+    }
+
+    #acc_data td input{
         background-color: rgb(20,20,20);
     }
 
