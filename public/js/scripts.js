@@ -485,7 +485,7 @@
         }
     });
 
-    function contextMenuAddedNote(in_event){
+    function contextMenuAddedNote(in_event, in_obj){
         let pos_x = in_event.clientX, pos_y = in_event.clientY + window.scrollY;
         let window_width = window.innerWidth;
         let context_menu_width = $(".context_menu.wrapper").width();
@@ -496,14 +496,14 @@
         $(".context_menu.wrapper").css('top', `${pos_y}px`);
         $("#context_note").css('visibility', 'visible');
 
-        if ($($(this).siblings('.highlight')[0]).length > 0){
+        if ($($(in_obj).siblings('.highlight')[0]).length > 0){
             $("#highlight_button").hide();
             $("#unhighlight_button").show();
         } else{
             $("#unhighlight_button").hide();
             $("#highlight_button").show();
         }
-        if( $(this).hasClass('weekly') ){
+        if( $(in_obj).hasClass('weekly') ){
             $("#weekly_button").hide();
             $("#unweekly_button").show();
         } else{
@@ -511,7 +511,7 @@
             $("#weekly_button").show();
         }
 
-        if( $(this).hasClass('monthly') ){
+        if( $(in_obj).hasClass('monthly') ){
             $("#monthly_button").hide();
             $("#unmonthly_button").show();
         } else{
@@ -519,7 +519,7 @@
             $("#monthly_button").show();
         }
 
-        let this_id = $(this).attr('id');
+        let this_id = $(in_obj).attr('id');
         let blocker = false;
         $("body").on('contextmenu', function(event){
             if ( $(event.target).attr('id') != this_id ){
@@ -528,15 +528,15 @@
             }
         });
 
-        let note_timestamp = $(this).siblings('.note_timestamp').html();
-        let element_day_number = this.id.slice(14,15);
+        let note_timestamp = $(in_obj).siblings('.note_timestamp').html();
+        let element_day_number = in_obj.id.slice(14,15);
         
         $('#remove_button, #remove_icon').on('click', function(){
             removeNote(element_day_number, note_timestamp);
         });
         
-        let key_to_routine = $(this).parents('.row-days').find('.hidden_date'+period_of_day_class).html();
-        let note_text = $(this).val();
+        let key_to_routine = $(in_obj).parents('.row-days').find('.hidden_date'+period_of_day_class).html();
+        let note_text = $(in_obj).val();
         let arr_with_values = [key_to_routine, note_timestamp, note_text];
 
         $('#weekly_button, #weekly_icon').on('click', function(){
@@ -651,7 +651,7 @@
     
     $('.added_note').on('contextmenu', function (event) {
         event.preventDefault();
-        contextMenuAddedNote(event)
+        contextMenuAddedNote(event, event.target)
     });
     function touchTimeCounter(in_obj, in_event){
         console.log('entered touchTimeCounter');
@@ -659,7 +659,7 @@
         in_obj.addEventListener('pointerup',(ev)=>{sender = false});
         setTimeout(() => {
             console.log('calling contextMenuAddedNote from touchTimeCounter');
-            if (sender){contextMenuAddedNote(in_event)}
+            if (sender){contextMenuAddedNote(in_event, in_obj)}
         }, 800)
 
     };
