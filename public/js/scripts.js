@@ -653,16 +653,20 @@
         event.preventDefault();
         contextMenuAddedNote(event)
     });
-    function touchTimeCounter(in_event){
+    function touchTimeCounter(in_obj, in_event){
         console.log('entered touchTimeCounter');
-        setTimeout(() => {
-            console.log('calling contextMenuAddedNote from touchTimeCounter');
-            contextMenuAddedNote(in_event)
-        }, 500);
+        let keeper = true;
+        while (keeper){
+            in_obj.addEventListener('touchend',()=>{keeper=false});
+            setTimeout(() => {
+                console.log('calling contextMenuAddedNote from touchTimeCounter');
+                contextMenuAddedNote(in_event)
+            }, 500)
+        } return
     };
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){
-        added_notes_arr[0].addEventListener('touchstart', touchTimeCounter(e))
+        added_notes_arr[0].addEventListener('touchstart', (this,ev)=>{ touchTimeCounter(this, ev) })
     };
 
     $( '.weekly.monthly' ).addClass('bothstamps');
