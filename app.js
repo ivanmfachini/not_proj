@@ -11,7 +11,7 @@ const LocalStrategy = require('passport-local');
 const pgSession = require("connect-pg-simple")(session);
 const fsPromises = require("fs").promises;
 const path = require("path");
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
+//var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 
@@ -83,7 +83,7 @@ async function verifyPassword(in_password, in_hash){
     })
 };
 
-passport.use(new GoogleStrategy({
+/* passport.use(new GoogleStrategy({
     clientID: process.env.G_AUTH_CLIENT_ID,
     clientSecret: G_AUTH_CLIENT_SECRET,
     callbackURL: "https://ivanmfac.onrender.com/oauth_google",
@@ -126,7 +126,7 @@ passport.use(new GoogleStrategy({
       }
     });
   }
-));
+)); */
 
 passport.use(new LocalStrategy(
     async function(username, password, done) {
