@@ -11,6 +11,7 @@ const LocalStrategy = require('passport-local');
 const pgSession = require("connect-pg-simple")(session);
 const fsPromises = require("fs").promises;
 const path = require("path");
+var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 
@@ -81,6 +82,51 @@ async function verifyPassword(in_password, in_hash){
         });
     })
 };
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.G_AUTH_CLIENT_ID,
+    clientSecret: G_AUTH_CLIENT_SECRET,
+    callbackURL: "https://ivanmfac.onrender.com/oauth_google",
+    scope: [ 'profile' ],
+    state: true
+    },
+    async function verify(accessToken, refreshToken, profile, cb) {
+        await db.query('SELECT * FROM federated_credential WHERE provider = $1 AND subject = $2',
+        ['https://accounts.google.com', profile.id ], function(err, cred) {
+            if (err) { return cb(err) }
+            if (!cred) {
+                // The account at Google has not logged in to this app before.  Create a
+                // new user record and associate it with the Google account.
+                db.query('INSERT INTO credential (username) VALUE $1',
+                [profile.displayName], function(err) {
+                    if (err) { return cb(err) }
+                    var id = this.lastID;
+                    db.run('INSERT INTO credential (user_id, provider, subject) VALUES (?, ?, ?)', [
+            id,
+            'https://accounts.google.com',
+            profile.id
+          ], function(err) {
+            if (err) { return cb(err); }
+            
+            var user = {
+              id: id,
+              name: profile.displayName
+            };
+            return cb(null, user);
+          });
+        });
+      } else {
+        // The account at Google has previously logged in to the app.  Get the
+        // user record associated with the Google account and log the user in.
+        db.get('SELECT * FROM users WHERE id = ?', [ cred.user_id ], function(err, user) {
+          if (err) { return cb(err); }
+          if (!user) { return cb(null, false); }
+          return cb(null, user);
+        });
+      }
+    });
+  }
+));
 
 passport.use(new LocalStrategy(
     async function(username, password, done) {
@@ -1076,7 +1122,7 @@ async function changePersonalInfo(in_arr, user_id){
 //////////////////////////////////    ROUTES    //////////////////////////////////
 
 app.get('/', (req, res) => {
-    res.redirect('/home')
+    res.redirect('/login')
 });
 
 app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
