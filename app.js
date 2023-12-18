@@ -105,6 +105,15 @@ function createFedCred(){
 };
 //createFedCred();
 
+function deleteFromTables(){
+    try{
+        db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential");
+    } catch(err){
+        console.log('ERROR while deleting from tables:', err.message)
+    }
+};
+deleteFromTables();
+
 passport.use(new GoogleStrategy({
     clientID: process.env.G_AUTH_CLIENT_ID,
     clientSecret: process.env.G_AUTH_CLIENT_SECRET,
