@@ -103,7 +103,7 @@ function createFedCred(){
         console.log('ERROR while creating fed_cred:', err.message)
     }
 };
-createFedCred();
+//createFedCred();
 
 passport.use(new GoogleStrategy({
     clientID: process.env.G_AUTH_CLIENT_ID,
