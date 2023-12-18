@@ -119,6 +119,7 @@ passport.use(new GoogleStrategy({
                 console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
                 return cb(err)
             };
+            console.log(cred);
             if (!cred || !cred.rows || !cred.rows[0] || cred.rows[0] == {} || cred.rows[0] == "{}" || cred.rows[0] == JSON.stringify({})) {
                 // The account at Google has not logged in to this app before.  Create a
                 // new user record and associate it with the Google account.
