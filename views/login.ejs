@@ -22,7 +22,7 @@
         <div id="login-box">
           <div id="box-1">
             <h5>Notes & Projects</h5>
-            <form action="/login" method="post" name="login-form" class="login-form" id="login-form">
+            <form action="/login" method="post" name="login-form" class="login-form" id="login-form" class="login_buttons">
               <input type="text" name="username" id="username" placeholder="username" autocomplete="off" maxlength="30" autofocus required>
               <input type="text" name="realname" id="realname" placeholder="your first name" autocomplete="off" maxlength="20" required>
               <input type="password" name="password" id="password" placeholder="password" maxlength="50" required>
@@ -35,7 +35,9 @@
                 <button type="submit" name="lost_access" id="lost_access" form="lost_access-form">Lost Access</button>
                 <button type="button" class="btn-hover color-3" id="demo" form="demo-form">Demonstration</button>
               </div>
-              <button disabled type="button" id="oauth_google" style="width: 90%; background-color: darkred;">!OAuth tests!</button>
+            </form>
+            <form action="login_google" method="get" name="oauth_google" id="oauth_google" class="login_buttons">
+              <button type="submit" id="oauth_google" style="width: 90%; background-color: darkred;">#Login with Google#</button>
             </form>
             <form action="/lost_access" method="get" name="lost_acess-form" id="lost_access-form" hidden></form>
             <form action="/register" method="post" name="register-form" id="register-form" hidden></form>

@@ -11,7 +11,7 @@ const LocalStrategy = require('passport-local');
 const pgSession = require("connect-pg-simple")(session);
 const fsPromises = require("fs").promises;
 const path = require("path");
-//var GoogleStrategy = require('passport-google-oauth20').Strategy;
+var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 
@@ -83,50 +83,67 @@ async function verifyPassword(in_password, in_hash){
     })
 };
 
-/* passport.use(new GoogleStrategy({
+passport.serializeUser(function(user, done) {
+    done(null, user.id);
+});
+  
+passport.deserializeUser(async function(id, done) {
+    await db.query('SELECT * FROM credential WHERE id = ($1)', [id], async function (err,user){
+        if (err){ console.log('ERROR in db.query in deserializeUser:', err.message);
+            await writeLog('ERROR in db.query in deserializeUser: '+err.message,id,true);
+        };
+        done(err, (user.rows[0]));
+    });
+});
+
+async function createFedCred(){
+    try{
+        await db.query("CREATE TABLE federated_credentials (user_id INTEGER UNIQUE NOT NULL, provider TEXT, subject TEXT);")
+    } catch(err){
+        console.log('ERROR while creating fed_cred:', err.message)
+    }
+};
+await createFedCred();
+
+passport.use(new GoogleStrategy({
     clientID: process.env.G_AUTH_CLIENT_ID,
-    clientSecret: G_AUTH_CLIENT_SECRET,
+    clientSecret: process.env.G_AUTH_CLIENT_SECRET,
     callbackURL: "https://ivanmfac.onrender.com/oauth_google",
     scope: [ 'profile' ],
     state: true
     },
-    async function verify(accessToken, refreshToken, profile, cb) {
-        await db.query('SELECT * FROM federated_credential WHERE provider = $1 AND subject = $2',
-        ['https://accounts.google.com', profile.id ], function(err, cred) {
-            if (err) { return cb(err) }
-            if (!cred) {
+    function verify(accessToken, refreshToken, profile, cb) {
+        db.query('SELECT * FROM federated_credentials WHERE provider = $1 AND subject = $2',
+        ['https://accounts.google.com', profile.id], async function(err, cred) {
+            if (err) { return cb(err) };
+          
+            if (!cred || cred.rows.length == 0) {
                 // The account at Google has not logged in to this app before.  Create a
                 // new user record and associate it with the Google account.
-                db.query('INSERT INTO credential (username) VALUE $1',
-                [profile.displayName], function(err) {
+                await db.query('INSERT INTO credential (username, password) VALUES ($1,$2)', [profile.displayName,'google_oauth'], function(err, result) {
+                    if (err) { return cb(err) };
+                    db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3)',
+                    [(result.rows[0].id), 'https://accounts.google.com', profile.id ], function(err) {
+                        if (err) { return cb(err) };
+                        var user = {
+                            id: result.rows[0].id,
+                            name: profile.displayName
+                        };
+                        return cb(null, user);
+                    });
+                });
+            } else {
+                // The account at Google has previously logged in to the app.  Get the
+                // user record associated with the Google account and log the user in.
+                db.query('SELECT * FROM credential WHERE id = $1', [ cred.user_id ], function(err, user) {
                     if (err) { return cb(err) }
-                    var id = this.lastID;
-                    db.run('INSERT INTO credential (user_id, provider, subject) VALUES (?, ?, ?)', [
-            id,
-            'https://accounts.google.com',
-            profile.id
-          ], function(err) {
-            if (err) { return cb(err); }
-            
-            var user = {
-              id: id,
-              name: profile.displayName
-            };
-            return cb(null, user);
-          });
+                    if (!user) { return cb(null, false) }
+                    return cb(null, user);
+                });
+            }
         });
-      } else {
-        // The account at Google has previously logged in to the app.  Get the
-        // user record associated with the Google account and log the user in.
-        db.get('SELECT * FROM users WHERE id = ?', [ cred.user_id ], function(err, user) {
-          if (err) { return cb(err); }
-          if (!user) { return cb(null, false); }
-          return cb(null, user);
-        });
-      }
-    });
-  }
-)); */
+    }
+));
 
 passport.use(new LocalStrategy(
     async function(username, password, done) {
@@ -152,34 +169,6 @@ passport.use(new LocalStrategy(
         });
     }
 ));
-
-passport.serializeUser(function(user, done) {
-    done(null, user.id);
-});
-/* passport.serializeUser(function(user, cb) {
-    process.nextTick(function() {
-      return cb(null, {
-        id: user.id,
-        username: user.username,
-        password: user.password
-      });
-    });
-}); */
-  
-passport.deserializeUser(async function(id, done) {
-    await db.query('SELECT * FROM credential WHERE id = ($1)', [id], async function (err,user){
-        if (err){ console.log('ERROR in db.query in deserializeUser:', err.message);
-            await writeLog('ERROR in db.query in deserializeUser: '+err.message,id,true);
-        };
-        done(err, (user.rows[0]));
-    });
-});
-
-/* passport.deserializeUser(function(user, cb) {
-    process.nextTick(function() {
-      return cb(null, user);
-    });
-}); */
 
 const dayModule = require(__dirname + "/dayModule.js");
 const weatherModule = require(__dirname + "/weatherModule.js");
@@ -1255,6 +1244,12 @@ app.get('/home/:username', async (req, res) => {
         })
     } else{ console.log('NOT AUTHENTICATED'); return res.redirect('/login') }
 });
+
+app.get('/login_google', passport.authenticate('google')); 
+app.get('/oauth_google',
+    passport.authenticate('google', { failureRedirect: '/login', failureMessage: true }),
+    function(req, res) { res.redirect('/home') }
+);
 
 app.get('/demonstration', function (req,res){
     res.render('demo2', { demo_username_PH: demo_username})

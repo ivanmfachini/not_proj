@@ -137,7 +137,7 @@ p:hover{
     text-decoration: none;
 }
 
-.login-form{
+.login_buttons{
     display: flex;
     flex-flow: column;
     align-items: center;
