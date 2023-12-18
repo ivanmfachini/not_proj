@@ -113,14 +113,17 @@ passport.use(new GoogleStrategy({
     state: true
     },
     function verify(accessToken, refreshToken, profile, cb) {
-        db.query('SELECT * FROM federated_credentials WHERE provider = $1 AND subject = $2',
+        db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
         ['https://accounts.google.com', profile.id], async function(err, cred) {
             if (err) {
                 console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
                 return cb(err)
             };
+            console.log('############################## cred:');
             console.log(cred);
-            if (!cred || !cred.rows || !cred.rows[0] || cred.rows[0] == {} || cred.rows[0] == "{}" || cred.rows[0] == JSON.stringify({})) {
+            console.log('############################## profile:');
+            console.log(profile);
+            if (!cred || !cred.rows || !cred.rows[0]) {
                 // The account at Google has not logged in to this app before.  Create a
                 // new user record and associate it with the Google account.
                 let id_result = await db.query('INSERT INTO credential (username, password) VALUES ($1,$2) RETURNING id',
