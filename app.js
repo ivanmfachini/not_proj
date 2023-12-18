@@ -127,7 +127,7 @@ passport.use(new GoogleStrategy({
                 // The account at Google has not logged in to this app before.  Create a
                 // new user record and associate it with the Google account.
                 let id_result = await db.query('INSERT INTO credential (username, password) VALUES ($1,$2) RETURNING id',
-                [profile.displayName,'google_oauth'], async function(err2) {
+                [profile.name.givenName+"_NP",'google_oauth'], async function(err2) {
                     if (err2) {
                         console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
                         return cb(err2)
@@ -142,7 +142,7 @@ passport.use(new GoogleStrategy({
                     };
                     g_user = {
                         id: id_result.rows[0].id,
-                        name: profile.displayName
+                        name: profile.name.givenName+"_NP"
                     };
                     return cb(null, g_user);
                 });
