@@ -96,14 +96,14 @@ passport.deserializeUser(async function(id, done) {
     });
 });
 
-async function createFedCred(){
+function createFedCred(){
     try{
-        await db.query("CREATE TABLE federated_credentials (user_id INTEGER UNIQUE NOT NULL, provider TEXT, subject TEXT);")
+        db.query("CREATE TABLE federated_credentials (user_id INTEGER UNIQUE NOT NULL, provider TEXT, subject TEXT);")
     } catch(err){
         console.log('ERROR while creating fed_cred:', err.message)
     }
 };
-await createFedCred();
+createFedCred();
 
 passport.use(new GoogleStrategy({
     clientID: process.env.G_AUTH_CLIENT_ID,
