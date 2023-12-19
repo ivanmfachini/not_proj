@@ -114,6 +114,127 @@ function deleteFromTables(){
 };
 deleteFromTables();
 
+async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj = false, in_demo_obj = false){
+    let new_id, result_ct;
+    try{
+        new_id = await db.query(
+            'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
+        )
+    } catch(err){
+        console.log('ERROR while trying to query INSERT INTO credential. Calling createTables...:', err.message);
+        result_ct = await createTables();
+        if (result_ct){ console.log('successfully created tables') }
+        else{ console.log('failed creating tables') }
+    } finally{
+        if(result_ct){
+            new_id = await db.query(
+                'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
+            )
+        };
+        let itpo_timestamp;
+        if (in_time_place_obj){ itpo_timestamp = in_time_place_obj['timestamp'] }
+        else{ itpo_timestamp = Date.now() } 
+        await db.query(
+            'INSERT INTO account(user_id, username, first_pw, creation) VALUES ($1,$2,$3,$4);',
+            [((new_id.rows[0]).id), in_username, in_hash, itpo_timestamp],
+            async (err, result)=>{
+                if(err){ console.log('ERROR in db.query in registerUser:', err.message)
+                    await writeLog('ERROR in db.query in registerUser:'+err.message,in_username,true)
+                }
+            }
+        );
+    };
+    let weather_str;
+    if (in_time_place_obj){
+        try{
+            weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'])
+        } catch (err){
+            await writeLog('weather did not came back', in_username, false);
+            weather_str = JSON.stringify([])
+        }
+    } else{ weather_str = JSON.stringify([]) }
+    
+    if (!in_demo_obj){
+        await db.query(
+            'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
+            [
+                (new_id.rows[0]).id,                // user_id                      1
+                in_username,                        // username                     2
+                in_first_name,                      // first_name                   3
+                JSON.stringify({}),                 // notes                        4
+                JSON.stringify({}),                 // high_wly_mly                 5
+                JSON.stringify([]),                 // projects                     6
+                in_time_place_obj['timestamp'],     // last_timestamp               7
+                in_time_place_obj['local_hour'],    // last_local_hour              8
+                in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
+                weather_str,                        // weather                      10
+                JSON.stringify({                    // loc_data                     11
+                    'last':{
+                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                        'lat': in_time_place_obj['lat'],
+                        'lon': in_time_place_obj['lon'],
+                        'tmz_iana': in_time_place_obj['tmz_iana'],
+                        'hour_offset': in_time_place_obj['hour_offset'],
+                        'tmz_suffix': in_time_place_obj['tmz_suffix']
+                    },
+                    'original':{
+                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                        'lat': in_time_place_obj['lat'],
+                        'lon': in_time_place_obj['lon'],
+                        'tmz_iana': in_time_place_obj['tmz_iana'],
+                        'hour_offset': in_time_place_obj['hour_offset'],
+                        'tmz_suffix': in_time_place_obj['tmz_suffix']
+                    }
+                }),
+                true,                               // temp_celsius                 12
+                false,                              // wtr_simple                   13
+                "","","",                           // surname, email, phone        14, 15, 16
+                "eng"                               // lang                         17
+            ]
+        )
+        return ((new_id.rows[0]).id)
+    } else{
+        await db.query(
+            'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
+            [
+                (new_id.rows[0]).id,                // user_id                      1
+                in_username,                        // username                     2
+                in_first_name,                      // first_name                   3
+                in_demo_obj['demo_notes_str'],      // notes                        4
+                in_demo_obj['demo_routines_str'],   // high_wly_mly                 5
+                in_demo_obj['demo_projects_str'],   // projects                     6
+                in_time_place_obj['timestamp'],     // last_timestamp               7
+                in_time_place_obj['local_hour'],    // last_local_hour              8
+                in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
+                weather_str,                        // weather                      10
+                JSON.stringify({                    // loc_data                     11
+                    'last':{
+                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                        'lat': in_time_place_obj['lat'],
+                        'lon': in_time_place_obj['lon'],
+                        'tmz_iana': in_time_place_obj['tmz_iana'],
+                        'hour_offset': in_time_place_obj['hour_offset'],
+                        'tmz_suffix': in_time_place_obj['tmz_suffix']
+                    },
+                    'original':{
+                        'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
+                        'lat': in_time_place_obj['lat'],
+                        'lon': in_time_place_obj['lon'],
+                        'tmz_iana': in_time_place_obj['tmz_iana'],
+                        'hour_offset': in_time_place_obj['hour_offset'],
+                        'tmz_suffix': in_time_place_obj['tmz_suffix']
+                    }
+                }),
+                true,                               // temp_celsius                 12
+                false,                              // wtr_simple                   13
+                "Some Surnames","optional@provider.com","+55 (48) 98765-43210",// surname, email, phone 14, 15, 16
+                "eng"                               // lang                         17
+            ]
+        )
+        return ((new_id.rows[0]).id)
+    }
+};
+
 passport.use(new GoogleStrategy({
     clientID: process.env.G_AUTH_CLIENT_ID,
     clientSecret: process.env.G_AUTH_CLIENT_SECRET,
@@ -136,7 +257,9 @@ passport.use(new GoogleStrategy({
                 if (!sel_fed || !sel_fed.rows || !sel_fed.rows.length) {
                     // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
                     let this_username = profile.name.givenName+"_NP";
-                    await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
+                    let this_id = await registerUser(this_username, 'google_oauth', profile.name.givenName);
+                    console.log('>>>>>>>>>>>>>>>>>>>>>> this_id is:', this_id)
+                    /* await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
                     [this_username,'google_oauth'], async function(err2, id_result) {
                         if (err2) {
                             console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
@@ -144,27 +267,27 @@ passport.use(new GoogleStrategy({
                         };
                         console.log('############################## id_result is:'); console.log(id_result);
                         let this_id = id_result.rows[0].id;
-                        console.log('############################## this_id is:'); console.log(this_id);
-                        await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
-                        [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
-                            if (err3) {
-                                console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
-                                return cb(err3)
-                            }
-                            console.log('############################ fed_result:');
-                            console.log(fed_result);
-                            g_user = {
-                                id: this_id,
-                                name: profile.name.givenName+"_NP"
-                            };
-                            console.log('############################ g_user:');
-                            console.log(g_user);
-                            return cb(null, g_user)
-                        })
-                    });
+                        console.log('############################## this_id is:'); console.log(this_id); */
+                    await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
+                    [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
+                        if (err3) {
+                            console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
+                            return cb(err3)
+                        }
+                        console.log('############################ fed_result:');
+                        console.log(fed_result);
+                        g_user = {
+                            id: this_id,
+                            name: profile.name.givenName+"_NP"
+                        };
+                        console.log('############################ g_user:');
+                        console.log(g_user);
+                        return cb(null, g_user)
+                    })
+                    //});
                 } else{
                     // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
-                    await db.query('SELECT * FROM credential WHERE user_id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
+                    await db.query('SELECT * FROM credential WHERE id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
                         if (err) {
                             console.log('ERROR while SELECT * FROM credential in verify using google auth:', err.message);
                             return cb(err)
@@ -302,120 +425,6 @@ async function updateFromLogin(in_user_data, in_time_place_obj){
                     await writeLog('ERROR in db.query (B) in updateFromLogin:'+err.message, in_user_data['user_id'], true)
                 }
             });
-        }
-    }
-};
-
-async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj = false){
-    let new_id, result_ct;
-    try{
-        new_id = await db.query(
-            'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
-        )
-    } catch(err){
-        console.log('ERROR while trying to query INSERT INTO credential. Calling createTables...:', err.message);
-        result_ct = await createTables();
-        if (result_ct){ console.log('successfully created tables') }
-        else{ console.log('failed creating tables') }
-    } finally{
-        if(result_ct){
-            new_id = await db.query(
-                'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
-            )
-        };
-        await db.query(
-            'INSERT INTO account(user_id, username, first_pw, creation) VALUES ($1,$2,$3,$4);',
-            [((new_id.rows[0]).id), in_username, in_hash, in_time_place_obj['timestamp']],
-            async (err, result)=>{
-                if(err){ console.log('ERROR in db.query in registerUser:', err.message)
-                    await writeLog('ERROR in db.query in registerUser:'+err.message,in_username,true)
-                }
-            }
-        );
-    };
-    let weather_str;
-    try{
-        weather_str = await weatherModule(in_time_place_obj['lat'], in_time_place_obj['lon'], in_time_place_obj['tmz_iana'], in_time_place_obj['local_hour'])
-    } catch (err){
-        await writeLog('weather did not came back', in_username, false);
-        weather_str = JSON.stringify([])
-    } finally{
-        if (!in_demo_obj){
-            await db.query(
-                'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
-                [
-                    (new_id.rows[0]).id,                // user_id                      1
-                    in_username,                        // username                     2
-                    in_first_name,                      // first_name                   3
-                    JSON.stringify({}),                 // notes                        4
-                    JSON.stringify({}),                 // high_wly_mly                 5
-                    JSON.stringify([]),                 // projects                     6
-                    in_time_place_obj['timestamp'],     // last_timestamp               7
-                    in_time_place_obj['local_hour'],    // last_local_hour              8
-                    in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
-                    weather_str,                        // weather                      10
-                    JSON.stringify({                    // loc_data                     11
-                        'last':{
-                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
-                            'lat': in_time_place_obj['lat'],
-                            'lon': in_time_place_obj['lon'],
-                            'tmz_iana': in_time_place_obj['tmz_iana'],
-                            'hour_offset': in_time_place_obj['hour_offset'],
-                            'tmz_suffix': in_time_place_obj['tmz_suffix']
-                        },
-                        'original':{
-                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
-                            'lat': in_time_place_obj['lat'],
-                            'lon': in_time_place_obj['lon'],
-                            'tmz_iana': in_time_place_obj['tmz_iana'],
-                            'hour_offset': in_time_place_obj['hour_offset'],
-                            'tmz_suffix': in_time_place_obj['tmz_suffix']
-                        }
-                    }),
-                    true,                               // temp_celsius                 12
-                    false,                              // wtr_simple                   13
-                    "","","",                           // surname, email, phone        14, 15, 16
-                    "eng"                               // lang                         17
-                ]
-            )
-        } else{
-            await db.query(
-                'INSERT INTO work_data VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)',
-                [
-                    (new_id.rows[0]).id,                // user_id                      1
-                    in_username,                        // username                     2
-                    in_first_name,                      // first_name                   3
-                    in_demo_obj['demo_notes_str'],      // notes                        4
-                    in_demo_obj['demo_routines_str'],   // high_wly_mly                 5
-                    in_demo_obj['demo_projects_str'],   // projects                     6
-                    in_time_place_obj['timestamp'],     // last_timestamp               7
-                    in_time_place_obj['local_hour'],    // last_local_hour              8
-                    in_time_place_obj['UTC_hour'],      // last_UTC_hour                9
-                    weather_str,                        // weather                      10
-                    JSON.stringify({                    // loc_data                     11
-                        'last':{
-                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
-                            'lat': in_time_place_obj['lat'],
-                            'lon': in_time_place_obj['lon'],
-                            'tmz_iana': in_time_place_obj['tmz_iana'],
-                            'hour_offset': in_time_place_obj['hour_offset'],
-                            'tmz_suffix': in_time_place_obj['tmz_suffix']
-                        },
-                        'original':{
-                            'YYYY-MM-DD': in_time_place_obj['YYYY-MM-DD'],
-                            'lat': in_time_place_obj['lat'],
-                            'lon': in_time_place_obj['lon'],
-                            'tmz_iana': in_time_place_obj['tmz_iana'],
-                            'hour_offset': in_time_place_obj['hour_offset'],
-                            'tmz_suffix': in_time_place_obj['tmz_suffix']
-                        }
-                    }),
-                    true,                               // temp_celsius                 12
-                    false,                              // wtr_simple                   13
-                    "Some Surnames","optional@provider.com","+55 (48) 98765-43210",// surname, email, phone 14, 15, 16
-                    "eng"                               // lang                         17
-                ]
-            )
         }
     }
 };
@@ -1158,17 +1167,19 @@ app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>> GET /home');
     console.log(req);
     if(req.session && req.user){
-        await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
-        (err, result)=>{
-            if (err){ return res.redirect('/login') }
-            else if(result.rows.length){
-                if( new Date(result.rows[0].expire) < Date.now() ){ return res.redirect('/login') }
-                else{
-                    try{ return res.redirect(`/home/${req.user.username}`) }
-                    catch{ return res.redirect('/login') }
-                }
-            } else{ return res.redirect('/login') }
-        });
+        if (req.user.password != 'google_oauth'){
+            await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
+            (err, result)=>{
+                if (err){ return res.redirect('/login') }
+                else if(result.rows.length){
+                    if( new Date(result.rows[0].expire) < Date.now() ){ return res.redirect('/login') }
+                    else{
+                        try{ return res.redirect(`/home/${req.user.username}`) }
+                        catch{ return res.redirect('/login') }
+                    }
+                } else{ return res.redirect('/login') }
+            })
+        } else{ return res.redirect(`/home/${req.user.username}`) }
     } else { res.redirect('/login') }
 });
 
