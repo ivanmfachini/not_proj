@@ -122,35 +122,51 @@ passport.use(new GoogleStrategy({
     state: true
     },
     async function verify(accessToken, refreshToken, profile, cb) {
+        let sel_fed, id_result, fed_result;
         console.log('############################## profile:'); console.log(profile);
-        let sel_fed = await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
-        ['https://accounts.google.com', profile.id], async function(err) {
-            if (err) {
-                console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
-                return cb(err)
-            }
-        });
+        try{
+            sel_fed = await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
+            ['https://accounts.google.com', profile.id], async function(err) {
+                if (err) {
+                    console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
+                    return cb(err)
+                }
+            })
+        } catch (err){
+            console.log('ERROR (2) while SELECT * FROM federated_credentials in verify using google auth:', err.message);
+            return cb(err)
+        };
         console.log('############################## sel_fed:'); console.log(sel_fed);
         if (!sel_fed || !sel_fed.rows || !sel_fed.rows[0]) {
             // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
             let this_username = profile.name.givenName+"_NP";
-            let id_result = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
-            [this_username,'google_oauth'], async function(err) {
-                if (err) {
-                    console.log('ERROR while INSERT INTO credential in verify using google auth:', err.message);
-                    return cb(err)
-                }
-            });
+            try{
+                id_result = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
+                [this_username,'google_oauth'], async function(err) {
+                    if (err) {
+                        console.log('ERROR while INSERT INTO credential in verify using google auth:', err.message);
+                        return cb(err)
+                    }
+                })
+            } catch (err){
+                console.log('ERROR (2) while INSERT INTO credential in verify using google auth:', err.message);
+                return cb(err)
+            };
             console.log('############################## id_result is:'); console.log(id_result);
             let this_id = id_result.rows[0].id;
             console.log('############################## this_id is:'); console.log(this_id);
-            let fed_result = await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3);',
-            [this_id, 'https://accounts.google.com', profile.id ], function(err) {
-                if (err) {
-                    console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err.message);
-                    return cb(err)
-                }
-            });
+            try{
+                fed_result = await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3);',
+                [this_id, 'https://accounts.google.com', profile.id ], function(err) {
+                    if (err) {
+                        console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err.message);
+                        return cb(err)
+                    }
+                })
+            }catch(err){
+                console.log('ERROR (2) while INSERT INTO federated_credentials in verify using google auth:', err.message);
+                return cb(err)
+            };
             console.log('############################ fed_result:');
             console.log(fed_result);
             g_user = {
