@@ -122,73 +122,64 @@ passport.use(new GoogleStrategy({
     state: true
     },
     async function verify(accessToken, refreshToken, profile, cb) {
-        let sel_fed, id_result, fed_result;
         console.log('############################## profile:'); console.log(profile);
+        let sel_fed;
         try{
-            sel_fed = await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
-            ['https://accounts.google.com', profile.id], async function(err) {
+            await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
+            ['https://accounts.google.com', profile.id], async function(err, sel_fed_res) {
                 if (err) {
                     console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
                     return cb(err)
+                };
+                sel_fed = sel_fed_res;
+                console.log('############################## sel_fed:'); console.log(sel_fed);
+                if (!sel_fed || !sel_fed.rows || !sel_fed.rows[0]) {
+                    // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
+                    let this_username = profile.name.givenName+"_NP";
+                    await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
+                    [this_username,'google_oauth'], async function(err2, id_result) {
+                        if (err2) {
+                            console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
+                            return cb(err2)
+                        };
+                        console.log('############################## id_result is:'); console.log(id_result);
+                        let this_id = id_result.rows[0].id;
+                        console.log('############################## this_id is:'); console.log(this_id);
+                        await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3);',
+                        [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
+                            if (err3) {
+                                console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
+                                return cb(err3)
+                            }
+                            console.log('############################ fed_result:');
+                            console.log(fed_result);
+                            g_user = {
+                                id: this_id,
+                                name: profile.name.givenName+"_NP"
+                            };
+                            console.log('############################ g_user:');
+                            console.log(g_user);
+                            return cb(null, g_user)
+                        })
+                    });
+                } else{
+                    // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
+                    await db.query('SELECT * FROM credential WHERE user_id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
+                        if (err) {
+                            console.log('ERROR while SELECT * FROM credential in verify using google auth:', err.message);
+                            return cb(err)
+                        } else if (!user) {
+                            console.log('USER NOT FOUND in SELECT * FROM credential in verify using google auth:', err.message);
+                            return cb(null, false)
+                        };
+                        return cb(null, user);
+                    });
                 }
             })
         } catch (err){
             console.log('ERROR (2) while SELECT * FROM federated_credentials in verify using google auth:', err.message);
             return cb(err)
         };
-        console.log('############################## sel_fed:'); console.log(sel_fed);
-        if (!sel_fed || !sel_fed.rows || !sel_fed.rows[0]) {
-            // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
-            let this_username = profile.name.givenName+"_NP";
-            try{
-                id_result = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
-                [this_username,'google_oauth'], async function(err) {
-                    if (err) {
-                        console.log('ERROR while INSERT INTO credential in verify using google auth:', err.message);
-                        return cb(err)
-                    }
-                })
-            } catch (err){
-                console.log('ERROR (2) while INSERT INTO credential in verify using google auth:', err.message);
-                return cb(err)
-            };
-            console.log('############################## id_result is:'); console.log(id_result);
-            let this_id = id_result.rows[0].id;
-            console.log('############################## this_id is:'); console.log(this_id);
-            try{
-                fed_result = await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3);',
-                [this_id, 'https://accounts.google.com', profile.id ], function(err) {
-                    if (err) {
-                        console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err.message);
-                        return cb(err)
-                    }
-                })
-            }catch(err){
-                console.log('ERROR (2) while INSERT INTO federated_credentials in verify using google auth:', err.message);
-                return cb(err)
-            };
-            console.log('############################ fed_result:');
-            console.log(fed_result);
-            g_user = {
-                id: this_id,
-                name: profile.name.givenName+"_NP"
-            };
-            console.log('############################ g_user:');
-            console.log(g_user);
-            return cb(null, g_user)
-        } else{
-            // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
-            await db.query('SELECT * FROM credential WHERE user_id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
-                if (err) {
-                    console.log('ERROR while SELECT * FROM credential in verify using google auth:', err.message);
-                    return cb(err)
-                } else if (!user) {
-                    console.log('USER NOT FOUND in SELECT * FROM credential in verify using google auth:', err.message);
-                    return cb(null, false)
-                };
-                return cb(null, user);
-            });
-        }
     }
 ));
 
