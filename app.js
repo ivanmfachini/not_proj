@@ -155,7 +155,7 @@ passport.use(new GoogleStrategy({
                 });
                 console.log('############################ fed_return:');
                 console.log(fed_return);
-                let g_user = {
+                g_user = {
                     id: id_result.rows[0].id,
                     name: profile.name.givenName+"_NP"
                 };
