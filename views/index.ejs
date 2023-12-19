@@ -972,17 +972,18 @@
               </td>
             </tr>
             <tr>
-              <td class="context_td" style="color: lightcoral;">New password:</td><td class="context_td"><input type="password" name="new_pw" id="new_pw" placeholder="(only if you want to change)" style="color: lightcoral; letter-spacing: -1.4px;"></td>
+              <td class="context_td" style="color: lightcoral;">New password:</td><td class="context_td"><input type="password" name="new_pw" id="new_pw" placeholder="(only if you want to change)" autocomplete="off" style="color: lightcoral; letter-spacing: -1.4px;"></td>
             </tr>
             <tr id="new_pw_conf_tr">
               <td class="context_td" style="color: lightcoral;">again:</td><td class="context_td"><input type="password" name="new_pw_conf" id="new_pw_conf" style="color: lightcoral;"></td>
-            </tr>            
+            </tr>
             <tr>
-              <td class="context_td" id="acc_pw_label">Password:</td><td class="context_td"><input type="password" name="acc_curr_pw" id="acc_curr_pw" placeholder="(the current one)" required></td>
+              <td class="context_td" id="acc_pw_label">Password:</td><td class="context_td"><input type="password" name="acc_curr_pw" id="acc_curr_pw" placeholder="(the current one)" autocomplete="off" required></td>
             </tr>
           </table>
           <div class="context center-container">
-            <button type="button" class="context project_buttons" form="form-acc_changes" id="submit_acc" style="width: 60%;">Confirm changes</button>
+            <button type="button" class="context project_buttons" form="form-acc_changes" id="submit_acc" style="width: 40%;">Confirm changes</button>
+            <button type="button" class="context project_buttons" form="form-acc_changes" id="delete_acc" style="width: 40%;">Delete account</button>
             <form action="/home" method="post" name="form-acc_changes" id="form-acc_changes" hidden></form>
           </div>
         <form action="/home" method="post" id="acc_mng" name="acc_mng" hidden></form>
