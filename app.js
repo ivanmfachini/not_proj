@@ -133,7 +133,7 @@ passport.use(new GoogleStrategy({
                 };
                 sel_fed = sel_fed_res;
                 console.log('############################## sel_fed:'); console.log(sel_fed);
-                if (!sel_fed || !sel_fed.rows || !sel_fed.rows[0]) {
+                if (!sel_fed || !sel_fed.rows || !sel_fed.rows.length) {
                     // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
                     let this_username = profile.name.givenName+"_NP";
                     await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
@@ -145,7 +145,7 @@ passport.use(new GoogleStrategy({
                         console.log('############################## id_result is:'); console.log(id_result);
                         let this_id = id_result.rows[0].id;
                         console.log('############################## this_id is:'); console.log(this_id);
-                        await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3);',
+                        await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
                         [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
                             if (err3) {
                                 console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
@@ -1285,9 +1285,9 @@ app.get('/home/:username', async (req, res) => {
     } else{ console.log('NOT AUTHENTICATED'); return res.redirect('/login') }
 });
 
-app.get('/login_google', passport.authenticate('google')); 
+app.get('/login_google', passport.authenticate('google'));
 app.get('/oauth_google',
-    passport.authenticate('google', { failureRedirect: '/login', failureMessage: true }),
+    passport.authenticate('google', { failureRedirect: '/user_unavailable', failureMessage: true }),
     function(req, res) { res.redirect('/home') }
 );
 
