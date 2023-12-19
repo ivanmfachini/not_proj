@@ -1155,6 +1155,8 @@ app.get('/', (req, res) => {
 });
 
 app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>> GET /home');
+    console.log(req);
     if(req.session && req.user){
         await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
         (err, result)=>{
