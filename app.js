@@ -11,6 +11,7 @@ const LocalStrategy = require('passport-local');
 const pgSession = require("connect-pg-simple")(session);
 const fsPromises = require("fs").promises;
 const path = require("path");
+const { error } = require('console');
 var GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
@@ -245,6 +246,7 @@ passport.use(new GoogleStrategy({
     async function verify(accessToken, refreshToken, profile, cb) {
         console.log('############################## profile:'); console.log(profile);
         let sel_fed;
+        let this_suffix = (Date.now()-1703000000000).toString(16);
         try{
             await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
             ['https://accounts.google.com', profile.id], async function(err, sel_fed_res) {
@@ -256,9 +258,33 @@ passport.use(new GoogleStrategy({
                 console.log('############################## sel_fed:'); console.log(sel_fed);
                 if (!sel_fed || !sel_fed.rows || !sel_fed.rows.length) {
                     // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
-                    let this_username = profile.name.givenName+"_NP";
-                    let this_id = await registerUser(this_username, 'google_oauth', profile.name.givenName);
-                    console.log('>>>>>>>>>>>>>>>>>>>>>> this_id is:', this_id)
+                    let this_username = profile.name.givenName+"_NP_"+this_suffix;
+                    bcrypt.hash( ( (this_suffix)+(process.env.PEP) ), saltRounds, async function(err_hash, hash) {
+                        if(err_hash){
+                            console.log('ERROR in bcrypt.hash in verify from google strategy:', err_hash.message);
+                            await writeLog('ERROR in bcrypt.hash in verify from google strategy:'+err_hash.message, 0, true);
+                            return cb(err_hash)
+                        } else{
+                            let this_id = await registerUser(this_username, hash, (profile.name.givenName));
+                            console.log('>>>>>>>>>>>>>>>>>>>>>> this_id is:', this_id)
+                            await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
+                            [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
+                                if (err3) {
+                                    console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
+                                    return cb(err3)
+                                };
+                                console.log('############################ fed_result:');
+                                console.log(fed_result);
+                                g_user = {
+                                    id: this_id,
+                                    name: profile.name.givenName+"_NP"
+                                };
+                                console.log('############################ g_user:');
+                                console.log(g_user);
+                                return cb(null, g_user)
+                            })
+                        }
+                    });
                     /* await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
                     [this_username,'google_oauth'], async function(err2, id_result) {
                         if (err2) {
@@ -268,22 +294,6 @@ passport.use(new GoogleStrategy({
                         console.log('############################## id_result is:'); console.log(id_result);
                         let this_id = id_result.rows[0].id;
                         console.log('############################## this_id is:'); console.log(this_id); */
-                    await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
-                    [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
-                        if (err3) {
-                            console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
-                            return cb(err3)
-                        }
-                        console.log('############################ fed_result:');
-                        console.log(fed_result);
-                        g_user = {
-                            id: this_id,
-                            name: profile.name.givenName+"_NP"
-                        };
-                        console.log('############################ g_user:');
-                        console.log(g_user);
-                        return cb(null, g_user)
-                    })
                     //});
                 } else{
                     // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
@@ -295,8 +305,8 @@ passport.use(new GoogleStrategy({
                             console.log('USER NOT FOUND in SELECT * FROM credential in verify using google auth:', err.message);
                             return cb(null, false)
                         };
-                        return cb(null, user);
-                    });
+                        return cb(null, user)
+                    })
                 }
             })
         } catch (err){
@@ -305,8 +315,6 @@ passport.use(new GoogleStrategy({
         };
     }
 ));
-
-
 
 passport.use(new LocalStrategy(
     async function(username, password, done) {
@@ -1165,7 +1173,7 @@ app.get('/', (req, res) => {
 
 app.get('/home', async (req, res) => {        //http://localhost:3000/home?new_y=2023&new_m=11&new_d=6
     console.log('>>>>>>>>>>>>>>>>>>>>>>>>>> GET /home');
-    console.log(req);
+    console.log(req.rawHeaders); console.log(req.sessionID); console.log(req.session); console.log(req.user);
     if(req.session && req.user){
         if (req.user.password != 'google_oauth'){
             await db.query("SELECT expire FROM session WHERE sid = ($1)",[req.sessionID],
