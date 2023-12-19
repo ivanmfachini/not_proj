@@ -135,26 +135,33 @@ passport.use(new GoogleStrategy({
             if (!cred || !cred.rows || !cred.rows[0]) {
                 // The account at Google has not logged in to this app before.  Create a
                 // new user record and associate it with the Google account.
-                let id_result = await db.query('INSERT INTO credential (username, password) VALUES ($1,$2) RETURNING id',
-                [profile.name.givenName+"_NP",'google_oauth'], async function(err2) {
+                let this_username = profile.name.givenName+"_NP";
+                let id_result = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id',
+                [this_username,'google_oauth'], async function(err2) {
                     if (err2) {
                         console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
                         return cb(err2)
                     }
                 });
                 var g_user;
-                await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3)',
+                console.log('############################ id_result:');
+                console.log(id_result);
+                let fed_return = await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *',
                 [(id_result.rows[0].id), 'https://accounts.google.com', profile.id ], function(err3) {
                     if (err3) {
                         console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
                         return cb(err3)
-                    };
-                    g_user = {
-                        id: id_result.rows[0].id,
-                        name: profile.name.givenName+"_NP"
-                    };
-                    return cb(null, g_user);
+                    }
                 });
+                console.log('############################ fed_return:');
+                console.log(fed_return);
+                let g_user = {
+                    id: id_result.rows[0].id,
+                    name: profile.name.givenName+"_NP"
+                };
+                console.log('############################ g_user:');
+                console.log(g_user);
+                return cb(null, g_user);
             } else {
                 // The account at Google has previously logged in to the app.  Get the
                 // user record associated with the Google account and log the user in.
