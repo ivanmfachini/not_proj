@@ -872,6 +872,14 @@ input {
     background-color: rgb(60,6,100);
 }
 
+.red_button{
+    background-color: rgb(100,5,5);
+}
+
+.red_button:hover{
+    background-color: rgb(80,5,5);
+}
+
 #cancel_new_project{
     width: 20%;
     background-color: rgb(100,5,5);

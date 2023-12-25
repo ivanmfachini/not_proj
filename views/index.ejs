@@ -857,6 +857,16 @@
               </div>              
             </div>
           </div>
+
+          <div class="shade_project_box">
+            <div id="confirm_acc_deletion">              
+              <div class="center-container" id="delete_warning_acc">Account deletion is irreversible!</div>
+              <div class="center-container">
+                <button type="button" class="project_buttons" id="confirm_deletion_button_acc"> Yes, delete </button>
+                <button type="button" class="project_buttons" id="cancel_deletion_button_acc"> Cancel </button>
+              </div>              
+            </div>
+          </div>
           
         </div> <!-- class="container main-container" -->
         
@@ -982,8 +992,8 @@
             </tr>
           </table>
           <div class="context center-container">
-            <button type="button" class="context project_buttons" form="form-acc_changes" id="submit_acc" style="width: 40%;">Confirm changes</button>
-            <button type="button" class="context project_buttons" form="form-acc_changes" id="delete_acc" style="width: 40%;">Delete account</button>
+            <button type="button" class="context project_buttons" form="form-acc_changes" id="submit_acc" style="width: 45%;">Confirm changes</button>
+            <button type="button" class="context project_buttons red_button" form="form-acc_changes" id="delete_acc" style="width: 35%;">Delete account</button>
             <form action="/home" method="post" name="form-acc_changes" id="form-acc_changes" hidden></form>
           </div>
         <form action="/home" method="post" id="acc_mng" name="acc_mng" hidden></form>

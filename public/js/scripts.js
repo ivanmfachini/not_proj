@@ -7,6 +7,7 @@
     let context_menu_tasks_clicks = 0;
     let context_menu_project_clicks = 0;
     const tmz_suffix = $("#tmz_suffix").html();
+    const window_width = window.innerWidth;
     
     // Greets the user depending on the time of the day ("Good morning/afternoon/evening/night"), by using the Date object and timestamps.
     function greeting() {
@@ -488,7 +489,6 @@
         $(in_obj).blur();
         let pos = in_obj.getBoundingClientRect()
         let pos_x = pos.left, pos_y = pos.bottom;
-        let window_width = window.innerWidth;
         let context_menu_width = $(".context_menu.wrapper").width();
         if(pos_x > window_width - context_menu_width){
             pos_x = pos_x - context_menu_width;
@@ -1072,7 +1072,6 @@
     $('.weather_day').on('click', function(event){
         event.preventDefault();
         let pos_x = event.clientX, pos_y = event.clientY + window.scrollY;
-        let window_width = window.innerWidth;
         if(pos_x + 170 > window_width){ pos_x = pos_x - 150 };
         $("#context_weather").css('left', `${pos_x}px`);
         $("#context_weather").css('top', `${pos_y}px`);
@@ -1139,7 +1138,8 @@
                 $('.context_task_text').css('visibility', 'hidden');
                 $("#context_submit_task").css('visibility', 'hidden');
                 $("#context_submit_project").css('visibility', 'hidden');
-                $("#span_username").css('background-color', 'rgb(20,10,80)');
+                if (window_width > 750){ $("#span_username").css('background-color', 'rgb(15,3,44)') }
+                else{ $("#span_username").css('background-color', 'rgb(20,10,80)') };
                 $("#span_username").css('border-bottom-left-radius', '5px');
                 $("#span_username").css('border-bottom-right-radius', '5px');
                 if (event_class.slice(0,3) != 'obs'){
@@ -1154,7 +1154,8 @@
             $('.context_task_text').css('visibility', 'hidden');
             $(".obs-box").css('visibility', 'hidden');
             $("#context_submit_task").css('visibility', 'hidden');
-            $("#span_username").css('background-color', 'rgb(20,10,80)');
+            if (window_width > 750){ $("#span_username").css('background-color', 'rgb(15,3,44)') }
+            else{ $("#span_username").css('background-color', 'rgb(20,10,80)') };
             $("#span_username").css('border-bottom-left-radius', '5px');
             $("#span_username").css('border-bottom-right-radius', '5px');
         }
@@ -1168,7 +1169,6 @@
         let projects = $('.tasks');
         let specific_tasks = $('.specific_task');
         let tasks_with_lines = $('.task_with_lines');
-        let window_width = window.innerWidth;
         for (let m = 0; m < projects.length; m++){
             function shrinkTasks(in_obj){
                 if ($(in_obj).width() > window_width - 12){
@@ -1464,6 +1464,23 @@
             $("#form-acc_changes").append(param_hour);
             document.getElementById("form-acc_changes").submit()
         } else{ return }
+    });
+
+    $('#delete_acc').on('click', function(){
+        $('#confirm_acc_deletion').css({'top' : `${window.scrollY + (window.innerHeight/3)}px`});
+        $('#confirm_acc_deletion').css({'left' : 0});
+        $($('.shade_project_box')[2]).css('visibility', 'visible');
+        $('#confirm_acc_deletion').css('visibility', 'visible');
+        $('#confirm_deletion_button_acc').on('click', function(){            
+            let param = "<input hidden type='text' name='delete_acc' value=1/>";
+            $("#form-project").append(param);
+            document.getElementById("form-project").submit()
+        });
+        $('#cancel_deletion_button_acc').on('click', function(){
+            $('.shade_project_box').css('visibility', 'hidden');
+            $('#confirm_acc_deletion').css('visibility', 'hidden');
+            return
+        });
     });
 
     if(window.innerWidth < 410){ $("#new_pw").css('letter-spacing', '-1.7px') };
