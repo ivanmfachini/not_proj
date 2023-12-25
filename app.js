@@ -116,6 +116,7 @@ function deleteFromTables(){
 deleteFromTables();
 
 async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj = false, in_demo_obj = false){
+    console.log('>>> FUNCTION registerUser(', in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj,')');
     let new_id, result_ct;
     try{
         new_id = await db.query(

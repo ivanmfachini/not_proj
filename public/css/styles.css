@@ -243,6 +243,21 @@ p:hover{
     margin-top: 5px;
 }
 
+#oauth_google_btn{
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    font-family: 'Jost', sans-serif;
+    background-color: lightgray;
+    min-height: 40px;
+    border: none;
+    margin-top: 12px;
+    color: darkred;
+    min-height: 40px;
+    padding-right: 30px;
+}
+
 .btn-hover {
     border: none;
     background-size: 300% 100%;

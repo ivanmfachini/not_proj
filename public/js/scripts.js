@@ -662,7 +662,6 @@
         setTimeout(() => {
             if (sender){ contextMenuAddedNote(in_event, in_obj) }
         }, 800)
-
     };
     let added_notes_arr = document.getElementsByClassName('added_note');
     for (let i = 0; i < added_notes_arr.length; i++){

@@ -34,9 +34,9 @@ if($("#red_login-form").length){
     lat = -27.59;
     lon = -48.45;
     navigator.geolocation.getCurrentPosition(position => {
-        lat = parseFloat((position.coords.latitude).toFixed(2));
+        lat = parseFloat((position.coords.latitude ).toFixed(2));
         lon = parseFloat((position.coords.longitude).toFixed(2)); console.log(lat, lon);
-    });
+    })
 };
 
 let new_date;
@@ -112,15 +112,15 @@ function login(in_obj = false){
             new_date = new Date();
             $("#login-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
                 JSON.stringify({
-                    'YYYY-MM-DD' : YYYYMMDD(new_date),
-                    'local_hour': new_date.getHours(),
-                    'UTC_hour': new_date.getUTCHours(),
-                    'timestamp': new_date.getTime(),
-                    'lat':lat,
-                    'lon':lon,
-                    'tmz_iana': tmz_iana,
-                    'hour_offset': hour_offset,
-                    'tmz_suffix': tmz_suffix
+                    'YYYY-MM-DD':   YYYYMMDD(new_date),
+                    'local_hour':   new_date.getHours(),
+                    'UTC_hour':     new_date.getUTCHours(),
+                    'timestamp':    new_date.getTime(),
+                    'lat':          lat,
+                    'lon':          lon,
+                    'tmz_iana':     tmz_iana,
+                    'hour_offset':  hour_offset,
+                    'tmz_suffix':   tmz_suffix
                 })
             ) + "'/>");
             $("#login-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
@@ -239,15 +239,15 @@ $("#register").on('click', function(){
         new_date = new Date();
         $("#register-form").append("<input hidden type='text' name='time_place_obj_str' value='" + (
             JSON.stringify({
-                'YYYY-MM-DD' : YYYYMMDD(new_date),
-                'local_hour': new_date.getHours(),
-                'UTC_hour': new_date.getUTCHours(),
-                'timestamp': new_date.getTime(),
-                'lat':lat,
-                'lon':lon,
-                'tmz_iana': tmz_iana,
-                'hour_offset': hour_offset,
-                'tmz_suffix': tmz_suffix
+                'YYYY-MM-DD' :  YYYYMMDD(new_date),
+                'local_hour':   new_date.getHours(),
+                'UTC_hour':     new_date.getUTCHours(),
+                'timestamp':    new_date.getTime(),
+                'lat':          lat,
+                'lon':          lon,
+                'tmz_iana':     tmz_iana,
+                'hour_offset':  hour_offset,
+                'tmz_suffix':   tmz_suffix
             })
         ) + "'/>");
         $("#register-form").append("<input hidden type='text' name='cred_arr_str' value='" + (
@@ -255,13 +255,10 @@ $("#register").on('click', function(){
         ) + "'/>");
         $("#register-form").append("<input hidden type='text' name='first_name' value='" + $("#realname").val() + "'/>");
         document.getElementById("register-form").submit();
-    } else{ return
-    }
+    } else{ return }
 });
 
-$("#lost_access").on('click', function(){
-
-});
+$("#lost_access").on('click', function(){});
 
 $("#demo").on('mousedown', () =>{
     $(this).css('background-position','100% 0');
@@ -274,15 +271,15 @@ $("#demo").on('mousedown', () =>{
     $("#demo-form").append("<input hidden type='text' name='password' value='pw_demo'/>");
     setTimeout(() => {
         const time_place_obj_str = JSON.stringify({
-            'YYYY-MM-DD' : YYYYMMDD(new_date),
-            'local_hour': new_date.getHours(),
-            'UTC_hour': new_date.getUTCHours(),
-            'timestamp': new_date.getTime(),
-            'lat':lat,
-            'lon':lon,
-            'tmz_iana': tmz_iana,
-            'hour_offset': hour_offset,
-            'tmz_suffix': tmz_suffix
+            'YYYY-MM-DD':   YYYYMMDD(new_date),
+            'local_hour':   new_date.getHours(),
+            'UTC_hour':     new_date.getUTCHours(),
+            'timestamp':    new_date.getTime(),
+            'lat':          lat,
+            'lon':          lon,
+            'tmz_iana':     tmz_iana,
+            'hour_offset':  hour_offset,
+            'tmz_suffix':   tmz_suffix
         });
         $("#demo-form").append("<input hidden type='text' name='time_place_obj_str' value='" + time_place_obj_str + "'/>");
         document.getElementById("demo-form").submit()        
