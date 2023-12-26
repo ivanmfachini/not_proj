@@ -978,11 +978,11 @@
         });
         $('#delete_project_button').on('click', function(){
             if (in_number < context_menu_project_clicks){ return };
-            $('#confirm_project_deletion').css({'top' : `${window.scrollY + (window.innerHeight/3)}px`});
-            $('#confirm_project_deletion').css({'left' : 0});
+            $($('.confirm_deletion_box')[0]).css({'top' : `${window.scrollY + (window.innerHeight/3)}px`});
+            $($('.confirm_deletion_box')[0]).css({'left' : 0});
             $($('.shade_project_box')[1]).css('visibility', 'visible');
             $('#new_project_box').css('visibility', 'hidden');
-            $('#confirm_project_deletion').css('visibility', 'visible');
+            $('.confirm_deletion_box').css('visibility', 'visible');
         });
         
         let project_index;
@@ -1026,7 +1026,7 @@
         });
         $('#cancel_deletion_button').on('click', function(){
             $('.shade_project_box').css('visibility', 'hidden');
-            $('#confirm_project_deletion').css('visibility', 'hidden')            
+            $('.confirm_deletion_box').css('visibility', 'hidden')            
         });
     };
 
@@ -1467,10 +1467,10 @@
     });
 
     $('#delete_acc').on('click', function(){
-        $('#confirm_acc_deletion').css({'top' : `${window.scrollY + (window.innerHeight/3)}px`});
-        $('#confirm_acc_deletion').css({'left' : 0});
+        $($('.confirm_deletion_box')[1]).css({'top' : `${window.scrollY + (window.innerHeight/3)}px`});
+        $($('.confirm_deletion_box')[1]).css({'left' : 0});
         $($('.shade_project_box')[2]).css('visibility', 'visible');
-        $('#confirm_acc_deletion').css('visibility', 'visible');
+        $($('.confirm_deletion_box')[1]).css('visibility', 'visible');
         $('#confirm_deletion_button_acc').on('click', function(){            
             let param = "<input hidden type='text' name='delete_acc' value=1/>";
             $("#form-project").append(param);
@@ -1478,7 +1478,7 @@
         });
         $('#cancel_deletion_button_acc').on('click', function(){
             $('.shade_project_box').css('visibility', 'hidden');
-            $('#confirm_acc_deletion').css('visibility', 'hidden');
+            $('.confirm_deletion_box').css('visibility', 'hidden');
             return
         });
     });
