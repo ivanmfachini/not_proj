@@ -758,7 +758,7 @@ p{
     z-index: 7;
 }
 
-#confirm_project_deletion{    
+.confirm_deletion_box{    
     position: sticky;
     left: 0;
     top: 0;
