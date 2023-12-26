@@ -119,9 +119,7 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
     console.log('>>> FUNCTION registerUser(', in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj,')');
     let new_id, result_ct;
     try{
-        new_id = await db.query(
-            'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
-        )
+        new_id = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash])
     } catch(err){
         console.log('ERROR while trying to query INSERT INTO credential. Calling createTables...:', err.message);
         result_ct = await createTables();
@@ -325,7 +323,7 @@ passport.use(new LocalStrategy(
                 await writeLog('ERROR in db.query in LocalStrategy:'+err.message,username,true);
                 return done(err)
             } else {
-                if (!user || !user.length || user.length == 0) { console.log('no user found in localStrategy'); return done(null, false) };
+                if (!user) { console.log('no user found in localStrategy'); return done(null, false) };
                 let result_l;
                 let user_found = user.rows[0];
                 try{
