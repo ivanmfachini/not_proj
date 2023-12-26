@@ -1068,8 +1068,7 @@ async function removeTaskArr(req_body, projects){
 
 async function deleteProject(req_body, projects){
     const proj_index = JSON.parse(req_body.delete_project);
-    try{ delete (projects[proj_index]) }
-    catch(err){ console.log('ERROR in deleteProject:', err.message); return false }
+    projects.splice(proj_index,1);
     return JSON.stringify(projects)
 };
 
@@ -1409,50 +1408,50 @@ app.post('/home', async function (req,res){
         //////////////////////////// PROJECTS
 
         if (req.body.new_project_title){
-            const result = await newProjectTitle(req.body, JSON.parse(user_data['projects']));
+            let result = await newProjectTitle(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.project_task_arr){
-            const result = await projectTaskArr(req.body, JSON.parse(user_data['projects']));
+            let result = await projectTaskArr(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.mark_done_todo){
-            const result = await markDoneTodo(req.body, JSON.parse(user_data['projects']));
+            let result = await markDoneTodo(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.project_title_and_deadline_arr){
-            const result = await projectTitleAndDeadlineArr(req.body, JSON.parse(user_data['projects']));
+            let result = await projectTitleAndDeadlineArr(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.edit_obs_arr){
-            const result = await editObsArr(req.body, JSON.parse(user_data['projects']));
+            let result = await editObsArr(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
     
         if(req.body.remove_task_arr){
-            const result = await removeTaskArr(req.body, JSON.parse(user_data['projects']));
+            let result = await removeTaskArr(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
 
         if(req.body.delete_project){
-            const result = await deleteProject(req.body, JSON.parse(user_data['projects']));
+            let result = await deleteProject(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
 
         if(req.body.acc_changes){
             const this_arr = checkMultipleReq(req.body.acc_changes);
-            const result = await callVerifyPassword(this_arr[6], user_id);
+            let result = await callVerifyPassword(this_arr[6], user_id);
             if (result){ await changePersonalInfo(this_arr, user_id) };
             return res.redirect(`/home/${username}`)
         };
