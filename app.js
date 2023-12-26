@@ -1066,6 +1066,13 @@ async function removeTaskArr(req_body, projects){
     return JSON.stringify(projects)
 };
 
+async function deleteProject(req_body, projects){
+    const proj_index = JSON.parse(req_body.delete_project);
+    try{ delete (projects[proj_index]) }
+    catch(err){ console.log('ERROR in deleteProject:', err.message); return false }
+    return JSON.stringify(projects)
+};
+
 async function callVerifyPassword(in_pw, user_id){
     let this_user;
     return new Promise((resolve, reject)=>{
@@ -1433,6 +1440,12 @@ app.post('/home', async function (req,res){
     
         if(req.body.remove_task_arr){
             const result = await removeTaskArr(req.body, JSON.parse(user_data['projects']));
+            if (result){ await waitForWeatherUpdate(0, result, 'projects') };
+            return res.redirect(`/home/${username}`)
+        };
+
+        if(req.body.delete_project){
+            const result = await deleteProject(req.body, JSON.parse(user_data['projects']));
             if (result){ await waitForWeatherUpdate(0, result, 'projects') };
             return res.redirect(`/home/${username}`)
         };
