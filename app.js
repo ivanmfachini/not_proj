@@ -1457,6 +1457,7 @@ app.post('/home', async function (req,res){
         };
 
         if(req.body.delete_acc){
+            req.session.destroy();
             try{
                 await db.query("DELETE FROM credential WHERE id = $1;",[user_id], async (err,result)=>{
                     if (err){ console.log('ERROR while DELETE FROM credential:', err.message) }
