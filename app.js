@@ -72,18 +72,6 @@ async function writeLog(in_message, in_id, is_error = true){
     }
 };
 
-async function verifyPassword(in_password, in_hash){
-    return new Promise((resolve, reject) =>{
-        bcrypt.compare(in_password, in_hash, async function(err, result) {
-            if (err){ console.log('ERROR in bcrypt.compare in verifyPassword():', err.message);
-                await writeLog('ERROR in bcrypt.compare in verifyPassword():'+err.message,0,true);
-                resolve(false)
-            } else if (result){ resolve(true) }
-            else { resolve(false) }
-        });
-    })
-};
-
 passport.serializeUser(function(user, done) {
     done(null, user.id);
 });
@@ -96,6 +84,123 @@ passport.deserializeUser(async function(id, done) {
         done(err, (user.rows[0]));
     });
 });
+
+passport.use(new GoogleStrategy({
+    clientID: process.env.G_AUTH_CLIENT_ID,
+    clientSecret: process.env.G_AUTH_CLIENT_SECRET,
+    callbackURL: "https://ivanmfac.onrender.com/oauth_google",
+    scope: [ 'profile' ],
+    state: true
+    },
+    async function verify(accessToken, refreshToken, profile, cb) {
+        console.log('############################## profile:'); console.log(profile);
+        let sel_fed;
+        let this_suffix = (Date.now()-1703000000000).toString(16);
+        try{
+            await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
+            ['https://accounts.google.com', profile.id], async function(err, sel_fed_res) {
+                if (err) {
+                    console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
+                    return cb(err)
+                };
+                sel_fed = sel_fed_res;
+                console.log('############################## sel_fed:'); console.log(sel_fed);
+                if (!sel_fed || !sel_fed.rows || !sel_fed.rows.length) {
+                    // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
+                    let this_username = profile.name.givenName+"_NP_"+this_suffix;
+                    bcrypt.hash( ( (this_suffix)+(process.env.PEP) ), saltRounds, async function(err_hash, hash) {
+                        if(err_hash){
+                            console.log('ERROR in bcrypt.hash in verify from google strategy:', err_hash.message);
+                            await writeLog('ERROR in bcrypt.hash in verify from google strategy:'+err_hash.message, 0, true);
+                            return cb(err_hash)
+                        } else{
+                            let this_id = await registerUser(this_username, hash, (profile.name.givenName));
+                            console.log('>>>>>>>>>>>>>>>>>>>>>> this_id is:', this_id)
+                            await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
+                            [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
+                                if (err3) {
+                                    console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
+                                    return cb(err3)
+                                };
+                                console.log('############################ fed_result:');
+                                console.log(fed_result);
+                                g_user = {
+                                    id: this_id,
+                                    name: profile.name.givenName+"_NP"
+                                };
+                                console.log('############################ g_user:');
+                                console.log(g_user);
+                                return cb(null, g_user)
+                            })
+                        }
+                    });
+                    /* await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
+                    [this_username,'google_oauth'], async function(err2, id_result) {
+                        if (err2) {
+                            console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
+                            return cb(err2)
+                        };
+                        console.log('############################## id_result is:'); console.log(id_result);
+                        let this_id = id_result.rows[0].id;
+                        console.log('############################## this_id is:'); console.log(this_id); */
+                    //});
+                } else{
+                    // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
+                    await db.query('SELECT * FROM credential WHERE id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
+                        if (err) {
+                            console.log('ERROR while SELECT * FROM credential in verify using google auth:', err.message);
+                            return cb(err)
+                        } else if (!user) {
+                            console.log('USER NOT FOUND in SELECT * FROM credential in verify using google auth:', err.message);
+                            return cb(null, false)
+                        };
+                        return cb(null, user)
+                    })
+                }
+            })
+        } catch (err){
+            console.log('ERROR (2) while SELECT * FROM federated_credentials in verify using google auth:', err.message);
+            return cb(err)
+        };
+    }
+));
+
+async function verifyPassword(in_password, in_hash){
+    return new Promise((resolve, reject) =>{
+        bcrypt.compare(in_password, in_hash, async function(err, result) {
+            if (err){ console.log('ERROR in bcrypt.compare in verifyPassword():', err.message);
+                await writeLog('ERROR in bcrypt.compare in verifyPassword():'+err.message,0,true);
+                resolve(false)
+            } else if (result){ resolve(true) }
+            else { resolve(false) }
+        })
+    })
+};
+
+passport.use(new LocalStrategy(
+    async function(username, password, done) {
+        //User.findOne({ username: username }, function (err, user) {
+        await db.query('SELECT * FROM credential WHERE username = ($1)', [username], async function (err,user){
+            if (err) { console.log('ERROR in db.query in LocalStrategy:', err.message);
+                await writeLog('ERROR in db.query in LocalStrategy:'+err.message,username,true);
+                return done(err)
+            } else {
+                if (!user) { console.log('no user found in localStrategy'); return done(null, false) };
+                let result_l;
+                let user_found = user.rows[0];
+                try{
+                    console.log(user_found);
+                    result_l = await verifyPassword( (password + (process.env.PEP)), user_found['password'] );
+                } catch(err2){
+                    console.log('ERROR while verifyPassword() in localStrategy:', err2.message)
+                }finally{
+                    if (result_l) { console.log('result_l was true'); return done(null, user_found) }
+                    else{ console.log('result_l was false'); return done(null, false) }
+                }
+            }
+        })
+    }
+));
 
 function createFedCred(){
     try{
@@ -234,111 +339,6 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
         return ((new_id.rows[0]).id)
     }
 };
-
-passport.use(new GoogleStrategy({
-    clientID: process.env.G_AUTH_CLIENT_ID,
-    clientSecret: process.env.G_AUTH_CLIENT_SECRET,
-    callbackURL: "https://ivanmfac.onrender.com/oauth_google",
-    scope: [ 'profile' ],
-    state: true
-    },
-    async function verify(accessToken, refreshToken, profile, cb) {
-        console.log('############################## profile:'); console.log(profile);
-        let sel_fed;
-        let this_suffix = (Date.now()-1703000000000).toString(16);
-        try{
-            await db.query('SELECT * FROM federated_credentials WHERE (provider, subject) = ($1,$2)',
-            ['https://accounts.google.com', profile.id], async function(err, sel_fed_res) {
-                if (err) {
-                    console.log('ERROR while SELECT * FROM federated_credentials in verify using google auth:', err.message);
-                    return cb(err)
-                };
-                sel_fed = sel_fed_res;
-                console.log('############################## sel_fed:'); console.log(sel_fed);
-                if (!sel_fed || !sel_fed.rows || !sel_fed.rows.length) {
-                    // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
-                    let this_username = profile.name.givenName+"_NP_"+this_suffix;
-                    bcrypt.hash( ( (this_suffix)+(process.env.PEP) ), saltRounds, async function(err_hash, hash) {
-                        if(err_hash){
-                            console.log('ERROR in bcrypt.hash in verify from google strategy:', err_hash.message);
-                            await writeLog('ERROR in bcrypt.hash in verify from google strategy:'+err_hash.message, 0, true);
-                            return cb(err_hash)
-                        } else{
-                            let this_id = await registerUser(this_username, hash, (profile.name.givenName));
-                            console.log('>>>>>>>>>>>>>>>>>>>>>> this_id is:', this_id)
-                            await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
-                            [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
-                                if (err3) {
-                                    console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
-                                    return cb(err3)
-                                };
-                                console.log('############################ fed_result:');
-                                console.log(fed_result);
-                                g_user = {
-                                    id: this_id,
-                                    name: profile.name.givenName+"_NP"
-                                };
-                                console.log('############################ g_user:');
-                                console.log(g_user);
-                                return cb(null, g_user)
-                            })
-                        }
-                    });
-                    /* await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
-                    [this_username,'google_oauth'], async function(err2, id_result) {
-                        if (err2) {
-                            console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
-                            return cb(err2)
-                        };
-                        console.log('############################## id_result is:'); console.log(id_result);
-                        let this_id = id_result.rows[0].id;
-                        console.log('############################## this_id is:'); console.log(this_id); */
-                    //});
-                } else{
-                    // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
-                    await db.query('SELECT * FROM credential WHERE id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
-                        if (err) {
-                            console.log('ERROR while SELECT * FROM credential in verify using google auth:', err.message);
-                            return cb(err)
-                        } else if (!user) {
-                            console.log('USER NOT FOUND in SELECT * FROM credential in verify using google auth:', err.message);
-                            return cb(null, false)
-                        };
-                        return cb(null, user)
-                    })
-                }
-            })
-        } catch (err){
-            console.log('ERROR (2) while SELECT * FROM federated_credentials in verify using google auth:', err.message);
-            return cb(err)
-        };
-    }
-));
-
-passport.use(new LocalStrategy(
-    async function(username, password, done) {
-        //User.findOne({ username: username }, function (err, user) {
-        await db.query('SELECT * FROM credential WHERE username = ($1)', [username], async function (err,user){
-            if (err) { console.log('ERROR in db.query in LocalStrategy:', err.message);
-                await writeLog('ERROR in db.query in LocalStrategy:'+err.message,username,true);
-                return done(err)
-            } else {
-                if (!user) { console.log('no user found in localStrategy'); return done(null, false) };
-                let result_l;
-                let user_found = user.rows[0];
-                try{
-                    console.log(user_found);
-                    result_l = await verifyPassword( (password + (process.env.PEP)), user_found['password'] );
-                } catch(err2){
-                    console.log('ERROR while verifyPassword() in localStrategy:', err2.message)
-                }finally{
-                    if (result_l) { console.log('result_l was true'); return done(null, user_found) }
-                    else{ console.log('result_l was false'); return done(null, false) }
-                }
-            }
-        });
-    }
-));
 
 const dayModule = require(__dirname + "/dayModule.js");
 const weatherModule = require(__dirname + "/weatherModule.js");
