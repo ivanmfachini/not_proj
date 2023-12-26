@@ -1448,14 +1448,14 @@ app.post('/home', async function (req,res){
 
         if(req.body.delete_acc){
             try{
-                await db.query("DELETE FROM credential WHERE id = $1",[user_id], async (err,result)=>{
+                await db.query("DELETE FROM credential WHERE id = $1;",[user_id], async (err,result)=>{
                     if (err){ console.log('ERROR while DELETE FROM credential:', err.message) }
                     else{ console.log('USER DELETED. result.rowCount is:', result.rowCount) }
                 })
             } catch (err2){ console.log(err2.message) };
             try{
-                await db.query("DELETE FROM federated_credentials WHERE user_id = $1",[user_id], async (err3,result2)=>{
-                    if (err){ console.log('ERROR while DELETE FROM credential:', err3.message) }
+                await db.query("DELETE FROM federated_credentials WHERE user_id = $1;",[user_id], async (err3,result2)=>{
+                    if (err3){ console.log('ERROR while DELETE FROM credential:', err3.message) }
                     else{ console.log('USER DELETED. result.rowCount is:', result2.rowCount) }
                 })
             } catch(err4){ console.log(err4.message) };
