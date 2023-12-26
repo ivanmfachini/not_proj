@@ -108,7 +108,7 @@ function createFedCred(){
 
 function deleteFromTables(){
     try{
-        db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential");
+        db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential;");
     } catch(err){
         console.log('ERROR while deleting from tables:', err.message)
     }
@@ -325,7 +325,7 @@ passport.use(new LocalStrategy(
                 await writeLog('ERROR in db.query in LocalStrategy:'+err.message,username,true);
                 return done(err)
             } else {
-                if (!user) { console.log('no user found in localStrategy'); return done(null, false) };
+                if (!user || !user.length || user.length == 0) { console.log('no user found in localStrategy'); return done(null, false) };
                 let result_l;
                 let user_found = user.rows[0];
                 try{
@@ -1487,8 +1487,10 @@ app.post('/login',
 );
 
 app.post('/register', (req, res) => {
+    console.log('POST /register');
     const cred_arr = JSON.parse(req.body.cred_arr_str);
-    if (cred_arr[0].length > 4 && cred_arr[0].slice(0,5).toLowerCase() == "guest" && cred_arr[1] != "pw_demo"){ return res.redirect('/user_unavailable')}
+    console.log(cred_arr);
+    if (cred_arr[0].length > 4 && cred_arr[0].slice(0,5).toLowerCase() == "guest" && cred_arr[1] != "pw_demo"){ return res.redirect('/user_unavailable') }
     const time_place_obj = JSON.parse(req.body.time_place_obj_str);
     const first_name = req.body.first_name;
     bcrypt.hash( ( (cred_arr[1])+(process.env.PEP) ), saltRounds, async function(err, hash) {
@@ -1498,6 +1500,7 @@ app.post('/register', (req, res) => {
             res.redirect('/registration_failed_A')
         } else {
             try{
+                console.log('bcrypt.hash OK, hash is:', hash);
                 await registerUser( cred_arr[0], hash, first_name, time_place_obj );
                 res.redirect('registration_successfull')
             } catch (err){
