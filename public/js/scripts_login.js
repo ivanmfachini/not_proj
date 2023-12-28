@@ -3,6 +3,8 @@
 $('.auxiliar_note').hide();
 $("#realname").hide();
 $("#password-confirm").hide();
+$("#privacy_policy_warning").hide();
+
 
 let hour_offset, tmz_suffix, tmz_iana, lat, lon;
 
@@ -162,6 +164,7 @@ let click_time = 0;
 $("#register").on('click', function(){
     $("#realname").show(60);
     $("#password-confirm").show(60);
+    $("#privacy_policy_warning").show(60);
     click_time += 1;
     let checker = 0;
     if ($("#username").val() == "" && click_time > 1){
