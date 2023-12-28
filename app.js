@@ -1472,7 +1472,6 @@ app.post('/home', async function (req,res){
             } catch(err4){ console.log(err4.message) };
             return res.redirect('/login');
         };
-
         setTimeout(()=>{
             return res.redirect(`/home/${username}`)
         },3500)
