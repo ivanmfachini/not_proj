@@ -1676,6 +1676,9 @@ app.post('/demonstration', async (req, res)=>{
     });
 });
 
+app.get('/privacy_policy', (req, res) => {
+    res.render('privacy_policy')
+});
 app.get('/registration_successfull', (req, res) => {
     res.render('reg_successfull')
 });

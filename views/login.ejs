@@ -28,8 +28,10 @@
               <input type="text" name="realname" id="realname" placeholder="your first name" autocomplete="off" maxlength="20" required>
               <input type="password" name="password" id="password" placeholder="password" maxlength="50" required>
               <input type="password" name="password-confirm" id="password-confirm" placeholder="confirm password" autocomplete="off" required>
-              <input type="radio" id="policy_accept" name="policy_accept" value=1 required/>
-                <label for="policy_accept">I have read and accept the <a href="/Notes_Projects_v2/views/privacy_policy.ejs">Privacy Policy</a></label>
+              <div style="display: flex; flex-direction: column; width: 100%;">
+                <input type="radio" id="policy_accept" name="policy_accept" value=1 required/>
+                  <label for="policy_accept">I have read and accept the <a href="/privacy_policy">Privacy Policy</a></label>
+              </div>
               <div class="row-buttons">
                 <button type="button" name="login" id="login">Login</button>
                 <button type="button" form="register-form" name="register" id="register">Register</button>
