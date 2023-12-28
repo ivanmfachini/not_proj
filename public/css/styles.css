@@ -1173,6 +1173,13 @@ input {
     background-color: rgb(5,5,5);
 }
 
+.download_policy{
+    width: 90%;
+    max-width: 500px;
+    min-width: 150px;
+    height: 40px;
+    margin-top: 20px;
+}
 
 
 /* >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
