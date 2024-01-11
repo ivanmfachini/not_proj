@@ -5,14 +5,13 @@ $("#realname").hide();
 $("#password-confirm").hide();
 $("#privacy_policy_warning").hide();
 
-
 let hour_offset, tmz_suffix, tmz_iana, lat, lon;
 
 if($("#red_login-form").length){
     setTimeout(() => {
         document.getElementById('red_login-form').submit()
     }, 2800);
-} else{
+} else if ($("#username").length){
     hour_offset = parseInt(((new Date()).getTimezoneOffset())/60); console.log(hour_offset);
     tmz_suffix = "T00:00:00.000";
     if (hour_offset > -1){
