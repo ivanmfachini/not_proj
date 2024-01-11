@@ -355,4 +355,15 @@ $("#pw_change").on('click',function(){
     }
 });
 
+$("#oauth_google_btn").on('mouseenter',(e)=>{
+    $("#test_version").hide();
+    const btn_position = $(e.target).offset();
+    $("#test_version").css('top', `${btn_position.top}px`);
+    $("#test_version").css('left', `${btn_position.left+200}px`);
+    $("#test_version").show(60);
+    setTimeout(() => {
+        $("#test_version").hide(60);
+    }, 2000)
+})
+
 });

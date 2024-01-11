@@ -12,7 +12,7 @@ const pgSession = require("connect-pg-simple")(session);
 const fsPromises = require("fs").promises;
 const path = require("path");
 const { error } = require('console');
-var GoogleStrategy = require('passport-google-oauth20').Strategy;
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
 
@@ -93,7 +93,6 @@ passport.use(new GoogleStrategy({
     state: true
     },
     async function verify(accessToken, refreshToken, profile, cb) {
-        console.log('############################## profile:'); console.log(profile);
         let sel_fed;
         let this_suffix = (Date.now()-1703000000000).toString(16);
         try{
@@ -104,7 +103,6 @@ passport.use(new GoogleStrategy({
                     return cb(err)
                 };
                 sel_fed = sel_fed_res;
-                console.log('############################## sel_fed:'); console.log(sel_fed);
                 if (!sel_fed || !sel_fed.rows || !sel_fed.rows.length) {
                     // The account at Google has not logged in to this app before.  Create a new user record and associate it with the Google account.
                     let this_username = profile.name.givenName+"_NP_"+this_suffix;
@@ -115,35 +113,20 @@ passport.use(new GoogleStrategy({
                             return cb(err_hash)
                         } else{
                             let this_id = await registerUser(this_username, hash, (profile.name.givenName));
-                            console.log('>>>>>>>>>>>>>>>>>>>>>> this_id is:', this_id)
                             await db.query('INSERT INTO federated_credentials (user_id, provider, subject) VALUES ($1,$2,$3) RETURNING *;',
                             [this_id, 'https://accounts.google.com', profile.id ], function(err3, fed_result) {
                                 if (err3) {
                                     console.log('ERROR while INSERT INTO federated_credentials in verify using google auth:', err3.message);
                                     return cb(err3)
                                 };
-                                console.log('############################ fed_result:');
-                                console.log(fed_result);
                                 g_user = {
                                     id: this_id,
                                     name: profile.name.givenName+"_NP"
                                 };
-                                console.log('############################ g_user:');
-                                console.log(g_user);
                                 return cb(null, g_user)
                             })
                         }
                     });
-                    /* await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;',
-                    [this_username,'google_oauth'], async function(err2, id_result) {
-                        if (err2) {
-                            console.log('ERROR while INSERT INTO credential in verify using google auth:', err2.message);
-                            return cb(err2)
-                        };
-                        console.log('############################## id_result is:'); console.log(id_result);
-                        let this_id = id_result.rows[0].id;
-                        console.log('############################## this_id is:'); console.log(this_id); */
-                    //});
                 } else{
                     // The account at Google has previously logged in to the app.  Get the user record associated with the Google account and log the user in.
                     await db.query('SELECT * FROM credential WHERE id = $1', [ sel_fed.rows[0].user_id ], function(err, user) {
