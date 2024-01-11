@@ -1,0 +1,3 @@
+## Notes & Projects
+
+The application allows the user to organize...
