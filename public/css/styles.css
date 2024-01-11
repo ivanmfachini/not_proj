@@ -148,7 +148,13 @@ a{
     justify-content: space-between;
 }
 
-#box-1 h5{
+.login-box-2 h5{
+    padding: 5px 0 16px 5%;
+    margin: 0;
+    color: rgb(240,240,206);
+}
+
+#box-2 h5{
     padding: 5px 0 16px 5%;
     margin: 0;
     color: rgb(240,240,206);
