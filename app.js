@@ -1668,6 +1668,9 @@ app.get('/politica_de_privacidade', (req, res) => {
 app.get('/certificates', (req, res) => {
     res.render('certificates')
 });
+app.get('/cv', (req, res) => {
+    res.render('cv')
+});
 app.get('/registration_successfull', (req, res) => {
     res.render('reg_successfull')
 });
