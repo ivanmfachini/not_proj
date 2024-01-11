@@ -1665,6 +1665,9 @@ app.get('/privacy_policy', (req, res) => {
 app.get('/politica_de_privacidade', (req, res) => {
     res.render('politica_de_privacidade')
 });
+app.get('/certificates', (req, res) => {
+    res.render('certificates')
+});
 app.get('/registration_successfull', (req, res) => {
     res.render('reg_successfull')
 });
