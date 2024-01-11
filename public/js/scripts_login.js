@@ -363,7 +363,7 @@ $("#oauth_google_btn").on('mouseenter',(e)=>{
     $("#test_version").show(60);
     setTimeout(() => {
         $("#test_version").hide(60);
-    }, 2000)
+    }, 4000)
 })
 
 });
