@@ -137,6 +137,10 @@ p:hover{
     text-decoration: none;
 }
 
+a{
+    text-decoration: none;
+}
+
 .login_buttons{
     display: flex;
     flex-flow: column;
