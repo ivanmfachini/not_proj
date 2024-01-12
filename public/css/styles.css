@@ -265,7 +265,7 @@ a{
     margin-top: 12px;
     color: darkred;
     min-height: 40px;
-    padding-right: 30px;
+    border-radius: 5px;
 }
 
 .btn-hover {
