@@ -1191,6 +1191,35 @@ input {
     margin-top: 20px;
 }
 
+#presentation-box{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+#pres-box1{
+    transform: translateX(-40px);
+    display: flex;
+}
+
+#pres-box1 h5{
+    padding: 0;
+    margin: 0 10px 0 0;
+}
+
+#pres-box2{
+    transform: translateX(30px);
+    display: flex;
+}
+
+#pres-box2 h5{
+    padding: 0;
+    margin: 0 10px 0 0;
+}
+
+
+
 /* >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
    >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
    >>>>>>>>>>>>>>>>>>>>>>> MEDIA QUERIES <<<<<<<<<<<<<<<<<<<<<<<<<<<
