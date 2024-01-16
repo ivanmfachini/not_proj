@@ -198,7 +198,8 @@ function deleteFromTables(){
     try{
         db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential;",
         (err,result)=>{
-            console.log(result);
+            if(err){console.log(err.message);}
+            else{console.log(result)};
         });
     } catch(err){
         console.log('ERROR while deleting from tables:', err.message)
