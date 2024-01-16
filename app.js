@@ -11,7 +11,7 @@ const LocalStrategy = require('passport-local');
 const pgSession = require("connect-pg-simple")(session);
 const fsPromises = require("fs").promises;
 const path = require("path");
-const { error } = require('console');
+const { error, log } = require('console');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 
 const app = express();
@@ -196,7 +196,11 @@ function createFedCred(){
 
 function deleteFromTables(){
     try{
-        db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential;");
+        db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential;",
+        (err,result)=>{
+            if(err){console.log(err.message)}
+            else{console.log(result)}
+        });
     } catch(err){
         console.log('ERROR while deleting from tables:', err.message)
     }
