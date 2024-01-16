@@ -198,18 +198,17 @@ function deleteFromTables(){
     try{
         db.query("DELETE FROM federated_credentials; DELETE FROM session; DELETE FROM work_data; DELETE FROM account; DELETE FROM credential;",
         (err,result)=>{
-            if(err){console.log(err.message)}
-            else{console.log(result)}
+            console.log(result);
         });
     } catch(err){
         console.log('ERROR while deleting from tables:', err.message)
     }
 };
-deleteFromTables();
 
 async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj = false, in_demo_obj = false){
     console.log('>>> FUNCTION registerUser(', in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj,')');
     let new_id, result_ct;
+    deleteFromTables();
     try{
         new_id = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash])
     } catch(err){
