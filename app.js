@@ -206,10 +206,13 @@ function deleteFromTables(){
     }
 };
 
+const test_result = await db.query("SELECT * FROM credential");
+console.log('>>>>>>>>> HERE IS TEST RESULT!');
+console.log(test_result);
+
 async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj = false, in_demo_obj = false){
     console.log('>>> FUNCTION registerUser(', in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj,')');
     let new_id, result_ct;
-    deleteFromTables();
     try{
         new_id = await db.query('INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash])
     } catch(err){
