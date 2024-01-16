@@ -22,7 +22,7 @@ app.use(bodyParser.urlencoded({ extended: true } ));
 
 app.use(session({
     store: new pgSession({
-        conString: `postgres://imanastronaut:${process.env.PG_PW}@${process.env.HOSTNAME}/${process.env.PG_DB}`
+        conString: `postgres://ivanmfachini:${process.env.PG_PW}@${process.env.HOSTNAME}/${process.env.PG_DB}`
     }),
     secret: process.env.SESSION_SEC,
     resave: false,
@@ -36,7 +36,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 const db = new pg.Client({
-    user: "imanastronaut",
+    user: "ivanmfachini",
     host: process.env.HOSTNAME,
     database: process.env.PG_DB,
     password: process.env.PG_PW,
