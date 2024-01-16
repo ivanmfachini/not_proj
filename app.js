@@ -172,6 +172,7 @@ passport.use(new LocalStrategy(
                 let result_l;
                 let user_found = user.rows[0];
                 try{
+                    console.log(">>>>>>> USER_FOUND:")
                     console.log(user_found);
                     result_l = await verifyPassword( (password + (process.env.PEP)), user_found['password'] );
                 } catch(err2){
@@ -206,9 +207,11 @@ function deleteFromTables(){
     }
 };
 
-const test_result = await db.query("SELECT * FROM credential");
-console.log('>>>>>>>>> HERE IS TEST RESULT!');
-console.log(test_result);
+async function checkTables(){
+    const test_result = await db.query("SELECT * FROM credential");
+    console.log('>>>>>>>>> HERE IS TEST RESULT!');
+    console.log(test_result.result);
+};
 
 async function registerUser(in_username, in_hash, in_first_name, in_time_place_obj = false, in_demo_obj = false){
     console.log('>>> FUNCTION registerUser(', in_username, in_hash, in_first_name, in_time_place_obj, in_demo_obj,')');
@@ -221,6 +224,7 @@ async function registerUser(in_username, in_hash, in_first_name, in_time_place_o
         if (result_ct){ console.log('successfully created tables') }
         else{ console.log('failed creating tables') }
     } finally{
+        await checkTables();
         if(result_ct){
             new_id = await db.query(
                 'INSERT INTO credential(username, password) VALUES ($1,$2) RETURNING id;', [in_username, in_hash]
